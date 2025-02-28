@@ -2,6 +2,9 @@
 
 
 Technologies:
-Database: PostgreSQL
-Backend: Python
-Frontend: ReactJS
+
+    Database: PostgreSQL
+    
+    Backend: Python
+    
+    Frontend: ReactJS
