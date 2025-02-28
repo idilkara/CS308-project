@@ -17,6 +17,7 @@ Technologies:
 
     
     command to use the cli:
+    
         docker exec -it ecommerce-container psql -U admin -d ecommerce
 
     
