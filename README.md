@@ -5,7 +5,7 @@ Technologies:
 
     Database: PostgreSQL
 
-    To build and run the container : 
+    To build and run the container (cd to the db folder): 
 
         docker build -t ecommerce-db .
 
