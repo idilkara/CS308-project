@@ -3,15 +3,17 @@ import "./HomePage.css";
 import './styles/root.css';
 import leftArrow from "./img/left-arrow.png";
 import rightArrow from "./img/right-arrow.png";
+import image from "./img/image.png";
+import Navbar from "./components/Navbar"; 
+
 
 const HomePage = () => {
   const banners = [
-    { id: 1, text: "Banner 1", },
+    { id: 1, text: "Banner 1", image: image   },
     { id: 2, text: "Banner 2", },
     { id: 3, text: "Banner 3" }
   ];
 
-  // Sample data 
   const products = [
     { id: 1, name: "Book 1", image: "https://via.placeholder.com/150" },
     { id: 2, name: "Book 2", image: "https://via.placeholder.com/150" },
@@ -108,7 +110,9 @@ const HomePage = () => {
   const canGoPrev = productStartIndex > 0;
 
   return (
-    //BANNER
+    <div>
+    <Navbar /> 
+    
     <div>
       <div className="banner-container">
         <div
@@ -212,6 +216,89 @@ const HomePage = () => {
       </button>
     </div>
 
+    {/* BEST SELLERS */}
+    <div className="products-container">
+        <h2>Best Sellers</h2>
+        <div className="products-slider">
+          <div
+            className="products-wrapper"
+            style={{
+              transform: `translateX(-${productShiftPercentage}%)`,
+              transition: "transform 0.5s ease-in-out",
+            }}
+          >
+            {products.map((product) => (
+              
+              <div key={product.id} className="grid-item">
+                
+                <div className="grid-item-content">
+                  <img src={product.image} alt={product.name} />
+                
+                </div>
+                
+                <div class="grid-item-header">
+                                <h3>Klara and the Sun</h3>
+                                <p>Kazuo Ishiguro</p>
+                                <span>$19.99</span>
+                            </div>
+                
+              </div>
+            ))}
+          </div>
+        </div>
+        <button 
+          className="prev-button" 
+          onClick={prevProducts}
+          disabled={!canGoPrev}
+        >
+          <img src={leftArrow}  />
+        </button>
+        <button 
+          className="next-button" 
+          onClick={nextProducts}
+          disabled={!canGoNext}
+        >
+          <img src={rightArrow} />
+        </button>
+      </div>
+
+      {/* PUBLISHERS */}
+      <div className="category-container">
+      <h2>Categories</h2>
+      <div className="category-slider">
+        <div
+          className="category-wrapper"
+          style={{
+            transform: `translateX(-${categoryIndex * (100 / categoriesPerView)}%)`,
+            transition: "transform 0.5s ease-in-out",
+          }}
+        >
+          {categories.map((category, index) => (
+            <div key={index} className="category-item">
+              {category}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button 
+        className="category-nav category-prev" 
+        onClick={prevCategories} 
+        disabled={categoryIndex === 0}
+      >
+        <img src={leftArrow} alt="Previous" />
+      </button>
+
+      <button 
+        className="category-nav category-next" 
+        onClick={nextCategories} 
+        disabled={categoryIndex >= categories.length - categoriesPerView}
+      >
+        <img src={rightArrow} alt="Next" />
+      </button>
+    </div>
+
+    </div>
     </div>
   );
 };
