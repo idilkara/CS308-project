@@ -7,6 +7,7 @@ CREATE TABLE Users (
     role VARCHAR(50) CHECK (role IN ('customer', 'sales_manager', 'product_manager')) NOT NULL
 );
 
+
 CREATE TABLE Products (
     product_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
