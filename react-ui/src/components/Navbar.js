@@ -6,7 +6,7 @@ import {BsBag, BsPersonCircle} from "react-icons/bs";
 const Navbar = () => {
     return (
         <header className="navbar">
-            <div className="brand">Odessey Bookstore</div>
+            <div className="brand">Odyssey Books</div>
             <nav className="menu">
                 <a href="#">Category 1</a>
                 <a href="#">Category 2</a>
