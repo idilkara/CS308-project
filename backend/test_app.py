@@ -2,11 +2,14 @@ import pytest
 import json
 from app import app
 
-# Test adding a user
-def test_add_user():
-    client = app.test_client()
+@pytest.fixture
+def client():
+    """Fixture to create a test client for Flask."""
+    return app.test_client()
 
-    # Create the test data
+# Test adding a user
+def test_add_user(client):
+    # Create test user data
     user_data = {
         "name": "John Doe",
         "email": "john.doe@example.com",
@@ -15,41 +18,31 @@ def test_add_user():
         "role": "customer"
     }
 
-    # Send a POST request to add the user
-    response = client.post("/add-user", json=user_data)
+    # Send a POST request to add the user (updated endpoint)
+    response = client.post("/users/add", json=user_data)
 
-    # Assert the response status code is 201 (Created)
+    # Assert response status code and message
     assert response.status_code == 201
     assert response.json["message"] == "User added successfully!"
 
 # Test showing all users
-def test_show_users():
-    client = app.test_client()
-
-    # Send a GET request to show all users
-    response = client.get("/show-users")
+def test_show_users(client):
+    # Send a GET request to show all users (updated endpoint)
+    response = client.get("/users/show")
 
     # Assert the response status code is 200 (OK)
     assert response.status_code == 200
-
-    # Assert that the response is a list
     assert isinstance(response.json, list)
 
-    # Make sure that users have the expected fields
+    # Ensure expected fields exist in user data
     if response.json:
         user = response.json[0]
-        assert "user_id" in user
-        assert "name" in user
-        assert "email" in user
-        assert "password" in user
-        assert "home_address" in user
-        assert "role" in user
+        expected_fields = {"user_id", "name", "email", "password", "home_address", "role"}
+        assert expected_fields.issubset(user.keys())
 
 # Test deleting a user
-def test_delete_user():
-    client = app.test_client()
-
-    # First, add a user to delete
+def test_delete_user(client):
+    # First, add a user so we have an ID to delete
     user_data = {
         "name": "Jane Doe",
         "email": "jane.doe@example.com",
@@ -57,15 +50,26 @@ def test_delete_user():
         "home_address": "456 Another St, Townsville",
         "role": "sales_manager"
     }
-    add_response = client.post("/add-user", json=user_data)
-    added_user = add_response.json  # Get the response of the added user
+    add_response = client.post("/users/add", json=user_data)
+    assert add_response.status_code == 201  # Ensure user was created
 
-    # Get the user ID to delete (assuming the user ID is returned from DB or set by DB)
-    user_id = 1  # This should be the ID of the user we want to delete. Modify accordingly.
+    # Fetch all users to get the ID of the newly created user
+    users_response = client.get("/users/show")
+    assert users_response.status_code == 200
+    users = users_response.json
 
-    # Send a DELETE request to delete the user
-    delete_response = client.delete(f"/delete-user/{user_id}")
+    # Find the user_id for Jane Doe
+    user_id = None
+    for user in users:
+        if user["email"] == "jane.doe@example.com":
+            user_id = user["user_id"]
+            break
 
-    # Assert the response status code is 200 (OK)
+    assert user_id is not None, "User ID not found in the database"
+
+    # Send a DELETE request to remove the user (updated endpoint)
+    delete_response = client.delete(f"/users/delete/{user_id}")
+
+    # Assert the response status code and success message
     assert delete_response.status_code == 200
     assert delete_response.json["message"] == f"User with user_id {user_id} deleted successfully!"

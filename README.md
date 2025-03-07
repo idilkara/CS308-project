@@ -29,8 +29,18 @@ Technologies:
         
             docker exec -it postgres_db psql -U admin -d mydatabase
 
+            run any query such as SELECT * FROM users;
+
+
         
     Backend: Python Flask
+
+        To run tests: 
+
+            go into the backend container 
+            go to exec 
+            run the command : pytest test_app.py
+
     
     Frontend: ReactJS
 
