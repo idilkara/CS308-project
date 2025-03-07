@@ -5,9 +5,14 @@
     --background-color: #fcfcfc; /* Updated to your new color */
     --warm-green-light: #CCD5AE;
     --warm-green-lighter: #E9EDC9;
+    --warm-green-lighterer: #fbfcf4;
     --warm-cream: #FEFAE0;
     --warm-peach: #FAEDCD;
     --warm-brown: #D4A373;
+
+
+
+    --grid-item-bg: #fcfcfc;
 }
 
 /* Navbar Styles */
