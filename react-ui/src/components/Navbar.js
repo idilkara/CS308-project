@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+// src/components/Navbar.js
 import React from 'react';
 import {BsBag, BsPersonCircle} from "react-icons/bs";
 
@@ -6,7 +6,7 @@ import {BsBag, BsPersonCircle} from "react-icons/bs";
 const Navbar = () => {
     return (
         <header className="navbar">
-            <div className="brand">Website Name</div>
+            <div className="brand">Odessey Bookstore</div>
             <nav className="menu">
                 <a href="#">Category 1</a>
                 <a href="#">Category 2</a>

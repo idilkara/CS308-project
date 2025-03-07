@@ -33,3 +33,20 @@ Technologies:
     Backend: Python Flask
     
     Frontend: ReactJS
+
+        cd react-ui
+
+        docker build -t react-ui .
+        docker run -p 3000:3000 react-ui
+
+        access it in browser:  http://localhost:3000
+
+        stop: ctrl+c
+
+        If you need to install dependency inside the docker image: 
+
+            modify package-lock.json and package.json files and build the container again. (ask chatgpt for more info)
+        
+
+
+
