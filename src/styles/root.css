@@ -1,0 +1,90 @@
+/* Variables for consistent colors */
+:root {
+    --main-text-color: #1a1a1a; /* Very dark but not entirely black */
+    --secondary-text-color: #676767;
+    --background-color: #fcfcfc; /* Updated to your new color */
+    --warm-green-light: #CCD5AE;
+    --warm-green-lighter: #E9EDC9;
+    --warm-cream: #FEFAE0;
+    --warm-peach: #FAEDCD;
+    --warm-brown: #D4A373;
+}
+
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--background-color);
+    padding: 15px 30px;
+    border-bottom: 2px solid var(--main-text-color); /* Adding border line under menu bar */
+    margin: 0; /* Removing any margin that might cause extra space */
+}
+
+/* Website Name */
+.brand {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 30px;
+    color: var(--main-text-color);
+    margin-right: 80px;
+}
+
+/* Navbar Links */
+.menu {
+    display: flex;
+    gap: 20px;
+}
+
+.menu a {
+    flex-grow: 1;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 18px;
+    color: var(--main-text-color);
+    text-decoration: none;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+/* Search Bar */
+.search-container {
+    flex-grow: 1;
+    margin: 0 20px;
+    display: flex;
+    justify-content: right;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 300; /* Light */
+    font-size: 18px;
+    color: var(--secondary-text-color);
+    border: none;
+    border-bottom: 1px solid var(--main-text-color);
+    background: transparent;
+    outline: none;
+}
+
+/* Icons */
+.icons {
+    display: flex;
+    gap: 15px;
+}
+
+.icon {
+    font-size: 28px;
+    color: var(--main-text-color);
+    cursor: pointer;
+}
+
+/* For extra space around the navbar */
+body, html {
+    margin: 0;
+    padding: 0;
+}
