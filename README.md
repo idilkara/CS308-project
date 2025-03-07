@@ -39,7 +39,10 @@ Technologies:
 
             go into the backend container 
             go to exec 
-            run the command : pytest test_app.py
+            run the command : 
+
+            cd tests 
+            PYTHONPATH=.. pytest test_products.py
 
     
     Frontend: ReactJS

@@ -70,6 +70,18 @@ def test_delete_user(client):
     # Send a DELETE request to remove the user (updated endpoint)
     delete_response = client.delete(f"/users/delete/{user_id}")
 
+    # Find the user_id for Jane Doe
+    user_id = None
+    for user in users:
+        if user["email"] == "john.doe@example.com":
+            user_id = user["user_id"]
+            break
+
+    assert user_id is not None, "User ID not found in the database"
+
+    # Send a DELETE request to remove the user (updated endpoint)
+    delete_response = client.delete(f"/users/delete/{user_id}")
+
     # Assert the response status code and success message
     assert delete_response.status_code == 200
     assert delete_response.json["message"] == f"User with user_id {user_id} deleted successfully!"
