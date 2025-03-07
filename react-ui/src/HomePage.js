@@ -15,12 +15,12 @@ const HomePage = () => {
   ];
 
   const products = [
-    { id: 1, name: "Book 1", image: "https://via.placeholder.com/150" },
-    { id: 2, name: "Book 2", image: "https://via.placeholder.com/150" },
-    { id: 3, name: "Book 3", image: "https://via.placeholder.com/150" },
-    { id: 4, name: "Book 4", image: "https://via.placeholder.com/150" },
-    { id: 5, name: "Book 5", image: "https://via.placeholder.com/150" },
-    { id: 6, name: "Book 6", image: "https://via.placeholder.com/150" },
+    { id: 1, name: "Book 1", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
+    { id: 2, name: "Book 2",image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg"  },
+    { id: 3, name: "Book 3", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
+    { id: 4, name: "Book 4",image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg"},
+    { id: 5, name: "Book 5", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
+    { id: 6, name: "Book 6", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
     { id: 7, name: "Book 7", image: "https://via.placeholder.com/150" },
     { id: 8, name: "Book 8", image: "https://via.placeholder.com/150" },
     { id: 9, name: "Book 9", image: "https://via.placeholder.com/150" },
@@ -153,7 +153,7 @@ const HomePage = () => {
                   <img src={product.image} alt={product.name} />
                 
                 </div>
-                
+                <hr />
                 <div class="grid-item-header">
                                 <h3>Klara and the Sun</h3>
                                 <p>Kazuo Ishiguro</p>
@@ -169,14 +169,14 @@ const HomePage = () => {
           onClick={prevProducts}
           disabled={!canGoPrev}
         >
-          <img src={leftArrow}  />
+          <img src={leftArrow} alt="Previous" />
         </button>
         <button 
           className="next-button" 
           onClick={nextProducts}
           disabled={!canGoNext}
         >
-          <img src={rightArrow} />
+          <img src={rightArrow} alt="Next" />
         </button>
       </div>
 
@@ -235,7 +235,7 @@ const HomePage = () => {
                   <img src={product.image} alt={product.name} />
                 
                 </div>
-                
+                <hr />
                 <div class="grid-item-header">
                                 <h3>Klara and the Sun</h3>
                                 <p>Kazuo Ishiguro</p>
@@ -251,14 +251,14 @@ const HomePage = () => {
           onClick={prevProducts}
           disabled={!canGoPrev}
         >
-          <img src={leftArrow}  />
+          <img src={leftArrow} alt="Previous" />
         </button>
         <button 
           className="next-button" 
           onClick={nextProducts}
           disabled={!canGoNext}
         >
-          <img src={rightArrow} />
+          <img src={rightArrow} alt="Next"/>
         </button>
       </div>
 

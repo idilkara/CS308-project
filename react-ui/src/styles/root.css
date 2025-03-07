@@ -9,10 +9,6 @@
     --warm-cream: #FEFAE0;
     --warm-peach: #FAEDCD;
     --warm-brown: #D4A373;
-
-
-
-    --grid-item-bg: #fcfcfc;
 }
 
 /* Navbar Styles */
@@ -92,4 +88,50 @@
 body, html {
     margin: 0;
     padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+}
+
+/* Fonts */
+
+@font-face {
+    font-family: 'SourceSans3-SemiBold';
+    src: url('./fonts/SourceSans3-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'SourceSans3-Bold';
+    src: url('./fonts/SourceSans3-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'SourceSans3-Light';
+    src: url('./fonts/SourceSans3-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'SourceSans3-Regular';
+    src: url('./fonts/SourceSans3-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+/* Font Classes */
+.source-sans-semibold {
+    font-family: 'SourceSans3-SemiBold', sans-serif;
+}
+
+.source-sans-bold {
+    font-family: 'SourceSans3-Bold', sans-serif;
+}
+
+.source-sans-light {
+    font-family: 'SourceSans3-Light', sans-serif;
+}
+
+.source-sans-regular {
+    font-family: 'SourceSans3-Regular', sans-serif;
 }

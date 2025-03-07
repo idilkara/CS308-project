@@ -4,7 +4,7 @@ import CategoryPage from "./CategoryPage";
 
 
 function App() {
-  return <CategoryPage />; //directly opens home page
+  return <HomePage />; //directly opens home page
 
 }
 
