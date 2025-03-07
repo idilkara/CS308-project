@@ -14,7 +14,7 @@ def get_db_connection():
     )
 
 # List all products with name, price, and category
-@products_bp.route('/products', methods=['GET'])
+@products_bp.route('/viewall', methods=['GET'])
 def get_all_products():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -35,7 +35,7 @@ def get_all_products():
     ])
 
 # View product info by product ID
-@products_bp.route('/products/<int:product_id>', methods=['GET'])
+@products_bp.route('/info/<int:product_id>', methods=['GET'])
 def get_product_by_id(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -65,10 +65,8 @@ def get_product_by_id(product_id):
         return jsonify({"error": "Product not found"}), 404
 
 # Create a new product
-@products_bp.route('/products', methods=['POST'])
+@products_bp.route('/create', methods=['POST'])
 def create_product():
-
-    print("hello")
     data = request.get_json()
     name = data.get('name')
     model = data.get('model')
@@ -77,27 +75,35 @@ def create_product():
     price = data.get('price')
     categories = data.get('categories', [])
 
+    # Validate required fields
     if not name or not stock_quantity or not price:
         return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # Insert the new product
     cursor.execute("""
         INSERT INTO products (name, model, description, stock_quantity, price)
         VALUES (%s, %s, %s, %s, %s) RETURNING product_id;
     """, (name, model, description, stock_quantity, price))
     product_id = cursor.fetchone()[0]
 
+    # Process categories and insert them into productcategories
     for category_name in categories:
+        # Check if the category already exists
         cursor.execute("SELECT category_id FROM categories WHERE name = %s", (category_name,))
         category = cursor.fetchone()
+
         if category:
+            # Category exists, get the existing category_id
             category_id = category[0]
         else:
+            # Category does not exist, insert it
             cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
             category_id = cursor.fetchone()[0]
 
+        # Insert the mapping into productcategories
         cursor.execute("""
             INSERT INTO productcategories (product_id, category_id)
             VALUES (%s, %s);
@@ -109,8 +115,9 @@ def create_product():
 
     return jsonify({"message": "Product created successfully", "product_id": product_id}), 201
 
+
 # Update product info by product ID
-@products_bp.route('/products/<int:product_id>', methods=['PUT'])
+@products_bp.route('/update/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     data = request.get_json()
     name = data.get('name')
@@ -159,7 +166,7 @@ def update_product(product_id):
         return jsonify({"error": "Product not found"}), 404
 
 # Delete product by product ID
-@products_bp.route('/products/<int:product_id>', methods=['DELETE'])
+@products_bp.route('/delete/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()

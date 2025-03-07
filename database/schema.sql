@@ -27,10 +27,14 @@ CREATE TABLE products (
     product_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     model VARCHAR(255),
+    serial_number VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     stock_quantity INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL
+    price DECIMAL(10,2) NOT NULL,
+    warranty_status VARCHAR(50), -- Example values: 'Active', 'Expired', 'Not Applicable'??
+    distributor_info TEXT -- Additional details about the distributor
 );
+
 
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,

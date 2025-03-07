@@ -32,7 +32,6 @@ Technologies:
             run any query such as SELECT * FROM users;
 
 
-        
     Backend: Python Flask
 
         To run tests: 

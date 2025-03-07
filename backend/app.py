@@ -5,8 +5,6 @@ app = Flask(__name__)
 
 # Register Blueprints
 app.register_blueprint(user_bp, url_prefix="/users")
-
-# Register the blueprint
 app.register_blueprint(products_bp, url_prefix='/products')
 
 @app.route("/")

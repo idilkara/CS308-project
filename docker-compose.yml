@@ -27,19 +27,6 @@ services:
     volumes:
       - .:/backend
 
-  frontend:
-    build: ./react-ui # Ensure this matches the frontend Dockerfile location
-    container_name: frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "3000:3000"
-    networks:
-      - app_network
-    volumes:
-      - .:/frontend
-
 volumes:
   pgdata:
 
