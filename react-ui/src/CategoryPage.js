@@ -3,26 +3,6 @@ import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx"
 import bookCover from './img/BookCover.png';
 
-document.addEventListener("DOMContentLoaded", function () {
-  const sliderContainer = document.querySelector(".category-slider-container");
-
-  // Scroll with arrow keys
-  document.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") {
-          sliderContainer.scrollBy({ left: -100, behavior: "smooth" });
-      } else if (e.key === "ArrowRight") {
-          sliderContainer.scrollBy({ left: 100, behavior: "smooth" });
-      }
-  });
-
-  // Scroll with mouse wheel
-  sliderContainer.addEventListener("wheel", function (e) {
-      e.preventDefault();
-      sliderContainer.scrollBy({ left: e.deltaY, behavior: "smooth" });
-  });
-});
-
-
 const CategoryPage = () => {
   // State for managing dropdown visibility
   const [dropdowns, setDropdowns] = useState({

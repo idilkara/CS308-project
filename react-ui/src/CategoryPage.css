@@ -64,14 +64,13 @@ html, body {
 .sidebar {
     width: 250px;
     background-color: var(--warm-green-light);
-    border-right: 1px solid #e0e0e0;
-    padding: 20px;
+    border-right: 1px solid var(--secondary-text-color);
+    padding: 10px;
     overflow-x: hidden;  /* Disable horizontal scrolling */
     overflow-y: auto;    /* Enable vertical scrolling */
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
     position: relative;
     height: 100vh; /* Full viewport height */
-    scrollbar-width: none; /* For Firefox */
 }
 
 .sidebar-header {
@@ -83,30 +82,9 @@ html, body {
     align-items: center;
 }
 
-.sidebar-header h2 {
-    color: var(--main-text-color);
-    font-weight: 600;
-}
-
 /* Page navigation controls */
 
-.page-nav-btn {
-    width: 24px;
-    height: 24px;
-    background-color: var(--warm-green-lighter);
-    border: none;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    margin: 3px 0;
-    transition: background-color 0.2s ease;
-}
 
-.page-nav-btn:hover {
-    background-color: var(--warm-green-light);
-}
 
 .sidebar-menu {
     max-height: calc(100vh - 100px); /* Adjust the height of the sidebar menu */
@@ -321,7 +299,10 @@ html, body {
 }
 
 .favorite-btn.active {
-    background-color: var(--warm-green-light);
+    background-color: var(--background-color); /* Keep the background color */
+    box-shadow: 0 0 8px 0.5px rgb(232, 141, 141); /* Smaller glow effect */
+    border: 1.5px solid rgb(232, 141, 141); /* Slightly thinner border */
+    transition: box-shadow 0.3s ease-in-out;
 }
 
 .heart-filled {
