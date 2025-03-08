@@ -1,6 +1,7 @@
 // src/components/Layout.jsx
 import React from 'react';
 import Navbar from './Navbar';  // <-- Import Navbar
+import Footer from './Footer'; // <-- Import Footer
 import '../styles/root.css';    // Import styles
 
 const Layout = ({ children }) => {
@@ -10,6 +11,7 @@ const Layout = ({ children }) => {
             <main className="content">
                 {children}
             </main>
+            <Footer />
         </div>
     );
 };
