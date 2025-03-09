@@ -7,9 +7,6 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 # Blueprint oluştur
 auth_bp = Blueprint("auth", __name__)
 
-# JWT Secret Key
-jwt = JWTManager()
-
 # PostgreSQL Connection
 def get_db_connection():
     return psycopg2.connect(

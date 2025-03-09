@@ -2,11 +2,14 @@ from flask import Flask
 from routes.user_routes import user_bp
 from routes.product_routes import products_bp
 from routes.auth_routes import auth_bp  # auth blueprint import et
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 
 # JWT Secret Key (Auth Blueprint için)
 app.config["JWT_SECRET_KEY"] = "supersecretkey"
+# JWT Secret Key
+jwt = JWTManager(app)
 
 # Blueprintleri Kaydet
 app.register_blueprint(user_bp, url_prefix="/users")
