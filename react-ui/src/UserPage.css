@@ -1,0 +1,146 @@
+
+/* User Account Page Styles */
+.account-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  color: var(--main-text-color);
+}
+
+.account-header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--warm-brown);
+  padding-bottom: 15px;
+}
+
+.account-title {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.account-subtitle {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--secondary-text-color);
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 30px;
+}
+
+.account-sidebar {
+  background-color: var(--warm-green-lighterer);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 15px;
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: var(--main-text-color);
+  font-weight: 400;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-nav a:hover {
+  background-color: var(--warm-green-lighter);
+}
+
+.sidebar-nav a.active {
+  background-color: var(--warm-green-light);
+  font-weight: 600;
+}
+
+.profile-section {
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--warm-peach);
+}
+
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.info-group {
+  margin-bottom: 20px;
+}
+
+.info-label {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+  margin-bottom: 5px;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.address-block {
+  grid-column: span 2;
+  background-color: var(--warm-cream);
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.edit-button {
+  background-color: var(--warm-brown);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.edit-button:hover {
+  background-color: #c79665;
+}
+
+@media (max-width: 768px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .address-block {
+    grid-column: span 1;
+  }
+}
