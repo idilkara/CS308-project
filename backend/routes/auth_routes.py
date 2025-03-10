@@ -24,8 +24,7 @@ def register():
         name = data["name"]
         email = data["email"]
         password = data["password"]
-        home_address = data.get("home_address", "")
-        role = data["role"]  
+        role = data["role"]  # Zorunlu alanlar
 
         # Şifreyi hashle
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
@@ -33,10 +32,11 @@ def register():
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # Kullanıcıyı home_address olmadan ekleyelim
         cur.execute('''
-            INSERT INTO Users (name, email, password, home_address, role) 
-            VALUES (%s, %s, %s, %s, %s)
-        ''', (name, email, hashed_password.decode("utf-8"), home_address, role))
+            INSERT INTO Users (name, email, password, role) 
+            VALUES (%s, %s, %s, %s)
+        ''', (name, email, hashed_password.decode("utf-8"), role))
 
         conn.commit()
         cur.close()
@@ -45,6 +45,7 @@ def register():
         return jsonify({"message": "User registered successfully!"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 ### **2. Kullanıcı Girişi (Login)**
 @auth_bp.route("/login", methods=["POST"])
