@@ -1,23 +1,14 @@
 from flask import Blueprint, request, jsonify
-import psycopg2
-import os
+from db import get_db_connection
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 user_bp = Blueprint("user", __name__)
-
 
 # A customer has the following properties at the very least: 
 # ID, name, e-mail address, home address, and password. 
 # The customer should be able to view their name, email address, 
 # and delivery address on a profile page.
 
-# Database connection function
-def get_db_connection():
-    return psycopg2.connect(
-        host="db",
-        database=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD')
-    )
 
 # Add user
 @user_bp.route("/add", methods=["POST"])
@@ -89,5 +80,36 @@ def delete_user(user_id):
         conn.close()
 
         return jsonify({"message": f"User with user_id {user_id} deleted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# Return user info based on userID
+@user_bp.route("/userinfo", methods=["GET"])
+@jwt_required()
+def user_info():
+    try:
+        user_id = get_jwt_identity()["user_id"]
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute('SELECT user_id, name, email, home_address, role FROM Users WHERE user_id = %s', (user_id,))
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        user_info = {
+            "user_id": user[0],
+            "name": user[1],
+            "email": user[2],
+            "home_address": user[3],
+            "role": user[4]
+        }
+
+        return jsonify(user_info), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

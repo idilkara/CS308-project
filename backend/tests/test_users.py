@@ -1,87 +1,84 @@
-import pytest
-import json
-from app import app
+import unittest
+import requests
 
-@pytest.fixture
-def client():
-    """Fixture to create a test client for Flask."""
-    return app.test_client()
+BASE_URL = "http://localhost:5000"
 
-# Test adding a user
-def test_add_user(client):
-    # Create test user data
-    user_data = {
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "password": "password123",
-        "home_address": "123 Main St, Cityville",
-        "role": "customer"
-    }
+class TestUserEndpoints(unittest.TestCase):
 
-    # Send a POST request to add the user (updated endpoint)
-    response = client.post("/users/add", json=user_data)
+    def setUp(self):
+        # This method will run before each test
+        self.register_url = f"{BASE_URL}/auth/register"
+        self.login_url = f"{BASE_URL}/auth/login"
+        self.userinfo_url = f"{BASE_URL}/user/userinfo"
+        self.delete_user_url = f"{BASE_URL}/user/delete"
 
-    # Assert response status code and message
-    assert response.status_code == 201
-    assert response.json["message"] == "User added successfully!"
+        self.test_user = {
+            "name": "Test User",
+            "email": "testuser@example.com",
+            "password": "password",
+            "home_address": "123 Test St",
+            
+            "role": "customer"
+        }
 
-# Test showing all users
-def test_show_users(client):
-    # Send a GET request to show all users (updated endpoint)
-    response = client.get("/users/show")
+    def test_register_user(self):
+        response = requests.post(self.register_url, json=self.test_user)
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("message", response.json())
+        self.assertEqual(response.json()["message"], "User registered successfully!")
 
-    # Assert the response status code is 200 (OK)
-    assert response.status_code == 200
-    assert isinstance(response.json, list)
+    def test_login_user(self):
+        # First, register the user
+        requests.post(self.register_url, json=self.test_user)
 
-    # Ensure expected fields exist in user data
-    if response.json:
-        user = response.json[0]
-        expected_fields = {"user_id", "name", "email", "password", "home_address", "role"}
-        assert expected_fields.issubset(user.keys())
+        # Then, login with the same user
+        login_data = {
+            "email": self.test_user["email"],
+            "password": self.test_user["password"]
+        }
+        response = requests.post(self.login_url, json=login_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access_token", response.json())
+        self.access_token = response.json()["access_token"]
 
-# Test deleting a user
-def test_delete_user(client):
-    # First, add a user so we have an ID to delete
-    user_data = {
-        "name": "Jane Doe",
-        "email": "jane.doe@example.com",
-        "password": "password456",
-        "home_address": "456 Another St, Townsville",
-        "role": "sales_manager"
-    }
-    add_response = client.post("/users/add", json=user_data)
-    assert add_response.status_code == 201  # Ensure user was created
+    def test_user_info(self):
+        # First, register and login the user
+        requests.post(self.register_url, json=self.test_user)
+        login_data = {
+            "email": self.test_user["email"],
+            "password": self.test_user["password"]
+        }
+        response = requests.post(self.login_url, json=login_data)
+        self.access_token = response.json()["access_token"]
 
-    # Fetch all users to get the ID of the newly created user
-    users_response = client.get("/users/show")
-    assert users_response.status_code == 200
-    users = users_response.json
+        # Get user info
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        response = requests.get(self.userinfo_url, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("user_id", response.json())
+        self.assertEqual(response.json()["email"], self.test_user["email"])
 
-    # Find the user_id for Jane Doe
-    user_id = None
-    for user in users:
-        if user["email"] == "jane.doe@example.com":
-            user_id = user["user_id"]
-            break
+    def test_delete_user(self):
+        # First, register and login the user
+        requests.post(self.register_url, json=self.test_user)
+        login_data = {
+            "email": self.test_user["email"],
+            "password": self.test_user["password"]
+        }
+        response = requests.post(self.login_url, json=login_data)
+        self.access_token = response.json()["access_token"]
 
-    assert user_id is not None, "User ID not found in the database"
+        # Get user info to get the user_id
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        response = requests.get(self.userinfo_url, headers=headers)
+        user_id = response.json()["user_id"]
 
-    # Send a DELETE request to remove the user (updated endpoint)
-    delete_response = client.delete(f"/users/delete/{user_id}")
+        # Delete the user
+        delete_url = f"{self.delete_user_url}/{user_id}"
+        response = requests.delete(delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("message", response.json())
+        self.assertEqual(response.json()["message"], f"User with user_id {user_id} deleted successfully!")
 
-    # Find the user_id for Jane Doe
-    user_id = None
-    for user in users:
-        if user["email"] == "john.doe@example.com":
-            user_id = user["user_id"]
-            break
-
-    assert user_id is not None, "User ID not found in the database"
-
-    # Send a DELETE request to remove the user (updated endpoint)
-    delete_response = client.delete(f"/users/delete/{user_id}")
-
-    # Assert the response status code and success message
-    assert delete_response.status_code == 200
-    assert delete_response.json["message"] == f"User with user_id {user_id} deleted successfully!"
+if __name__ == "__main__":
+    unittest.main()

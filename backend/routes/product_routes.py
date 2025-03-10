@@ -1,51 +1,51 @@
 from flask import Blueprint, request, jsonify
-import psycopg2
-import os
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from db import get_db_connection
 
 products_bp = Blueprint("products", __name__)
-
-
 
 #1. The application shall present a number of products in categories 
 # and let users select and add the desired product/products 
 # to the shopping cart to purchase them.
 
-
-
-# Database connection function
-def get_db_connection():
-    return psycopg2.connect(
-        host="db",
-        database=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD')
-    )
-
-# List all products with name, price, and category
-@products_bp.route('/viewall', methods=['GET'])
-def get_all_products():
+# present products all products
+@products_bp.route('/products', methods=['GET'])
+def get_products():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT p.product_id, p.name, p.price, array_agg(c.name) AS categories
-        FROM products p
-        LEFT JOIN productcategories pc ON p.product_id = pc.product_id
-        LEFT JOIN categories c ON pc.category_id = c.category_id
-        GROUP BY p.product_id;
-    """)
+    cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
     cursor.close()
     conn.close()
 
     return jsonify([
-        {"product_id": product[0], "name": product[1], "price": str(product[2]), "categories": product[3]}
+        {"product_id": product[0], "name": product[1], "model": product[2], "description": product[3], "stock_quantity": product[4], "price": str(product[5])}
         for product in products
     ])
 
-# View product info by product ID
-@products_bp.route('/info/<int:product_id>', methods=['GET'])
-def get_product_by_id(product_id):
+
+# present products given categories
+@products_bp.route('/products/category/<int:category_id>', methods=['GET'])
+def get_products_by_category(category_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price
+        FROM products p
+        JOIN productcategories pc ON p.product_id = pc.product_id
+        WHERE pc.category_id = %s
+    """, (category_id,))
+    products = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return jsonify([
+        {"product_id": product[0], "name": product[1], "model": product[2], "description": product[3], "stock_quantity": product[4], "price": str(product[5])}
+        for product in products
+    ])
+
+# present product given product id
+@products_bp.route('/product/info/<int:product_id>', methods=['GET'])
+def get_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -73,8 +73,31 @@ def get_product_by_id(product_id):
     else:
         return jsonify({"error": "Product not found"}), 404
 
+
+# List all products with name, price, category, and description
+@products_bp.route('/viewall', methods=['GET'])
+def get_all_products():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories
+        FROM products p
+        LEFT JOIN productcategories pc ON p.product_id = pc.product_id
+        LEFT JOIN categories c ON pc.category_id = c.category_id
+        GROUP BY p.product_id;
+    """)
+    products = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return jsonify([
+        {"product_id": product[0], "name": product[1], "price": str(product[2]), "description": product[3], "categories": product[4]}
+        for product in products
+    ])
+
+
 # Create a new product
-@products_bp.route('/create', methods=['POST'])
+@products_bp.route('/product/create', methods=['POST'])
 def create_product():
     data = request.get_json()
     name = data.get('name')
@@ -124,9 +147,8 @@ def create_product():
 
     return jsonify({"message": "Product created successfully", "product_id": product_id}), 201
 
-
 # Update product info by product ID
-@products_bp.route('/update/<int:product_id>', methods=['PUT'])
+@products_bp.route('/product/update/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     data = request.get_json()
     name = data.get('name')
@@ -175,7 +197,7 @@ def update_product(product_id):
         return jsonify({"error": "Product not found"}), 404
 
 # Delete product by product ID
-@products_bp.route('/delete/<int:product_id>', methods=['DELETE'])
+@products_bp.route('/product/delete/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -192,6 +214,3 @@ def delete_product(product_id):
         return jsonify({"message": "Product deleted successfully"}), 200
     else:
         return jsonify({"error": "Product not found"}), 404
-
-
-

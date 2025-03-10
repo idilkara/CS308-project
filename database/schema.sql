@@ -30,15 +30,28 @@ CREATE TABLE users (
 CREATE TABLE products (
     product_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    model VARCHAR(255),
-    serial_number VARCHAR(255) UNIQUE NOT NULL,
+    model VARCHAR(255),-- ciltli ciltsiz
+    -- serial_number VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     stock_quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     warranty_status VARCHAR(255) DEFAULT '2 years',
-    distributor_information TEXT -- is this related to any of user roles -- 'product_manager'
+    distributor_information TEXT, -- is this related to any of user roles -- 'product_manager'
+    discount DECIMAL(5,2) CHECK (discount BETWEEN 0 AND 1) DEFAULT 0.00
 );
 
+-- New products added by the product manager should only appear after their prices have been set by a sales manager. 
+CREATE TABLE waitingproducts (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    model VARCHAR(255), -- ciltli ciltsiz
+    serial_number VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    stock_quantity INT NOT NULL,
+    warranty_status VARCHAR(255) DEFAULT '2 years',
+    distributor_information TEXT, -- is this related to any of user roles -- 'product_manager'
+    discount DECIMAL(5,2) CHECK (discount BETWEEN 0 AND 1) DEFAULT 0.00
+);
 
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
@@ -54,11 +67,18 @@ CREATE TABLE productcategories (
 -- each user has one shopping cart 
 CREATE TABLE shoppingcart (
     cart_id SERIAL PRIMARY KEY,
-    user_id INT UNIQUE,
+    user_id INT UNIQUE,    
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
+CREATE TABLE shoppingcartproducts (
+    cart_id INT,
     product_id INT,
-    quantity INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    quantity INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (cart_id) REFERENCES shoppingcart(cart_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    PRIMARY KEY (cart_id, product_id)
 );
 
 
@@ -107,10 +127,16 @@ CREATE TABLE reviews (
 
 CREATE TABLE wishlists (
     wishlist_id SERIAL PRIMARY KEY,
-    user_id INT,
+    user_id INT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE wishlistproducts (
+    wishlist_id INT,
     product_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    FOREIGN KEY (wishlist_id) REFERENCES wishlists(wishlist_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    PRIMARY KEY (wishlist_id, product_id)
 );
 
 CREATE TABLE deliveries (

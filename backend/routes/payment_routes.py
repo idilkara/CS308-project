@@ -7,4 +7,7 @@
 # a PDF copy of the invoice should be emailed to the user.
 
 
-# A customer should enter his/her credit card information to purchase a product. Credit card verification and limit issues are out of scope of the project.
+# A customer should enter his/her credit card information to purchase a product. 
+# Credit card verification and limit issues are out of scope of the project.
+
+## 

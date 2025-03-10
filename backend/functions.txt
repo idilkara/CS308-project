@@ -1,0 +1,46 @@
+
+
+present products
+present categories
+present products given categories
+present product given product id
+
+add item to shopping cart given product id
+remove item from shopping cart given product id
+view shopping cart
+clear shopping cart
+
+purchase the items in the shopping cart:
+    turn items in the cart to an order list
+
+change order delivery status
+view order status
+
+view orders list given user id
+
+product manager: 
+approve of a comment to product
+
+customer:
+comment to a product
+rate a product
+
+product manager - delivery department: 
+add product
+remove product
+add product category
+update stock given product id
+list all deliveries
+
+sales manager:
+update price of a product
+
+customer: -profile page
+view user info The customer should be able to view their name, email address, and delivery address on a profile page.
+
+customer:
+request refund by order id and product id
+sales manager:
+accept refund
+reject refund
+

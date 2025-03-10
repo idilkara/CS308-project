@@ -62,3 +62,46 @@ Technologies:
 
 
 
+
+
+curl -X POST http://localhost:5001/shopping/add \
+    -H "Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTQ0NiwianRpIjoiYThhNDc2ZjctNWUyNS00Nzk5LTlkMWUtM2I0NmY5NDg0YTlmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk0NDYsImNzcmYiOiI0YzYyZTVmMS03OTkxLTQxMWItOGJiNy0yMTQ4YWU3YzVjNjYiLCJleHAiOjE3NDE2NTAzNDZ9.RLd_9ioP1xi1hmAJoEh3QkLkaEz6XmBBqOfpayxrp5o" " \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 2,
+        "quantity": 1
+    }'
+
+
+    curl -X POST http://localhost:5001/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{
+        "email": "testuser@example.com",
+        "password": "testpassword"
+    }'
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MDUwOSwianRpIjoiNTFiMjdhMjgtYjY2Yi00ZWI5LWIzM2MtOWVmNTRhYzkzZWQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NTA1MDksImNzcmYiOiI2ZTBkNzE1ZS01NjJiLTRlYjktYjFlZS0wMmI0NDZlYmVmMDEiLCJleHAiOjE3NDE2NTE0MDl9.rvTtd4HpIQ0kRXHDlg0cSY8CCOxWy1Op0fj3uI0shSQ
+
+
+curl -X GET http://localhost:5001/wishlist/view \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MDUwOSwianRpIjoiNTFiMjdhMjgtYjY2Yi00ZWI5LWIzM2MtOWVmNTRhYzkzZWQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NTA1MDksImNzcmYiOiI2ZTBkNzE1ZS01NjJiLTRlYjktYjFlZS0wMmI0NDZlYmVmMDEiLCJleHAiOjE3NDE2NTE0MDl9.rvTtd4HpIQ0kRXHDlg0cSY8CCOxWy1Op0fj3uI0shSQ"
+
+
+    curl -X GET http://localhost:5001/shopping/view \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTgwMSwianRpIjoiZTc5MGE0YTQtMjdhZi00MTAzLTkxZWUtZjc3M2ZiZmFjYjVmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk4MDEsImNzcmYiOiI2YzRjZGZjNy1jZTZhLTQyMTYtOGRkZC1kNDNhMmZlZjJmNzYiLCJleHAiOjE3NDE2NTA3MDF9.uiBpiHNM8mZgE9c-uEQaCf1LEUhUyrPELdDpgq94gV4"
+
+    curl -X POST http://localhost:5001/shopping/add \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTgwMSwianRpIjoiZTc5MGE0YTQtMjdhZi00MTAzLTkxZWUtZjc3M2ZiZmFjYjVmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk4MDEsImNzcmYiOiI2YzRjZGZjNy1jZTZhLTQyMTYtOGRkZC1kNDNhMmZlZjJmNzYiLCJleHAiOjE3NDE2NTA3MDF9.uiBpiHNM8mZgE9c-uEQaCf1LEUhUyrPELdDpgq94gV4" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 1,
+        "quantity": 1
+    }'
+
+    curl -X POST http://localhost:5001/shopping/remove \
+   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTgwMSwianRpIjoiZTc5MGE0YTQtMjdhZi00MTAzLTkxZWUtZjc3M2ZiZmFjYjVmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk4MDEsImNzcmYiOiI2YzRjZGZjNy1jZTZhLTQyMTYtOGRkZC1kNDNhMmZlZjJmNzYiLCJleHAiOjE3NDE2NTA3MDF9.uiBpiHNM8mZgE9c-uEQaCf1LEUhUyrPELdDpgq94gV4" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 1
+    }'
