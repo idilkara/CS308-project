@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./HomePage.css";
 import './styles/root.css';
-import image from "./img/image.png";
+import banner1 from "./img/HomePageBanner1.png";
+import banner2 from "./img/HomePageBanner2.png";
+import banner3 from "./img/HomePageBanner3.png";
+
 import Navbar from "./components/Navbar"; 
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { BsBook, BsThreeDots } from "react-icons/bs";
@@ -11,9 +14,9 @@ import { FaRegNewspaper, FaUserSecret, FaTheaterMasks, FaRocket } from "react-ic
 
 const HomePage = () => {
   const banners = [
-    { id: 1, text: "Banner 1", image: image   },
-    { id: 2, text: "Banner 2", image: "https://www.jdandj.com/uploads/8/0/0/8/80083458/twitter-banner-for-novels-and-books-orig-webp_orig.webp" },
-    { id: 3, text: "Banner 3", image: "https://blogger.googleusercontent.com/img/a/AVvXsEh_Lpst1IR5VOTFJyWoH14kqIhGp88zfElNzHGPBnrDQWB6VWyp9Ktnm_rUW4zj3_l24XLD-jdU9cKYva25DcF9onhdVYcQlx5FADd4J5yhfdxqScbMxgaiCrM4RYQZId7NJPy1TWGy9uHvCvtnxtao4uXQI8a8QOSIGbXxPDhIxHoEVOPhQSkF-ozDQV4=s1600" }
+    { id: 1, text: "Banner 1", image: banner1   },
+    { id: 2, text: "Banner 2", image: banner2 },
+    { id: 3, text: "Banner 3", image: banner3 }
   ];
 
   const products = [
