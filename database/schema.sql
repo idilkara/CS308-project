@@ -12,7 +12,9 @@ BEGIN
 END
 $$;
 
-
+-- 10. There are three types of basic roles in this system; customers, sales managers, and product managers.
+-- The product manager is also in the role of delivery department since it controls the stock.
+-- The sales managers are responsible for setting the prices of the products. 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -23,6 +25,8 @@ CREATE TABLE users (
 );
 
 
+-- 9. A product should have the following properties at the very least: 
+-- ID, name, model, serial number, description, quantity in stocks, price, warranty status, and distributor information
 CREATE TABLE products (
     product_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -30,7 +34,9 @@ CREATE TABLE products (
     serial_number VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     stock_quantity INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL
+    price DECIMAL(10,2) NOT NULL,
+    warranty_status VARCHAR(255) DEFAULT '2 years',
+    distributor_information TEXT -- is this related to any of user roles -- 'product_manager'
 );
 
 
@@ -45,15 +51,20 @@ CREATE TABLE productcategories (
     PRIMARY KEY (product_id, category_id)
 );
 
+-- each user has one shopping cart 
 CREATE TABLE shoppingcart (
     cart_id SERIAL PRIMARY KEY,
-    user_id INT,
+    user_id INT UNIQUE,
     product_id INT,
     quantity INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
+
+-- A delivery list has the following properties: 
+-- delivery ID, customer ID, product ID, quantity, total price, delivery address, 
+-- and a field showing whether the delivery has been completed or not.
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
     user_id INT,

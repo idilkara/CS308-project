@@ -4,6 +4,12 @@ import os
 
 user_bp = Blueprint("user", __name__)
 
+
+# A customer has the following properties at the very least: 
+# ID, name, e-mail address, home address, and password. 
+# The customer should be able to view their name, email address, 
+# and delivery address on a profile page.
+
 # Database connection function
 def get_db_connection():
     return psycopg2.connect(

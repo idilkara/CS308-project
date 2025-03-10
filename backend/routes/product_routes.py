@@ -1,8 +1,17 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
 import os
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 products_bp = Blueprint("products", __name__)
+
+
+
+#1. The application shall present a number of products in categories 
+# and let users select and add the desired product/products 
+# to the shopping cart to purchase them.
+
+
 
 # Database connection function
 def get_db_connection():

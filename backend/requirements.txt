@@ -1,6 +1,5 @@
 flask==2.3.3
 psycopg2-binary==2.9.10
-flask-sqlalchemy
 pytest
 bcrypt
 flask_jwt_extended
