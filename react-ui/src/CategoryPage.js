@@ -59,7 +59,7 @@ const CategoryPage = () => {
   return (
     <div>
       <Navbar />
-      <div className="container">
+      <div className="ccontainer">
         <div className="sidebar">
           <div className="sidebar-header">
             <h2 className="source-sans-semibold">Book Categories</h2>

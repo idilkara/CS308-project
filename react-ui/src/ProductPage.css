@@ -209,7 +209,7 @@
     line-height: 1.5;
 }
 
-.filter-dropdown {
+.product-filter-dropdown {
     margin-left: 10px; /* Space between title and dropdown */
     display: flex;
     justify-content: flex-end; /* Ensure dropdown aligns to the right */

@@ -117,7 +117,7 @@ const CommentSection = () => {
       <section className="comments">
         <div className="comments-header">
           <h2>Comments (17)</h2>
-          <div className="filter-dropdown">
+          <div className="product-filter-dropdown">
             <select 
               className="filter-select" 
               value={filterOption}
