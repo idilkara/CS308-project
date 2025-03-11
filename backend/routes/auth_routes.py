@@ -14,7 +14,6 @@ def register():
         name = data["name"]
         email = data["email"]
         password = data["password"]
-        home_address = data.get("home_address", "")
         role = data["role"]  
 
         # Şifreyi hashle

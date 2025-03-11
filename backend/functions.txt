@@ -3,7 +3,7 @@
 present products
 present categories
 present products given categories
-present product given product id
+present product information given product id
 
 add item to shopping cart given product id
 remove item from shopping cart given product id
