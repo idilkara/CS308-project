@@ -17,6 +17,7 @@ const ProductPage = () => {
     <div>
     <Navbar /> 
       <br />
+      <div className='container'>
       <div className="product-header">
         <p className="category-path">Category 1 / Subcategory 1</p>
       </div>
@@ -50,12 +51,14 @@ const ProductPage = () => {
       <hr className="separator" />
 
       <CommentSection />
+      </div>
     </div>
   );
 };
 
 const ImageGallery = () => {
   return (
+    <div className='container'>
     <div className="image-gallery">
       <div className="main-image"></div>
       <div className="sub-images">
@@ -64,11 +67,13 @@ const ImageGallery = () => {
         <div className="sub-image"></div>
       </div>
     </div>
+    </div>
   );
 };
 
 const SimilarProducts = ({ products }) => {
   return (
+    <div className='container'>
     <section className="similar-products">
       <h2>Similar Products</h2>
       <div className="product-list">
@@ -82,16 +87,19 @@ const SimilarProducts = ({ products }) => {
         ))}
       </div>
     </section>
+    </div>
   );
 };
 
 const ProductCard = ({ name, brand, price }) => {
   return (
+    <div className='container'>
     <div className="product-card">
       <div className="product-image"></div>
       <strong>{brand}</strong>
       <p>{name}</p>
       <p>{price}</p>
+    </div>
     </div>
   );
 };
@@ -104,6 +112,7 @@ const CommentSection = () => {
   };
   
   return (
+    <div className='container'>
     <div className="comment-container">
       <section className="comments">
         <div className="comments-header">
@@ -126,11 +135,13 @@ const CommentSection = () => {
         <CommentCard />
       </section>
     </div>
+    </div>
   );
 };
 
 const CommentCard = () => {
   return (
+    <div className='container'>
     <div className="comment-card">
       <div className="comment-header">
         <div className="avatar"></div>
@@ -143,6 +154,8 @@ const CommentCard = () => {
         Ut scelerisque luctus auctor. Suspendisse in maximus ipsum, nec varius lacus. 
         Sed ultricies dapibus eros et aliquet. Etiam a nisl mi.
       </p>
+      
+    </div>
     </div>
   );
 };
