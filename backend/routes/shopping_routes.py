@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
+#login yapmadan shopping cart a ekleme ve sonra login ile shopping cart i saklama yapilcak 
+# -frontendde yapilsin bu login gerceklesince cart temizlenmesin
+
 shopping_bp = Blueprint("shopping", __name__)
 
 @shopping_bp.route("/view", methods=["GET"])
@@ -43,7 +46,9 @@ def view_cart():
         return jsonify(cart_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
 
+# add product to cart given user id and product id and quantity 
 @shopping_bp.route("/add", methods=["POST"])
 @jwt_required()
 def add_to_cart():
@@ -132,5 +137,32 @@ def remove_from_cart():
         conn.close()
 
         return jsonify({"message": "Product removed from cart successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@shopping_bp.route("/clear", methods=["DELETE"])
+@jwt_required()
+def clear_cart():
+    try:
+        user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Get the user's cart ID
+        cur.execute("SELECT cart_id FROM shoppingcart WHERE user_id = %s", (user_id,))
+        cart = cur.fetchone()
+        if cart is None:
+            return jsonify({"error": "Shopping cart not found"}), 404
+        cart_id = cart[0]
+
+        # Clear all products from the user's cart
+        cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s", (cart_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Shopping cart cleared successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
