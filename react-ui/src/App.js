@@ -16,7 +16,7 @@ function App() {
         <Route path="/user" element={<UserPage />} />
         <Route path="/product" element={<ProductPage />} />
      
-        <Route path="/" element={<CategoryPage />} /> {/* Default route */}
+        <Route path="/" element={<HomePage />} /> {/* Default route */}
       </Routes>
     </Router>
   );

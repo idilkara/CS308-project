@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from "react-router-dom";
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.js"
 import bookCover from './img/BookCover.png';
@@ -182,8 +183,8 @@ const CategoryPage = () => {
         <div className="main-content">
           {/* Horizontal Navigation Bar */}
           <div className="horizontal-nav">
-            <div className="category-slider">
-              <div className="category-slider-container">
+            <div className="categories-slider">
+              <div className="categories-slider-container">
                 {categories.map((category, index) => (
                   <button 
                     key={index}
