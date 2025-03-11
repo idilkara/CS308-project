@@ -11,3 +11,57 @@
 # Credit card verification and limit issues are out of scope of the project.
 
 ## 
+
+## create a order , add the products in cart to the order and remove the products from the cart
+
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from db import get_db_connection
+
+payment_bp = Blueprint("payment", __name__)
+
+@payment_bp.route("/create_order", methods=["POST"])
+@jwt_required()
+def create_order():
+    try:
+        user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Get all items in the user's shopping cart
+        cur.execute("""
+            SELECT p.product_id, p.name, p.price, scp.quantity 
+            FROM shoppingcart sc
+            JOIN shoppingcartproducts scp ON sc.cart_id = scp.cart_id
+            JOIN products p ON scp.product_id = p.product_id
+            WHERE sc.user_id = %s
+        """, (user_id,))
+        cart_items = cur.fetchall()
+
+        if not cart_items:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Cart is empty"}), 400
+
+        total_price = sum(item[2] * item[3] for item in cart_items)
+
+        # Create order
+        cur.execute("INSERT INTO orders (user_id, total_price) VALUES (%s, %s) RETURNING order_id", (user_id, total_price))
+        order_id = cur.fetchone()[0]
+
+        # Add items to order
+        for item in cart_items:
+            cur.execute("INSERT INTO orderitems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)", 
+                        (order_id, item[0], item[3], item[2]))
+
+        # Clear the shopping cart
+        cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = (SELECT cart_id FROM shoppingcart WHERE user_id = %s)", (user_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Order created successfully", "order_id": order_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
