@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import "./ProductPage.css";
+import Navbar from "./components/Navbar"; 
+
 const ProductPage = () => {
   // Sample product data
   const products = [
@@ -11,7 +13,9 @@ const ProductPage = () => {
   ];
 
   return (
+
     <div>
+    <Navbar /> 
       <br />
       <div className="product-header">
         <p className="category-path">Category 1 / Subcategory 1</p>
