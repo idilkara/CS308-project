@@ -84,9 +84,8 @@
     cursor: pointer;
 }
 
-/* For extra space around the navbar */
+/* GLOBAL COMPONENTS */
 body, html {
-   
     margin: 0;
     padding: 0;
     overflow-y: auto;
@@ -94,6 +93,13 @@ body, html {
     font-family: 'Source Sans 3', sans-serif;
     font-weight: 400; /* Default weight */
 }
+.container {
+    /*max-width: 1200px; */
+    margin: 40px auto;
+    padding: 0 80px; 
+    color: var(--main-text-color);
+    width: ½95;
+  }
 
 /* Fonts */
 

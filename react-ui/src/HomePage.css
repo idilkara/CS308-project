@@ -1,5 +1,13 @@
 @import './styles/root.css';
 
+.container {
+  /*max-width: 1200px; */
+  margin: 40px auto;
+  padding: 0 80px; 
+  color: var(--main-text-color);
+  width: ½95;
+}
+
 /* Banner Container */
 .banner-container {
   position: relative;

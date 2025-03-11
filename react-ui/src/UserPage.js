@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import "./UserPage.css"
-import Navbar from "./components/Navbar.js"
+import "./UserPage.css";
+import Navbar from "./components/Navbar.js";
 
 const mockUserData = {
   id: "usr_12345",
@@ -16,9 +16,51 @@ const mockUserData = {
   password: "********" 
 };
 
+// Mock order data
+const mockOrders = [
+  {
+    id: "ORD-10045",
+    date: "March 5, 2025",
+    price: "$149.99",
+    status: "delivered"
+  },
+  {
+    id: "ORD-10044",
+    date: "February 28, 2025",
+    price: "$79.50",
+    status: "ongoing"
+  },
+  {
+    id: "ORD-10043",
+    date: "February 20, 2025",
+    price: "$225.00",
+    status: "returned",
+    returnReason: "Wrong size"
+  },
+  {
+    id: "ORD-10042",
+    date: "February 15, 2025",
+    price: "$32.99",
+    status: "cancelled",
+    cancellationReason: "Out of stock"
+  }
+];
+
 const UserAccountPage = () => {
     const [userData, setUserData] = useState(mockUserData);
     const [activeTab, setActiveTab] = useState('profile');
+    const [orderTab, setOrderTab] = useState('all');
+    
+    // Filter orders based on the selected tab
+    const getFilteredOrders = () => {
+        if (orderTab === 'all') return mockOrders;
+        if (orderTab === 'ongoing') return mockOrders.filter(order => order.status === 'ongoing');
+        if (orderTab === 'returns') return mockOrders.filter(order => order.status === 'returned');
+        if (orderTab === 'cancellations') return mockOrders.filter(order => order.status === 'cancelled');
+        return mockOrders;
+    };
+    
+    const filteredOrders = getFilteredOrders();
 
     return (
         <div>
@@ -85,9 +127,60 @@ const UserAccountPage = () => {
                 )}
                 
                 {activeTab === 'orders' && (
-                    <div>
-                    <h2 className="section-title">Order History</h2>
-                    <p>Your recent orders will appear here.</p>
+                    <div className="content">
+                       
+                        <h2 className="section-title">My Orders</h2>
+                        <div className="tabs">
+                            <button 
+                                className={orderTab === 'all' ? 'active' : ''} 
+                                onClick={() => setOrderTab('all')}
+                            >
+                                All Orders
+                            </button>
+                            <button 
+                                className={orderTab === 'ongoing' ? 'active' : ''} 
+                                onClick={() => setOrderTab('ongoing')}
+                            >
+                                Ongoing Orders
+                            </button>
+                            <button 
+                                className={orderTab === 'returns' ? 'active' : ''} 
+                                onClick={() => setOrderTab('returns')}
+                            >
+                                Returns
+                            </button>
+                            <button 
+                                className={orderTab === 'cancellations' ? 'active' : ''} 
+                                onClick={() => setOrderTab('cancellations')}
+                            >
+                                Cancellations
+                            </button>
+                        </div>
+                        
+                        <div id="orders">
+                            {filteredOrders.length > 0 ? (
+                                filteredOrders.map(order => (
+                                    <div key={order.id} className="order" data-status={order.status}>
+                                        <div className="details">
+                                            <p className="status">
+                                                {order.status === 'delivered' && 'Delivered'}
+                                                {order.status === 'ongoing' && 'In Progress'}
+                                                {order.status === 'returned' && 'Returned'}
+                                                {order.status === 'cancelled' && 'Cancelled'}
+                                            </p>
+                                            <p><strong>Order No:</strong> {order.id}</p>
+                                            <p><strong>Date:</strong> {order.date}</p>
+                                            {order.returnReason && <p><strong>Return Reason:</strong> {order.returnReason}</p>}
+                                            {order.cancellationReason && <p><strong>Cancellation Reason:</strong> {order.cancellationReason}</p>}
+                                        </div>
+                                        <p className="order-price"><strong>Price:</strong> {order.price}</p>
+                                        <button>View Order Details</button>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No orders found in this category.</p>
+                            )}
+                        </div>
                     </div>
                 )}
                 
