@@ -11,7 +11,7 @@ from routes.refunds_routes import refunds_bp
 from routes.payment_routes import payment_bp
 from routes.discount_routes import discount_bp
 from routes.categories_routes import categories_bp
-
+from routes.order_routes    import order_bp 
 app = Flask(__name__)
 
 # JWT Secret Key (Auth Blueprint için)
@@ -31,6 +31,7 @@ app.register_blueprint(discount_bp, url_prefix="/discount")
 
 app.register_blueprint(categories_bp, url_prefix="/categories")
 app.register_blueprint(payment_bp, url_prefix="/payment")
+app.register_blueprint(order_bp, url_prefix="/order")
 
 @app.route("/")
 def hello_world():

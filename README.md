@@ -105,3 +105,7 @@ curl -X GET http://localhost:5001/wishlist/view \
     -d '{
         "product_id": 1
     }'
+
+
+    curl -X GET http://localhost:5001/order/view_orders \
+   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MjQ0OCwianRpIjoiMjRiNGQyOWYtZjYwNC00MTFjLTgzOTItMmY3NDk4ZmUyMjJkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjQiLCJuYmYiOjE3NDE2NTI0NDgsImNzcmYiOiJlN2RmOGNkNi1mNjExLTRmYjEtYmYxOC1kODk2MzQ0ZDQ0ZWUiLCJleHAiOjE3NDE2NTMzNDh9.cbjN1tqYeOd07KTfZGQrFPvNREG2GTkUPQa9lRUcs8g"
