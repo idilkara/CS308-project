@@ -205,7 +205,187 @@ html, body {
     text-decoration: underline;
 }
 
+/* --- Login / Register --- */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-color);
+    position: relative;
+    text-decoration: none;
+}
 
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+}
+
+.auth-box {
+    background: white;
+    border: 1px solid var(--main-text-color);
+    width: 100%;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-brand {
+    text-align: center;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 36px;
+    margin-bottom: 30px;
+    margin-right: 0px;
+    color: var(--main-text-color);
+}
+
+.auth-title {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    margin-bottom: 24px;
+    color: var(--main-text-color);
+    align-self: flex-start;
+}
+
+.auth-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    border: 1px solid var(--secondary-text-color);
+    background: transparent;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 12px;
+    background: var(--main-text-color);
+    color: white;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.auth-button:hover {
+    background: #333;
+}
+
+.auth-toggle {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--main-text-color);
+    margin-top: 16px;
+    cursor: pointer;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+}
+
+.auth-toggle:hover {
+    text-decoration: underline;
+}
+
+.auth-manager {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--main-text-color);
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.auth-manager:hover {
+    text-decoration: underline;
+}
+
+.manager-toggle {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.toggle-button {
+    flex: 1;
+    padding: 12px 20px;
+    border: 1px solid var(--main-text-color);
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 16px; /* Make text size larger */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.toggle-button.active {
+    background: var(--main-text-color);
+    color: white;
+}
+
+.toggle-button:hover {
+    background: var(--warm-green-lighter);
+}
+
+
+.toggle-button:hover {
+    background: var(--warm-green-lighter);
+}
+
+.auth-text {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: left;
+    color: var(--main-text-color);
+}
+
+/* Hide "Login or Register" text on smaller screens */
+@media (max-width: 1000px) {
+    .auth-manager {
+        display: none;
+    }
+}
+
+.auth-error {
+    width: 100%;
+    background-color: #f8d7da;
+    color: #721c24;
+    font-size: 14px;
+    text-align: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--main-text-color);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+}
 
 /* --- Fonts --- */
 

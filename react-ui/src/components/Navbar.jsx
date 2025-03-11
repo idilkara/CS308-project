@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BsBag, BsPersonCircle } from "react-icons/bs";
+import { Link } from 'react-router-dom'; // This was missing
 
 const Navbar = () => {
     const [isAuthorsOpen, setIsAuthorsOpen] = useState(false);
@@ -19,6 +20,7 @@ const Navbar = () => {
                 >
                     <a href="#" className="dropdown-trigger">Publishers ▾</a>
                     <div className={`dropdown-menu ${isPublishersOpen ? 'show' : ''}`}>
+                        <a href="#" >All Publishers</a>
                         <a href="#">Publisher 1</a>
                         <a href="#">Publisher 2</a>
                         <a href="#">Publisher 3</a>
@@ -34,10 +36,11 @@ const Navbar = () => {
                 >
                     <a href="#" className="dropdown-trigger">Authors ▾</a>
                     <div className={`dropdown-menu ${isAuthorsOpen ? 'show' : ''}`}>
-                        <a href="#">Sima's Fav Author</a>
+                        <a href="#">All Authors</a>
+                        <a href="#">Haruki Murakami</a>
                         <a href="#">Secil's Fav Author</a>
                         <a href="#">Idil's Fav Author</a>
-                        <a href="#">Esin's Fav Author</a>
+                        <a href="#">Ursula K. Le Guin</a>
                         <a href="#">Zeynep's Fav Author</a>
                         <a href="#">Duygu's Fav Author</a>
                     </div>
@@ -51,7 +54,9 @@ const Navbar = () => {
             </div>
             <div className="icons">
                 <BsBag className="icon" />
-                <BsPersonCircle className="icon" />
+                <Link to="/login">
+                    <BsPersonCircle className="icon" />
+                </Link>
             </div>
         </header>
     );
