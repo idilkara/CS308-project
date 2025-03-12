@@ -155,11 +155,18 @@
   margin-right: 10px;
   cursor: pointer;
   border: none;
-  background: #ddd;
+  background: var(--warm-green-light);
+  border-radius: 4px;
+  color: white;
 }
 
 .tabs button.active {
-  background: #6cbc6f;
+  background: var(--warm-brown);
+  color: white;
+}
+
+.tabs button:hover {
+  background-color: #c79665;
   color: white;
 }
 
@@ -191,24 +198,185 @@
 }
 
 .status {
-  color: green;
+  color: rgb(54, 134, 54);
+  margin-bottom: 7px;
 }
 
 .order button {
   padding: 8px 12px;
   border: 1px solid #f6cf8c;
-  background-color: white;
-  color: #205b12;
+  background-color: var(--warm-brown);
+  color: white;
   text-decoration: none;
   border-radius: 5px;
   transition: 0.3s;
   font-size: 14px;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .order button:hover {
-  background-color: #f6cf8c;
+  background-color: #c79665;
   color: white;
+}
+
+/* Order Details Dropdown Styles */
+.order-container {
+  margin-bottom: 20px;
+}
+
+.order {
+  position: relative;
+}
+
+.order-details-dropdown {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-top: -10px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-height: 500px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+
+.order-details-header {
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--warm-peach);
+}
+
+.order-details-header h3 {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0;
+  color: var(--main-text-color);
+}
+
+.order-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-item {
+  display: flex;
+  padding: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.item-image-container {
+  width: 80px;
+  height: 120px;
+  flex-shrink: 0;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-right: 15px;
+}
+
+.item-placeholder-cover {
+  width: 100%;
+  height: 100%;
+  background-color: var(--warm-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  color: var(--main-text-color);
+}
+
+.item-author {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+  margin-bottom: 10px;
+}
+
+.item-price-qty {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-price {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--main-text-color);
+}
+
+.item-quantity {
+  color: var(--secondary-text-color);
+  font-size: 14px;
+}
+
+.order-summary {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.summary-item:last-child {
+  font-weight: 600;
+  font-size: 18px;
+  margin-top: 10px;
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 10px;
+}
+
+.view-details-active {
+  background-color: #c79665 !important;
+}
+
+/* Additional styling to make the order card look better with dropdown */
+.order {
+  border-radius: 8px 8px 0 0 !important;
+  margin-bottom: 0 !important;
+  transition: border-radius 0.3s ease;
+}
+
+.order:not(.expanded) {
+  border-radius: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Animation for dropdown */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+.order-details-dropdown {
+  animation: slideDown 0.3s ease-in-out;
 }
 
 /* Password Section Styles */
