@@ -26,7 +26,7 @@ def view_orders():
         # Get all orders for the user
         cur.execute("""
             SELECT o.order_id, o.order_date, o.total_price, o.status, oi.product_id,  oi.quantity, oi.price
-            FROM orders o
+            FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
             WHERE o.user_id = %s
             ORDER BY o.order_date DESC

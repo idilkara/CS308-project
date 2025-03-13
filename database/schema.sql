@@ -27,7 +27,7 @@ CREATE TABLE users (
 CREATE TABLE companies (
     company_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    address TEXT NOT NULL,
+    address TEXT NOT NULL
 );
 
 -- based on the role of the user the user will be assigned to a company
@@ -35,7 +35,7 @@ CREATE TABLE companymanagers (
     companymanager_id SERIAL PRIMARY KEY,
     company_id INT,
     user_id INT,
-    FOREIGN KEY (company_id) REFERENCES companies(company_id),
+    --FOREIGN KEY (company_id) REFERENCES companies(company_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
@@ -49,13 +49,13 @@ CREATE TABLE products (
     stock_quantity INT NOT NULL,
     price DECIMAL(10,2),
     warranty_status VARCHAR(255) DEFAULT '2 years',
-    distributor_information INT, -- is this related to any of user roles -- 'product_manager'
+    distributor_information TEXT, -- is this related to any of user roles -- 'product_manager'
     sales_manager INT,
     product_manager INT NOT NULL,
     waiting BOOLEAN DEFAULT TRUE, --until a price is set by a sales manager
     FOREIGN KEY (sales_manager) REFERENCES users(user_id),
-    FOREIGN KEY (product_manager) REFERENCES users(user_id),
-    FOREIGN KEY (distributor_information) REFERENCES companies(company_id)
+    FOREIGN KEY (product_manager) REFERENCES users(user_id)
+    --FOREIGN KEY (distributor_information) REFERENCES companies(company_id)
 );
 
 
@@ -93,7 +93,7 @@ CREATE TABLE shoppingcartproducts (
 -- delivery ID, customer ID, product ID, quantity, total price, delivery address, 
 -- and a field showing whether the delivery has been completed or not.
 CREATE TABLE userorders (
-    userorder_id SERIAL PRIMARY KEY,
+    order_id SERIAL PRIMARY KEY,
     user_id INT,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_price DECIMAL(10,2) NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE payments (
     user_id INT,
     amount DECIMAL(10,2) NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES userorders(order_id),
+    FOREIGN KEY (userorder_id) REFERENCES userorders(order_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
@@ -161,14 +161,14 @@ CREATE TABLE discounts (
 
 CREATE TABLE refunds (
     refund_id SERIAL PRIMARY KEY,
-    orderproduct_id INT,
+    orderitem_id INT,
     user_id INT,
     product_id INT,
     refund_amount DECIMAL(10,2) NOT NULL,
     status VARCHAR(50) CHECK (status IN ('requested', 'approved', 'rejected')) DEFAULT 'requested',
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (orderproduct_id) REFERENCES orderproducts(orderproduct_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (orderitem_id) REFERENCES orderitems(orderitem_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE notifications (

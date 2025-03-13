@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
+import logging
 
 #login yapmadan shopping cart a ekleme ve sonra login ile shopping cart i saklama yapilcak 
 # -frontendde yapilsin bu login gerceklesince cart temizlenmesin
@@ -51,59 +52,75 @@ def view_cart():
         conn.close()
 
     
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-# add product to cart given user id and product id and quantity 
 @shopping_bp.route("/add", methods=["POST"])
 @jwt_required()
 def add_to_cart():
-    
     data = request.json
     user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
     product_id = data["product_id"]
     quantity = data["quantity"]
 
+    logger.debug(f"Received request to add product {product_id} with quantity {quantity} to user {user_id}'s cart.")
+    
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
-        # Check if the product exists in quantity
+        # Check if the product exists and has enough quantity
+        logger.debug(f"Checking stock for product_id {product_id}.")
         cur.execute("SELECT stock_quantity FROM products WHERE product_id = %s", (product_id,))
         product = cur.fetchone()
+        
+        if product is None:
+            logger.error(f"Product with ID {product_id} does not exist.")
+            return jsonify({"error": "Product not found"}), 404
+
         stock_quantity = product[0]
+        logger.debug(f"Product stock for {product_id}: {stock_quantity}.")
+
         if stock_quantity < quantity:
+            logger.warning(f"Not enough stock for product_id {product_id}. Requested: {quantity}, Available: {stock_quantity}.")
             return jsonify({"error": "Not enough stock available"}), 400
 
         # Get the user's cart ID
+        logger.debug(f"Checking if user {user_id} has an existing cart.")
         cur.execute("SELECT cart_id FROM shoppingcart WHERE user_id = %s", (user_id,))
         cart = cur.fetchone()
-      
-        cur.execute("INSERT INTO shoppingcart (user_id) VALUES (%s) RETURNING cart_id", (user_id,))
-        cart = cur.fetchone()       
+        
         cart_id = cart[0]
+        logger.debug(f"Using cart_id {cart_id} for user {user_id}.")
 
-        # Check if the user already has this product in their cart
+        # Check if the product already exists in the cart
+        logger.debug(f"Checking if product {product_id} is already in the cart.")
         cur.execute("SELECT quantity FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
         cart_item = cur.fetchone()
 
         if cart_item:
             # Update the quantity if the product is already in the cart
             new_quantity = cart_item[0] + quantity
+            logger.debug(f"Product {product_id} already in cart, updating quantity to {new_quantity}.")
             cur.execute("UPDATE shoppingcartproducts SET quantity = %s WHERE cart_id = %s AND product_id = %s", (new_quantity, cart_id, product_id))
         else:
             # Add the product to the cart if it's not already there
+            logger.debug(f"Adding product {product_id} to the cart with quantity {quantity}.")
             cur.execute("INSERT INTO shoppingcartproducts (cart_id, product_id, quantity) VALUES (%s, %s, %s)", (cart_id, product_id, quantity))
 
     except Exception as e:
         conn.rollback()
+        logger.error(f"Error occurred while adding product {product_id} to cart: {str(e)}")
         return jsonify({"error": str(e)}), 400
     else:
         conn.commit()
+        logger.debug(f"Product {product_id} successfully added to cart {cart_id}.")
     finally:
         cur.close()
         conn.close()
 
     return jsonify({"message": "Product added to cart successfully!"}), 200
-
 
 @shopping_bp.route("/remove", methods=["POST"])
 @jwt_required()
@@ -133,12 +150,10 @@ def remove_from_cart():
             cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
         
         if quantity_in_cart == quantity:
-
             cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
 
 
         if quantity_in_cart > quantity:
-
             new_quantity = quantity_in_cart - quantity
             cur.execute("UPDATE shoppingcartproducts SET quantity = %s WHERE cart_id = %s AND product_id = %s", (new_quantity, cart_id, product_id))    
 

@@ -23,7 +23,8 @@ payment_bp = Blueprint("payment", __name__)
 
 
 # buy everything in the cart
-# create order and remove the products from the cart@payment_bp.route("/create_order", methods=["POST"])
+# create order and remove the products from the cart
+@payment_bp.route("/create_order", methods=["POST"])
 @jwt_required()
 def create_order():
 
@@ -55,8 +56,13 @@ def create_order():
         total_price = sum(item[2] * item[3] for item in cart_items)
 
         # Create user order
-        cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING userorder_id", (user_id, total_price, delivery_address))
+        cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING order_id", (user_id, total_price, delivery_address))
         userorder_id = cur.fetchone()[0]
+
+        #TODO handle error when users home adress is not registered
+        if delivery_address == "":
+            return jsonify({"error": "Delivery address cannot be empty"}), 400
+
 
         # Add items to order and decrease stock quantity
         for item in cart_items:

@@ -13,64 +13,88 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
-pm_products_bp = Blueprint("pm_products", __name__)
+
 # Create a new product - product manager does these
+import logging
+
+
+pm_products_bp = Blueprint("pm_products", __name__)
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 @pm_products_bp.route('/product/create', methods=['POST'])
 @jwt_required()
 def create_product():
-    user_info = get_jwt_identity()
-    user_role = user_info["role"]
-
-    if user_role != "product_manager":
-        return jsonify({"error": "Unauthorized access"}), 403
-
-    data = request.get_json()
-    name = data.get('name')
-    model = data.get('model')
-    description = data.get('description')
-    stock_quantity = data.get('stock_quantity')
-    distributor_information = data.get('distributor_information')
-    categories = data.get('categories', [])
-    product_manager = user_info["user_id"]
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    user_id = get_jwt_identity()
+    
     try:
+        data = request.get_json()
+        if not data:
+            raise ValueError("No input data provided")
+        
+        name = data.get('name')
+        model = data.get('model')
+        description = data.get('description')
+        stock_quantity = data.get('stock_quantity')
+        distributor_information = data.get('distributor_information')
+        categories = data.get('categories', [])
+        
+        if not all([name, model, description, stock_quantity, distributor_information]):
+            raise ValueError("Missing required fields")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check user role
+        cursor.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
+        role = cursor.fetchone()
+        
+        if not role or role[0] != "product_manager":
+            raise PermissionError("Unauthorized access")
+        
         # Insert the new product
         cursor.execute("""
             INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager)
             VALUES (%s, %s, %s, %s, %s, %s) RETURNING product_id;
-        """, (name, model, description, stock_quantity, distributor_information, product_manager))
+        """, (name, model, description, stock_quantity, distributor_information, user_id))
         product_id = cursor.fetchone()[0]
-
+        
         # Process categories and insert them into productcategories
         for category_name in categories:
-            # Check if the category already exists
             cursor.execute("SELECT category_id FROM categories WHERE name = %s", (category_name,))
             category = cursor.fetchone()
-
+            
             if category:
-                # Category exists, get the existing category_id
                 category_id = category[0]
             else:
-                # Category does not exist, insert it
                 cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
                 category_id = cursor.fetchone()[0]
-
-            # Insert the mapping into productcategories
+                
             cursor.execute("""
                 INSERT INTO productcategories (product_id, category_id)
                 VALUES (%s, %s);
             """, (product_id, category_id))
+        
+        conn.commit()
 
+    
+    except PermissionError as pe:
+        logger.warning(f"Unauthorized attempt by user {user_id}: {pe}")
+        return jsonify({"error": str(pe)}), 403
+    except ValueError as ve:
+        logger.error(f"Invalid input: {ve}")
+        return jsonify({"error": str(ve)}), 400
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Unexpected error while creating product")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
-        conn.commit()
+        
         cursor.close()
         conn.close()
-        return jsonify({"message": "Product created successfully", "product_id": product_id}), 201
+    return jsonify({"message": "Product created successfully", "product_id": product_id}), 201
 
 
 # Update product info by product ID 
