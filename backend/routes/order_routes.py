@@ -1,8 +1,7 @@
 
 
-# When the shopping is done, that product should be decreased from the stock and 
-# the order for delivery processing should be forwarded to the delivery department, 
-# which will process the order for shipping. During order processing, an order history page
+
+# During order processing, an order history page
 # should allow the user to view the status as: processing, in-transit, and delivered.
 
 # view orders by userID
@@ -13,27 +12,27 @@ from db import get_db_connection
 
 order_bp = Blueprint("order", __name__)
 
-@order_bp.route("/view_orders", methods=["GET"])
+# view order histor as a customer
+@order_bp.route("/view_order_history", methods=["GET"])
 @jwt_required()
 def view_orders():
+    
+    user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
     try:
-        user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
         # Get all orders for the user
         cur.execute("""
-            SELECT o.order_id, o.order_date, o.total_price, o.status, oi.product_id, oi.quantity, oi.price
+            SELECT o.order_id, o.order_date, o.total_price, o.status, oi.product_id,  oi.quantity, oi.price
             FROM orders o
             JOIN orderitems oi ON o.order_id = oi.order_id
             WHERE o.user_id = %s
             ORDER BY o.order_date DESC
         """, (user_id,))
-        orders = cur.fetchall()
 
-        cur.close()
-        conn.close()
+        orders = cur.fetchall()
 
         if not orders:
             return jsonify({"message": "No orders found"}), 200
@@ -63,28 +62,8 @@ def view_orders():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-
-@order_bp.route("/update_status", methods=["POST"])
-@jwt_required()
-def update_status():
-    try:
-        data = request.json
-        order_id = data["order_id"]
-        new_status = data["status"]
-
-        if new_status not in ["processing", "in-transit", "delivered"]:
-            return jsonify({"error": "Invalid status"}), 400
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Update the status of the order
-        cur.execute("UPDATE orders SET status = %s WHERE order_id = %s", (new_status, order_id))
-
-        conn.commit()
+    finally:
+        conn.close()    
         cur.close()
-        conn.close()
 
-        return jsonify({"message": "Order status updated successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    
