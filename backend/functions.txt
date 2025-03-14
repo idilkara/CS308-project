@@ -1,57 +1,75 @@
 
-TO DO:
-purchase the items in the shopping cart:
-    turn items in the cart to an order list - add stock check and stock decrease
+todo/ to test: 
 
 product manager: 
 approve of a comment to product
 list all deliveries and ability to change the status
 
-sales manager:
-update price of a product
-
-customer:
-request refund by order id and product id
-sales manager:
-accept refund
-reject refund
-
 belli yerlerde pdf gonderme durumu var
 notification handling
 
 
+change order delivery status - BUG
+view order status 
+
+customer: -profile page
+view user info The customer should be able to view their name, email address, and delivery address on a profile page.
+
+
+
+$$$$$$$$$$$$$$$$
+
+## BUG 
+customer: - TO TEST
+comment to a product
+rate a product
+
+customer:
+request refund by order id and product id
+
+sales manager:
+accept refund
+reject refund
+
+
+
+
+$$$$$$$$$$$$$$
+
 
 product manager - delivery department: 
-add product
 remove product
 add product category
 update stock given product id
 
 
-DONE: 
-present products
+GET methods for the customer:
 present products given categories
 present product information given product id
-
 present categories
+
+
+
+
+
+TESTED:
+
+sales manager:
+update price of a product
+
+view orders list given user id
+add product
+
+present products
+
 
 add item to shopping cart given product id
 remove item from shopping cart given product id
 view shopping cart
 clear shopping cart
 
-
-change order delivery status
-view order status
-
-view orders list given user id
-
-customer: -profile page
-view user info The customer should be able to view their name, email address, and delivery address on a profile page.
-
-customer:
-comment to a product
-rate a product
+purchase the items in the shopping cart:
+    turn items in the cart to an order list - add stock check and stock decrease
 
 
 

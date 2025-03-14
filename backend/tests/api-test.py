@@ -240,8 +240,6 @@ if __name__ == "__main__":
                 log.append(view_orders(customer_token))
 
 
-
-
             else:
                 log.append({"error": "Price update failed, skipping add-to-cart"})
 

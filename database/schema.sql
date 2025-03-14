@@ -24,20 +24,20 @@ CREATE TABLE users (
     role VARCHAR(50) CHECK (role IN ('customer', 'sales_manager', 'product_manager')) NOT NULL
 );
 
-CREATE TABLE companies (
-    company_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    address TEXT NOT NULL
-);
+-- CREATE TABLE companies (
+--     company_id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     address TEXT NOT NULL
+-- );
 
--- based on the role of the user the user will be assigned to a company
-CREATE TABLE companymanagers (
-    companymanager_id SERIAL PRIMARY KEY,
-    company_id INT,
-    user_id INT,
-    --FOREIGN KEY (company_id) REFERENCES companies(company_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
+-- -- based on the role of the user the user will be assigned to a company
+-- CREATE TABLE companymanagers (
+--     companymanager_id SERIAL PRIMARY KEY,
+--     company_id INT,
+--     user_id INT,
+--     --FOREIGN KEY (company_id) REFERENCES companies(company_id),
+--     FOREIGN KEY (user_id) REFERENCES users(user_id)
+-- );
 
 -- 9. A product should have the following properties at the very least: 
 -- ID, name, model, serial number, description, quantity in stocks, price, warranty status, and distributor information

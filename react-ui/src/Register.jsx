@@ -30,7 +30,7 @@ const Register = () => {
                     surname,
                     email,
                     password,
-                    role: "customer"  // Correctly setting the role property here
+                    role: "customer"  // Correctly setting the role property here 
                 }),
             });
 

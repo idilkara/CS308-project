@@ -16,8 +16,10 @@ review_bp = Blueprint("review", __name__)
 @jwt_required()
 def add_review():
     try:
+
         user = get_jwt_identity()
-        user_id = user["user_id"]
+        user_id = user["user_id"] ## user_id = user (try)
+
         data = request.json
         product_id = data["product_id"]
         rating = data["rating"]
@@ -85,7 +87,7 @@ def get_reviews(product_id):
 @jwt_required()
 def approve_review(review_id):
     try:
-        user = get_jwt_identity()
+        user = get_jwt_identity() # try the same fix of /add route 
         if user["role"] != "product_manager":
             return jsonify({"error": "Only product managers can approve comments."}), 403
 

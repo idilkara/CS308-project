@@ -6,12 +6,14 @@ import bcrypt
 # Blueprint oluştur
 auth_bp = Blueprint("auth", __name__)
 
+
+
 ### **1. Kullanıcı Kayıt Endpoint’i**
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
     print("Received registration data:", data)  # Debugging
-    
+    # TODO role issue with compatibility for frontend
     try:
         name = data["name"]
         email = data["email"]
@@ -44,6 +46,7 @@ def register():
             cur.execute('''INSERT INTO shoppingcart (user_id) VALUES (%s)''', (user_id,))
             cur.execute('''INSERT INTO wishlists (user_id) VALUES (%s)''', (user_id,))
             print("Shopping cart and wishlist created.")
+
 
             if home_address:
                 cur.execute('''UPDATE users SET home_address = %s WHERE user_id = %s''', (home_address, user_id))

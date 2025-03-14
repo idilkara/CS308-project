@@ -10,8 +10,8 @@ from routes.refunds_routes import refunds_bp
 from routes.payment_routes import payment_bp
 from routes.discount_routes import discount_bp
 from routes.categories_routes import categories_bp
-from routes.order_routes    import order_bp 
-from routes.company_routes    import company_bp 
+from routes.order_routes import order_bp 
+from routes.company_routes import company_bp 
 from routes.pm_delivery import pm_delivery_bp
 from routes.pm_products_routes import pm_products_bp
 from routes.sales_manager_routes import sm_bp
