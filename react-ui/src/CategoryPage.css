@@ -1,16 +1,21 @@
 @import './styles/root.css';
 
+body {
+    overflow-y: hidden !important;
+}
+
+
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-.container {
+
+.ccontainer {
     display: flex;
     height: 100vh;
     width: 100vw;
-}
+} 
 
 .sidebar {
     width: 250px;
@@ -111,23 +116,23 @@
     background-color: var(--background-color);
 }
 
-.category-slider {
+.categories-slider {
     display: flex;
     align-items: center;
     position: relative;
 }
 
-.category-slider-container {
+.categories-slider-container {
     display: flex;
     gap: 10px;
-    overflow-x: auto;
+
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
     padding: 0 10px;
     flex-grow: 1;
 }
 
-.category-slider-container::-webkit-scrollbar {
+.categories-slider-container::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
 }
 
@@ -195,115 +200,6 @@
     position: relative;
     height: calc(100vh - 180px); /* Adjusted for horizontal nav */
     overflow: hidden;
-}
-
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    padding: 20px;
-    overflow-y: auto;
-    width: 100%;
-}
-
-.grid-item {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--background-color); /* Changed to use background-color */
-    border: 1px solid var(--secondary-text-color);
-    border-radius: 0;
-    overflow: hidden;
-    height: 400px;
-    width: 250px;
-    text-align: center;
-    position: relative;
-}
-
-/* New styles for heart and cart buttons */
-.item-actions {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 8px;
-    z-index: 10;
-}
-
-.favorite-btn, .cart-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background-color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.favorite-btn:hover, .cart-btn:hover {
-    background-color: white;
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-
-.favorite-btn.active {
-    background-color: var(--background-color); /* Keep the background color */
-    box-shadow: 0 0 8px 0.5px rgb(232, 141, 141); /* Smaller glow effect */
-    border: 1.5px solid rgb(232, 141, 141); /* Slightly thinner border */
-    transition: box-shadow 0.3s ease-in-out;
-}
-
-.heart-filled {
-    color: #e74c3c;
-    font-size: 18px;
-}
-
-.heart-outline {
-    color: #777;
-    font-size: 18px;
-}
-
-.cart-btn span {
-    font-size: 18px;
-}
-
-.grid-item-header {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid var(--secondary-text-color);
-    gap: 5px;
-    background-color: var(--background-color); /* Changed to use background-color */
-}
-
-.grid-item-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    text-align: center;
-    background-color: var(--background-color); /* Changed to use background-color */
-}
-
-.grid-item-content img {
-    max-width: 150px;
-    max-height: 200px;
-    object-fit: contain;
-}
-
-.grid-item hr {
-    width: 80%;
-    margin: 10px auto;
-    border: 0;
-    border-top: 1px solid var(--secondary-text-color);
-    background-color: var(--secondary-text-color);
 }
 
 /* Responsive adjustments */
