@@ -139,6 +139,28 @@ def view_orders_pm(token):
         return response.json()  # Return the order history from the API
     else:
         return {"error": "Failed to fetch waiting producsts", "status_code": response.status_code, "details": response.json()}
+    
+def deliver_orders_pm(token, orderitem_id,newstat):
+
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+
+    # Prepare the data to send in the request body (JSON)
+    data = {
+        "status": newstat,
+
+    }
+
+    # Send a POST request to the remove from cart endpoint
+    response = requests.post(f"{BASE_URL}/delivery/update_status/{orderitem_id}", json=data, headers=headers)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        return response.json()  # Return the successful response from the API
+    else:
+        return {"error": "Failed to update status", "status_code": response.status_code}
+
+
+
 
 
 
@@ -213,6 +235,9 @@ if __name__ == "__main__":
                 log.append(view_orders(customer_token))
 
                 log.append(view_orders_pm(pm_token))
+
+                log.append(deliver_orders_pm(pm_token,2, "in-transit"))
+                log.append(view_orders(customer_token))
 
 
 
