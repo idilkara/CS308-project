@@ -112,7 +112,33 @@ def view_orders(token):
         return response.json()  # Return the order history from the API
     else:
         return {"error": "Failed to fetch order history", "status_code": response.status_code, "details": response.json()}
+    
 
+def view_waiting_products(token):
+    
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    
+    # Send a GET request to the view_order_history endpoint
+    response = requests.get(f"{BASE_URL}/sm/waiting_products", headers=headers)
+    
+    # Check if the response was successful
+    if response.status_code == 200:
+        return response.json()  # Return the order history from the API
+    else:
+        return {"error": "Failed to fetch waiting producsts", "status_code": response.status_code, "details": response.json()}
+
+def view_orders_pm(token):
+
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    
+    # Send a GET request to the view_order_history endpoint
+    response = requests.get(f"{BASE_URL}/delivery/view_orders", headers=headers)
+    
+    # Check if the response was successful
+    if response.status_code == 200:
+        return response.json()  # Return the order history from the API
+    else:
+        return {"error": "Failed to fetch waiting producsts", "status_code": response.status_code, "details": response.json()}
 
 
 
@@ -145,6 +171,10 @@ if __name__ == "__main__":
 
         product_id = product_response.get("product_id")
         if product_id:
+
+            wp = view_waiting_products(sm_token)
+            log.append(wp)
+
             # Sales manager updates the price
             price_update_resp = update_price(sm_token, product_id, 1500)
             log.append(price_update_resp)
@@ -181,6 +211,10 @@ if __name__ == "__main__":
                 log.append(pay_resp)
                 log.append(view_cart(customer_token))
                 log.append(view_orders(customer_token))
+
+                log.append(view_orders_pm(pm_token))
+
+
 
 
             else:

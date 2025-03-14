@@ -32,9 +32,13 @@ def view_orders():
         
         # Fetch all orders related to the product manager's products
         cur.execute("""
-            SELECT u.userid, o.delivery_address , o.order_id, o.order_date, o.status, p.product_id, op.quantity, op.price, p.name, p.model
-            FROM userorders o users u  products p orderitems op
-            WHERE o.order_id = op.order_id AND op.product_id = p.product_id AND p.product_manager = %s
+            SELECT u.user_id, o.delivery_address, o.order_id, o.order_date, o.status, p.product_id, op.quantity, op.price, p.name, p.model
+            FROM userorders o
+            JOIN users u ON o.user_id = u.user_id  -- Join users table on user_id
+            JOIN orderitems op ON o.order_id = op.order_id  -- Join orderitems table on order_id
+            JOIN products p ON op.product_id = p.product_id  -- Join products table on product_id
+            WHERE p.product_manager = %s  -- Filter by the product_manager
+
         """, (user_id,))
         orders = cur.fetchall()
 
@@ -62,6 +66,7 @@ def view_orders():
         return jsonify(orders_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
 
 # Update the status of an order given orderproduct_id
 @pm_delivery_bp.route("/update_status/<int:orderproduct_id>", methods=["PUT"])

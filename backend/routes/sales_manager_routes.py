@@ -68,6 +68,8 @@ def get_waiting_products():
         for product in products
     ])
 # Configure logging
+
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 @sm_bp.route("/update_price/<int:product_id>", methods=["PUT"])
