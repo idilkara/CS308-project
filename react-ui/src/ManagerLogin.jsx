@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "../styles/root.css";
+import "./styles/root.css";
 
 const ManagerLogin = () => {
     const [managerType, setManagerType] = useState("sales"); // Default to Sales Manager

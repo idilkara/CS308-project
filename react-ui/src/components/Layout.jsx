@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from './Navbar';  // <-- Import Navbar
 import Footer from './Footer'; // <-- Import Footer
-import '../styles/root.css';    // Import styles
+import './styles/root.css';    // Import styles
 
 const Layout = ({ children }) => {
     return (

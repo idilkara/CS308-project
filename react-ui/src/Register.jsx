@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "../styles/root.css";
+import "./styles/root.css";
 
 const Register = () => {
     const [name, setName] = useState("");
@@ -20,12 +20,18 @@ const Register = () => {
 
         try {
             // TODO: Replace with actual API URL when backend is ready
-            const response = await fetch("https://your-backend-api.com/register", {
+            const response = await fetch("http://backend/auth/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ name, surname, email, password }),
+                body: JSON.stringify({
+                    name,
+                    surname,
+                    email,
+                    password,
+                    role: "customer"  // Correctly setting the role property here
+                }),
             });
 
             const data = await response.json();

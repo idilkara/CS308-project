@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "../styles/root.css";
+import "./styles/root.css";
 
 const Login = () => {
     const [email, setEmail] = useState("");  // State for email input
@@ -12,7 +12,7 @@ const Login = () => {
 
         try {
             // TODO: Replace with actual API URL when backend is ready
-            const response = await fetch("https://your-backend-api.com/login", {
+            const response = await fetch("http://backend/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
