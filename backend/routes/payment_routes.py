@@ -10,26 +10,35 @@ from db import get_db_connection
 # an invoice must be shown on the screen and 
 # a PDF copy of the invoice should be emailed to the user.
 
-
+# todo pdf gondermece 
 # A customer should enter his/her credit card information to purchase a product. 
 # Credit card verification and limit issues are out of scope of the project.
 
-
 ## create a order , add the products in cart to the order and remove the products from the cart
 ## stock should decrease after the order is created 
-
+# When the shopping is done, that product should be decreased from the stock and 
 
 
 payment_bp = Blueprint("payment", __name__)
 
+
+# buy everything in the cart
+# create order and remove the products from the cart
 @payment_bp.route("/create_order", methods=["POST"])
 @jwt_required()
 def create_order():
-    try:
-        user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
 
-        conn = get_db_connection()
-        cur = conn.cursor()
+    user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Get the user's delivery address
+        cur.execute("""
+            SELECT home_address FROM users WHERE user_id = %s
+        """, (user_id,))
+        delivery_address = cur.fetchone()[0]
 
         # Get all items in the user's shopping cart
         cur.execute("""
@@ -42,41 +51,49 @@ def create_order():
         cart_items = cur.fetchall()
 
         if not cart_items:
-            cur.close()
-            conn.close()
-            return jsonify({"error": "Cart is empty"}), 400
+            raise ValueError("Cart is empty")
 
         total_price = sum(item[2] * item[3] for item in cart_items)
 
-        # Create order
-        cur.execute("INSERT INTO orders (user_id, total_price) VALUES (%s, %s) RETURNING order_id", (user_id, total_price))
-        order_id = cur.fetchone()[0]
+        # Create user order
+        cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING order_id", (user_id, total_price, delivery_address))
+        userorder_id = cur.fetchone()[0]
+
+        #TODO handle error when users home adress is not registered
+        if delivery_address == "":
+            return jsonify({"error": "Delivery address cannot be empty"}), 400
+
 
         # Add items to order and decrease stock quantity
         for item in cart_items:
             product_id = item[0]
+            price = item[2] # TODO : price might change based on discounts
             quantity = item[3]
             stock_quantity = item[4]
 
-            if stock_quantity < quantity:
-                cur.close()
-                conn.close()
-                return jsonify({"error": f"Not enough stock for product {item[1]}"}), 400
+            cur.execute("SELECT discount_amount from discounts where product_id = %s", (product_id,))
+            discount_amount = cur.fetchone()    
+            if discount_amount:
+                price = price - price * discount_amount[0]
 
-            cur.execute("INSERT INTO orderitems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)", 
-                        (order_id, product_id, quantity, item[2]))
+            if stock_quantity < quantity:
+                raise ValueError(f"Not enough stock for product {item[1]}")
 
             # Decrease the stock quantity
             new_stock_quantity = stock_quantity - quantity
             cur.execute("UPDATE products SET stock_quantity = %s WHERE product_id = %s", (new_stock_quantity, product_id))
+            cur.execute("INSERT INTO orderitems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)", (userorder_id, product_id, quantity, price))
 
-        # Clear the shopping cart
+        # Empty the shopping cart
         cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = (SELECT cart_id FROM shoppingcart WHERE user_id = %s)", (user_id,))
 
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 400
+    else:
         conn.commit()
+    finally:
         cur.close()
         conn.close()
 
-        return jsonify({"message": "Order created successfully", "order_id": order_id}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    return jsonify({"message": "Order created successfully", "order_id": userorder_id}), 200
