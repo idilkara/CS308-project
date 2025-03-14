@@ -39,7 +39,7 @@ services:
      networks:
        - app_network
      volumes:
-       - frontend:/frontend
+       - .:/frontend
  
 
 volumes:
