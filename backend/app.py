@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 
 from routes.user_routes import user_bp
 from routes.product_routes import products_bp
-from routes.auth_routes import auth_bp  # auth blueprint import et
+from routes.auth_routes import auth_bp  # auth blueprint import 
 from routes.shopping_routes import shopping_bp
 from routes.wishlist_routes import wishlist_bp 
 from routes.refunds_routes import refunds_bp
@@ -12,6 +12,8 @@ from routes.payment_routes import payment_bp
 from routes.discount_routes import discount_bp
 from routes.categories_routes import categories_bp
 from routes.order_routes    import order_bp 
+from routes.review_routes import review_bp  # review blueprint import 
+
 app = Flask(__name__)
 
 # JWT Secret Key (Auth Blueprint için)
@@ -22,7 +24,9 @@ jwt = JWTManager(app)
 # Blueprintleri Kaydet
 app.register_blueprint(user_bp, url_prefix="/users")
 app.register_blueprint(products_bp, url_prefix="/products")
-app.register_blueprint(auth_bp, url_prefix="/auth")  # /auth ile çağıracağız
+app.register_blueprint(auth_bp, url_prefix="/auth") 
+app.register_blueprint(review_bp, url_prefix="/reviews")
+
 
 app.register_blueprint(shopping_bp, url_prefix="/shopping")
 app.register_blueprint(wishlist_bp, url_prefix="/wishlist")
