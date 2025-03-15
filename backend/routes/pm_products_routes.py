@@ -17,7 +17,6 @@ from db import get_db_connection
 # Create a new product - product manager does these
 import logging
 
-
 pm_products_bp = Blueprint("pm_products", __name__)
 
 # Configure logging
@@ -257,3 +256,6 @@ def delete_product(product_id):
         return jsonify({"message": "Product deleted successfully"}), 200
     else:
         return jsonify({"error": "Product not found"}), 404
+    
+
+# TODO add category to a prduct

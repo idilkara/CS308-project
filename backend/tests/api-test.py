@@ -36,6 +36,8 @@ def update_price(token, product_id, price):
     data = {"price": price}
     response = requests.put(f"{BASE_URL}/sm/update_price/{product_id}", json=data, headers=headers)
     if response.status_code == 200:
+
+    
         return response.json()
     return {"error": "Failed to update price", "status_code": response.status_code}
 
@@ -66,8 +68,6 @@ def clear_cart(token):
 
 def removefromcart(token, product_id, quantity):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
-    response = requests.get(f"{BASE_URL}/shopping/remove", headers=headers)
-
         
     # Prepare the data to send in the request body (JSON)
     data = {
@@ -113,9 +113,7 @@ def view_orders(token):
     else:
         return {"error": "Failed to fetch order history", "status_code": response.status_code, "details": response.json()}
     
-
 def view_waiting_products(token):
-    
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     
     # Send a GET request to the view_order_history endpoint
@@ -123,9 +121,19 @@ def view_waiting_products(token):
     
     # Check if the response was successful
     if response.status_code == 200:
-        return response.json()  # Return the order history from the API
+        try:
+            # Check if response contains valid JSON
+            return response.json()  # Return the order history from the API
+        except ValueError:  # If the response is not valid JSON
+            return {"error": "Invalid JSON response", "status_code": response.status_code}
     else:
-        return {"error": "Failed to fetch waiting producsts", "status_code": response.status_code, "details": response.json()}
+        try:
+            # Try to parse the error response as JSON
+            return {"error": "Failed to fetch waiting products", "status_code": response.status_code, "details": response.json()}
+        except ValueError:
+            # If the error response is not valid JSON, return plain text
+            return {"error": "Failed to fetch waiting products", "status_code": response.status_code, "details": response.text}
+
 
 def view_orders_pm(token):
 
@@ -151,7 +159,7 @@ def deliver_orders_pm(token, orderitem_id,newstat):
     }
 
     # Send a POST request to the remove from cart endpoint
-    response = requests.post(f"{BASE_URL}/delivery/update_status/{orderitem_id}", json=data, headers=headers)
+    response = requests.put(f"{BASE_URL}/delivery/update_status/{orderitem_id}", json=data, headers=headers)
     
     # Check if the request was successful
     if response.status_code == 200:
@@ -159,6 +167,17 @@ def deliver_orders_pm(token, orderitem_id,newstat):
     else:
         return {"error": "Failed to update status", "status_code": response.status_code}
 
+
+
+def viewproducts ( ):
+
+    response = requests.get(f"{BASE_URL}/products/products")
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        return response.json()  # Return the successful response from the API
+    else:
+        return {"error": "Failed to viewall products", "status_code": response.status_code}
 
 
 
@@ -236,10 +255,10 @@ if __name__ == "__main__":
 
                 log.append(view_orders_pm(pm_token))
 
-                log.append(deliver_orders_pm(pm_token,2, "in-transit"))
+                log.append(deliver_orders_pm(pm_token, 2, "in-transit"))
                 log.append(view_orders(customer_token))
 
-
+                log.append( viewproducts ( ))
 
 
             else:

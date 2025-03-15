@@ -125,9 +125,17 @@ def add_to_cart():
 @shopping_bp.route("/remove", methods=["POST"])
 @jwt_required()
 def remove_from_cart():
-    
-    data = request.json
-    user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON data"}), 400
+
+    if "product_id" not in data or "quantity" not in data:
+        return jsonify({"error": "Missing required fields: product_id, quantity"}), 400
+
+    user_id = get_jwt_identity()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     product_id = data["product_id"]
     quantity = data["quantity"]
 
@@ -135,40 +143,42 @@ def remove_from_cart():
     cur = conn.cursor()
 
     try:
-        
         # Get the user's cart ID
         cur.execute("SELECT cart_id FROM shoppingcart WHERE user_id = %s", (user_id,))
         cart = cur.fetchone()
 
+        if cart is None:
+            return jsonify({"error": "Cart not found for user"}), 404
+
         cart_id = cart[0]
 
-        # Remove the product from the cart based on the quantity. 
-
+        # Get the current quantity in cart
         cur.execute("SELECT quantity FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
-        quantity_in_cart = cur.fetchone()[0]
-        if quantity_in_cart < quantity:
-            cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
-        
-        if quantity_in_cart == quantity:
-            cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
+        result = cur.fetchone()
 
+        if result is None:
+            return jsonify({"error": "Product not found in cart"}), 404
 
-        if quantity_in_cart > quantity:
+        quantity_in_cart = result[0]
+
+        # Remove or update product in the cart
+        if quantity_in_cart <= quantity:
+            cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = %s AND product_id = %s", (cart_id, product_id))
+        else:
             new_quantity = quantity_in_cart - quantity
-            cur.execute("UPDATE shoppingcartproducts SET quantity = %s WHERE cart_id = %s AND product_id = %s", (new_quantity, cart_id, product_id))    
+            cur.execute("UPDATE shoppingcartproducts SET quantity = %s WHERE cart_id = %s AND product_id = %s", (new_quantity, cart_id, product_id))
+
+        conn.commit()
+        return jsonify({"message": "Product removed from cart successfully!"}), 200
 
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": str(e)}), 400
-    else:
-        conn.commit()
+        return jsonify({"error": str(e)}), 500
+
     finally:
         cur.close()
-        conn.close()    
-     
-    return jsonify({"message": "Product removed from cart successfully!"}), 200
+        conn.close()
 
-    
 @shopping_bp.route("/clear", methods=["DELETE"])
 @jwt_required()
 def clear_cart():

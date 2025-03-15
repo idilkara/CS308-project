@@ -58,3 +58,5 @@ def add_category():
         conn.close()
 
     return jsonify({"message": "Category added successfully", "category_id": category_id}), 201
+
+##
