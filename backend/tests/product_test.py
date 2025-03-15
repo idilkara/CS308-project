@@ -5,7 +5,7 @@ from auth_test import login
 
 
 
-def create_product(token, name, model, description, stock_quantity, distributor_information, categories):
+def create_product(token, name, model, description, stock_quantity, distributor_information):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     data = {
         "name": name,
@@ -13,7 +13,6 @@ def create_product(token, name, model, description, stock_quantity, distributor_
         "description": description,
         "stock_quantity": stock_quantity,
         "distributor_information": distributor_information,
-        "categories": categories,
     }
     response = requests.post(f"{BASEURL}/pm_products/product/create", json=data, headers=headers)
     if response.status_code == 201 :
@@ -56,7 +55,7 @@ def viewcategories ():
 
 def addcategory(token , name):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
-    data = {"name", name}
+    data = {"name": name}
     response = requests.put(f"{BASEURL}/categories/addcategory", json=data, headers=headers)
     
     # Check if the request was successful
@@ -87,7 +86,29 @@ def viewproduct(prodid):
         return response.json()  # Return the successful response from the API
     else:
         return {"error": "Failed to viewall products", "status_code": response.status_code}
+    
+def removeproduct(token, prodid):
+    headers = {"Authorization": f"Bearer{token}", **HEADERS}
+    response = requests.delete(f"{BASEURL}/pm_products/product/delete/{prodid}")
+    if response.status_code == 200:
+        return response.json()        
+    return {"error": "Failed to remove product", "status_code": response.status_code}
 
+def addcategory_to_product(token, prodid, categid):
+    headers = {"Authorization": f"Bearer{token}", **HEADERS}
+    data = {"category_id": categid}
+    response = requests.put(f"{BASEURL}/pm_products/product/addcategory/{prodid}", json=data, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    return {"error": "Failed to add category to product", "status_code": response.status_code}
+
+def removecategory_from_product(token, prodid, categid):
+    headers = {"Authorization": f"Bearer{token}", **HEADERS}
+    data = {"category_id": categid}
+    response = requests.put(f"{BASEURL}/pm_products/product/removecategory/{prodid}", json=data, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    return {"error": "Failed to remove category from product", "status_code": response.status_code}
 
 
 
@@ -109,19 +130,84 @@ if __name__ == "__main__":
 
     # add products as a product manager
 
+    product1 = create_product(pm_token, "product1", "model1", "description1", 10, "distributor_information1")
+    product2 = create_product(pm_token, "product2", "model2", "description2", 20, "distributor_information2")
+    product3 = create_product(pm_token, "product3", "model3", "description3", 30, "distributor_information3")
+    product4 = create_product(pm_token, "product4", "model4", "description4", 40, "distributor_information4")
+
+    products = viewproducts()
+    print(products) 
     # set prices to products as a sales_manager
+
+    price1 = update_price(sm_token, product1.get("product_id"), 100)
+    price2 = update_price(sm_token, product2.get("product_id"), 200)
+    price3 = update_price(sm_token, product3.get("product_id"), 300)
+    price4 = update_price(sm_token, product4.get("product_id"), 400)
 
     #view products
 
+    products = viewproducts()
+    print(products)
+
     #view categories 
 
+    categories = viewcategories()
+    print(categories)
+
     # create categroy
+ 
+    category1 = addcategory(pm_token, "category1")
+    category2 = addcategory(pm_token, "category2")
+    category3 = addcategory(pm_token, "category3")
+
+    categories = viewcategories()
+    print(categories)
+
 
     # add category to product given product Id
 
+    addcategory_to_product(pm_token, product1.get("product_id"), category1.get("category_id"))
+    addcategory_to_product(pm_token, product1.get("product_id"), category2.get("category_id"))
+    addcategory_to_product(pm_token, product2.get("product_id"), category2.get("category_id"))
+    addcategory_to_product(pm_token, product2.get("product_id"), category3.get("category_id"))
+    addcategory_to_product(pm_token, product3.get("product_id"), category3.get("category_id"))
+    addcategory_to_product(pm_token, product3.get("product_id"), category1.get("category_id"))
+
+    categories = viewcategories()
+    print(categories)
+
+
+
+    # remove category from product given product Id
+
+    removecategory_from_product(pm_token, product1.get("product_id"), category1.get("category_id"))
+    removecategory_from_product(pm_token, product1.get("product_id"), category2.get("category_id"))
+
+    categories = viewcategories()
+    print(categories)
+
+    #remove product
+
+    removeproduct(pm_token, product1.get("product_id"))
+    removeproduct(pm_token, product2.get("product_id"))
+
+    products = viewproducts()
+    print(products)
+
+
+
     #view products given category 
+
+    products = viewproducts_by_category(category1.get("category_id"))
+    print(products)
+
     
     #view product info 
+
+    product = viewproduct(product3.get("product_id"))
+    print(product)
+
+
 
 
 

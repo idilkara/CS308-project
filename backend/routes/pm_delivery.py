@@ -42,8 +42,6 @@ def view_orders():
         """, (user_id,))
         orders = cur.fetchall()
 
-
-
         cur.close()
         conn.close()
 

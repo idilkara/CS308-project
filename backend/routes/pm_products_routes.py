@@ -26,8 +26,19 @@ logger = logging.getLogger(__name__)
 @pm_products_bp.route('/product/create', methods=['POST'])
 @jwt_required()
 def create_product():
-    user_id = get_jwt_identity()
+    userid = get_jwt_identity()
+
+    #chedck role
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
     
+
     try:
         data = request.get_json()
         if not data:
@@ -43,11 +54,9 @@ def create_product():
         if not all([name, model, description, stock_quantity, distributor_information]):
             raise ValueError("Missing required fields")
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
         
         # Check user role
-        cursor.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
+        cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
         role = cursor.fetchone()
         
         if not role or role[0] != "product_manager":
@@ -57,7 +66,7 @@ def create_product():
         cursor.execute("""
             INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager)
             VALUES (%s, %s, %s, %s, %s, %s) RETURNING product_id;
-        """, (name, model, description, stock_quantity, distributor_information, user_id))
+        """, (name, model, description, stock_quantity, distributor_information, userid))
         product_id = cursor.fetchone()[0]
         
         # Process categories and insert them into productcategories
@@ -80,7 +89,7 @@ def create_product():
 
     
     except PermissionError as pe:
-        logger.warning(f"Unauthorized attempt by user {user_id}: {pe}")
+        logger.warning(f"Unauthorized attempt by user {userid}: {pe}")
         return jsonify({"error": str(pe)}), 403
     except ValueError as ve:
         logger.error(f"Invalid input: {ve}")
@@ -101,11 +110,19 @@ def create_product():
 @jwt_required()
 def update_product(product_id):
 
-    user_id = get_jwt_identity()
-    
+    userid = get_jwt_identity()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
     
     #check if product,s produtmanager is thsi user 
-    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, user_info["user_id"]))
+    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid, ))
     product = cursor.fetchone()
     if not product:
         return jsonify({"error": "Product not found or not authorized"}), 404
@@ -118,8 +135,6 @@ def update_product(product_id):
     price = data.get('price')
     categories = data.get('categories', [])
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
     try:    
         cursor.execute("""
@@ -168,23 +183,25 @@ def update_product(product_id):
 @jwt_required()
 def update_product_stock(product_id):
 
-    user_info = get_jwt_identity()
-    user_role = user_info["role"]
+    userid = get_jwt_identity()
 
-    if user_role != "product_manager":
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
         return jsonify({"error": "Unauthorized access"}), 403
-
+    
     #check if product,s produtmanager is thsi user 
-    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, user_info["user_id"]))
+    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid))
     product = cursor.fetchone()
     if not product:
         return jsonify({"error": "Product not found or not authorized"}), 404
     
     data = request.get_json()
     stock_quantity = data.get('stock_quantity')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
     try:    
         cursor.execute("""
@@ -215,10 +232,14 @@ def update_product_stock(product_id):
 @jwt_required()
 def delete_product(product_id):
 
-    user_info = get_jwt_identity()
-    user_role = user_info["role"]
+    userid = get_jwt_identity()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    if user_role != "product_manager":
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
         return jsonify({"error": "Unauthorized access"}), 403
     
             #check if product,s produtmanager is thsi user 
@@ -227,10 +248,6 @@ def delete_product(product_id):
     if not product:
         return jsonify({"error": "Product not found or not authorized"}), 404
     
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
     try:
 
         #check if product,s produtmanager is thsi user 
@@ -258,4 +275,97 @@ def delete_product(product_id):
         return jsonify({"error": "Product not found"}), 404
     
 
-# TODO add category to a prduct
+#  add category to a prduct
+@pm_products_bp.route('/product/add_category/<int:product_id>', methods=['POST'])
+@jwt_required() 
+def add_category_to_product(product_id):
+    userid = get_jwt_identity()
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    data = request.get_json()
+    category_name = data.get('category_name')
+
+
+    try:
+        cursor.execute("SELECT category_id FROM categories WHERE name = %s", (category_name,))
+        category = cursor.fetchone()
+        if not category:
+            #create category
+            cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
+            category = cursor.fetchone()
+
+        
+        cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid, ))
+        product = cursor.fetchone()
+        if not product:
+            return jsonify({"error": "Product not found or not authorized"}), 404
+
+        cursor.execute("""
+            INSERT INTO productcategories (product_id, category_id)
+            VALUES (%s, %s);
+        """, (product_id, category[0]))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    return jsonify({"message": "Category added to product successfully"}), 200
+
+
+# remove category from a prduct
+@pm_products_bp.route('/product/remove_category/<int:product_id>', methods=['DELETE'])
+@jwt_required()
+def remove_category_from_product(product_id):
+    userid = get_jwt_identity()
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    data = request.get_json()
+    category_name = data.get('category_name')
+
+
+    try:
+        cursor.execute("SELECT category_id FROM categories WHERE name = %s", (category_name,))
+        category = cursor.fetchone()
+        if not category:
+            return jsonify({"error": "Category not found"}), 404
+
+        
+        cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid, ))
+        product = cursor.fetchone()
+        if not product:
+            return jsonify({"error": "Product not found or not authorized"}), 404
+
+        cursor.execute("""
+            DELETE FROM productcategories WHERE product_id = %s AND category_id = %s;
+        """, (product_id, category[0]))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    return jsonify({"message": "Category removed from product successfully"}), 200
+
