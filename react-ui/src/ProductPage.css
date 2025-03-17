@@ -299,6 +299,99 @@
   background-color: white;
 }
 
+/* Review Form Styles */
+.review-form-container {
+  background-color: var(--warm-cream);
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.review-form-container .section-title {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--main-text-color);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.rating-selector {
+  display: flex;
+  gap: 8px;
+  font-size: 28px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.rating-star {
+  transition: color 0.2s;
+}
+
+.rating-star:hover,
+.rating-star.filled {
+  color: gold;
+}
+
+.submit-review-btn {
+  background-color: var(--warm-brown);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-review-btn:hover {
+  background-color: #c79665;
+}
+
+.submit-review-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+/* Enhanced Comment Styling */
 .comments-container {
   display: flex;
   flex-direction: column;
@@ -315,8 +408,14 @@
 .comment-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 15px;
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .comment-avatar {
@@ -326,9 +425,25 @@
   border-radius: 50%;
 }
 
+.comment-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-user-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.comment-date {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+}
+
 .comment-rating {
   color: gold;
   letter-spacing: 2px;
+  font-size: 18px;
 }
 
 .comment-text {
@@ -354,5 +469,10 @@
   
   .product-add-to-cart {
     flex-direction: column;
+  }
+  
+  .comment-header {
+    flex-direction: column;
+    gap: 10px;
   }
 }

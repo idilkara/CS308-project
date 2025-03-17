@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import "./ProductPage.css";
 import Navbar from "./components/Navbar"; 
+import ReviewForm from "./ReviewForm.js"; // Import the new component
 
 const ProductPage = () => {
   // Sample product data
@@ -25,19 +26,11 @@ const ProductPage = () => {
     { id: 5, name: "Product Name", brand: "Brand", price: "$19.99" }
   ];
 
-  // Sample comments/reviews
-  const comments = [
-    {
-      id: 1,
-      rating: 5,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas volutpat leo turpis, dignissim ultrices orci condimentum vulputate. Maecenas imperdiet imperdiet tincidunt. Vestibulum tincidunt rhoncus tristique. Ut scelerisque luctus auctor. Suspendisse in maximus ipsum, nec varius lacus. Sed ultricies dapibus eros et aliquet. Etiam a nisl mi."
-    },
-    {
-      id: 2,
-      rating: 5,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas volutpat leo turpis, dignissim ultrices orci condimentum vulputate. Maecenas imperdiet imperdiet tincidunt. Vestibulum tincidunt rhoncus tristique. Ut scelerisque luctus auctor. Suspendisse in maximus ipsum, nec varius lacus. Sed ultricies dapibus eros et aliquet. Etiam a nisl mi."
-    }
-  ];
+  // Initialize with an empty array:
+  const [comments, setComments] = useState([]);
+
+  // State for filtering reviews
+  const [reviewSort, setReviewSort] = useState('highest-rated');
 
   // For favorite/wishlist functionality
   const [favorites, setFavorites] = useState({});
@@ -57,6 +50,40 @@ const ProductPage = () => {
       setWishlistButtonText(newFavoriteStatus ? "Added to Wishlist" : "Add to Wishlist");
     }
   };
+
+  // Handle new review submission
+  const handleReviewSubmit = (newReview) => {
+    // Add the new review to the comments array
+    setComments(prevComments => [newReview, ...prevComments]);
+    
+    // Update the review count in the product object
+    // In a real app, this would be part of a more comprehensive state management
+    const updatedProduct = {...product};
+    updatedProduct.reviewCount = comments.length + 1;
+  };
+
+  // Sort reviews based on the selected option
+  const getSortedReviews = () => {
+    switch (reviewSort) {
+      case 'highest-rated':
+        return [...comments].sort((a, b) => b.rating - a.rating);
+      case 'least-rated':
+        return [...comments].sort((a, b) => a.rating - b.rating);
+      case 'most-recent':
+        return [...comments].sort((a, b) => new Date(b.date) - new Date(a.date));
+      default:
+        return comments;
+    }
+  };
+
+  // Calculate average rating
+  const calculateAverageRating = (reviews) => {
+    if (reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return Math.round(totalRating / reviews.length);
+  };
+
+  const sortedReviews = getSortedReviews();
 
   return (
     <div>
@@ -84,9 +111,11 @@ const ProductPage = () => {
               <div className="product-brand">{product.brand}</div>
               <div className="product-rating">
                 <div className="stars">
-                  {"★".repeat(product.rating)}
+                  {comments.length > 0 
+                    ? "★".repeat(calculateAverageRating(comments)) 
+                    : "☆☆☆☆☆"}
                 </div>
-                <span className="review-count">({product.reviewCount})</span>
+                <span className="review-count">({comments.length})</span>
               </div>
             </div>
             
@@ -165,22 +194,36 @@ const ProductPage = () => {
         
         <div className="comments-section">
           <div className="comments-header">
-            <h2 className="section-heading">Comments ({product.reviewCount})</h2>
+            <h2 className="section-heading">Comments ({comments.length})</h2>
             <div className="comments-filter">
-              <select className="filterRating-dropdown">
+              <select 
+                className="filterRating-dropdown"
+                value={reviewSort}
+                onChange={(e) => setReviewSort(e.target.value)}
+              >
                 <option value="highest-rated">Highest Rated</option>
-                <option value="least-rated">Least Rated</option>
+                <option value="least-rated">Lowest Rated</option>
                 <option value="most-recent">Most Recent</option>
-                <option value="more-popular">More Popular</option>
               </select>
             </div>
           </div>
           
+          {/* Review Form */}
+          <ReviewForm onSubmitReview={handleReviewSubmit} />
+          
           <div className="comments-container">
-            {comments.map(comment => (
+            {sortedReviews.map(comment => (
               <div key={comment.id} className="comment-card">
                 <div className="comment-header">
-                  <div className="comment-avatar"></div>
+                  <div className="comment-user-info">
+                    <div className="comment-avatar"></div>
+                    <div className="comment-user-details">
+                      <div className="comment-user-name">{comment.userName}</div>
+                      <div className="comment-date">
+                        {new Date(comment.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
                   <div className="comment-rating">
                     {"★".repeat(comment.rating)}
                   </div>
