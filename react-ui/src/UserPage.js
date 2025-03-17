@@ -123,12 +123,46 @@ const mockWishlistBooks = [
   }
 ];
 
+// Mock payment methods data
+const mockPaymentMethods = [
+    {
+      id: "pm_123456",
+      type: "credit",
+      brand: "Visa",
+      last4: "4242",
+      expMonth: 12,
+      expYear: 2026,
+      isDefault: true
+    },
+    {
+      id: "pm_789012",
+      type: "credit",
+      brand: "Mastercard",
+      last4: "5555",
+      expMonth: 8,
+      expYear: 2025,
+      isDefault: false
+    }
+  ];
+
 const UserAccountPage = () => {
     const [userData, setUserData] = useState(mockUserData);
     const [activeTab, setActiveTab] = useState('profile');
     const [orderTab, setOrderTab] = useState('all');
     const [wishlistBooks, setWishlistBooks] = useState(mockWishlistBooks);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+    // Payment methods state
+    const [paymentMethods, setPaymentMethods] = useState(mockPaymentMethods);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [newCard, setNewCard] = useState({
+        cardNumber: '',
+        cardName: '',
+        expMonth: '',
+        expYear: '',
+        cvv: '',
+        makeDefault: false
+    });
     
     // Edit profile states
     const [editingProfile, setEditingProfile] = useState(false);
@@ -319,7 +353,274 @@ const UserAccountPage = () => {
         if (orderTab === 'cancellations') return mockOrders.filter(order => order.status === 'cancelled');
         return mockOrders;
     };
+
+    // Payment methods functions
     
+    // Handle input change for new card form
+    const handleCardInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setNewCard({
+            ...newCard,
+            [name]: type === 'checkbox' ? checked : value
+        });
+    };
+
+    // Format card number with spaces
+    const formatCardNumber = (value) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const matches = v.match(/\d{4,16}/g);
+        const match = matches && matches[0] || '';
+        const parts = [];
+        
+        for (let i = 0, len = match.length; i < len; i += 4) {
+            parts.push(match.substring(i, i + 4));
+        }
+        
+        if (parts.length) {
+            return parts.join(' ');
+        } else {
+            return value;
+        }
+    };
+
+     // Handle form submission for new payment method
+     const handleAddCardSubmit = (e) => {
+        e.preventDefault();
+        
+        // Create a new payment method object
+        const newPaymentMethod = {
+            id: `pm_${Math.floor(Math.random() * 1000000)}`,
+            type: "credit",
+            brand: newCard.cardNumber.startsWith('4') ? 'Visa' : 
+                   newCard.cardNumber.startsWith('5') ? 'Mastercard' : 
+                   newCard.cardNumber.startsWith('3') ? 'American Express' : 'Unknown',
+            last4: newCard.cardNumber.slice(-4),
+            expMonth: parseInt(newCard.expMonth),
+            expYear: parseInt(newCard.expYear),
+            isDefault: newCard.makeDefault
+        };
+        // Update existing cards if new card is set as default
+        let updatedPaymentMethods = [...paymentMethods];
+        if (newCard.makeDefault) {
+            updatedPaymentMethods = updatedPaymentMethods.map(method => ({
+                ...method,
+                isDefault: false
+            }));
+        }
+
+        // Add the new card
+        setPaymentMethods([...updatedPaymentMethods, newPaymentMethod]);
+        
+        // Reset form and hide it
+        setNewCard({
+            cardNumber: '',
+            cardName: '',
+            expMonth: '',
+            expYear: '',
+            cvv: '',
+            makeDefault: false
+        });
+        setShowAddForm(false);
+    };
+
+    // Set a payment method as default
+    const setDefaultPaymentMethod = (id) => {
+        const updatedMethods = paymentMethods.map(method => ({
+            ...method,
+            isDefault: method.id === id
+        }));
+        setPaymentMethods(updatedMethods);
+    };
+    
+    // Delete a payment method
+    const deletePaymentMethod = (id) => {
+        const updatedMethods = paymentMethods.filter(method => method.id !== id);
+        setPaymentMethods(updatedMethods);
+    };
+
+     // Get card type icon/class based on card brand
+     const getCardTypeClass = (brand) => {
+        switch(brand.toLowerCase()) {
+            case 'visa': return 'visa-icon';
+            case 'mastercard': return 'mastercard-icon';
+            case 'american express': return 'amex-icon';
+            default: return 'card-icon';
+        }
+    };
+
+    // Render payment methods section
+    const renderPaymentMethodsSection = () => (
+        <div>
+            <h2 className="section-title">Payment Methods</h2>
+            
+            {paymentMethods.length > 0 ? (
+                <div className="payment-methods-list">
+                    {paymentMethods.map(method => (
+                        <div key={method.id} className={`payment-method-card ${method.isDefault ? 'default-card' : ''}`}>
+                            <div className="card-header">
+                                <div className={`card-brand ${getCardTypeClass(method.brand)}`}>
+                                    {method.brand}
+                                </div>
+                                {method.isDefault && <div className="default-badge">Default</div>}
+                            </div>
+                            
+                            <div className="card-details">
+                                <div className="card-number">
+                                    •••• •••• •••• {method.last4}
+                                </div>
+                                <div className="card-expiry">
+                                    Expires: {method.expMonth}/{method.expYear}
+                                </div>
+                            </div>
+                            
+                            <div className="card-actions">
+                                {!method.isDefault && (
+                                    <button 
+                                        className="set-default-btn"
+                                        onClick={() => setDefaultPaymentMethod(method.id)}
+                                    >
+                                        Set as Default
+                                    </button>
+                                )}
+                                <button 
+                                    className="delete-btn"
+                                    onClick={() => deletePaymentMethod(method.id)}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="empty-payment-methods">
+                    <p>You don't have any saved payment methods.</p>
+                </div>
+            )}
+            
+            {!showAddForm ? (
+                <button 
+                    className="add-payment-btn"
+                    onClick={() => setShowAddForm(true)}
+                >
+                    <span>+</span> Add Payment Method
+                </button>
+            ) : (
+                <div className="add-payment-form">
+                    <h3>Add New Payment Method</h3>
+                    <form onSubmit={handleAddCardSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="cardName">Name on Card</label>
+                            <input
+                                type="text"
+                                id="cardName"
+                                name="cardName"
+                                value={newCard.cardName}
+                                onChange={handleCardInputChange}
+                                required
+                                className="form-input"
+                                placeholder="John Doe"
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="cardNumber">Card Number</label>
+                            <input
+                                type="text"
+                                id="cardNumber"
+                                name="cardNumber"
+                                value={newCard.cardNumber}
+                                onChange={(e) => {
+                                    const formattedValue = formatCardNumber(e.target.value);
+                                    setNewCard({...newCard, cardNumber: formattedValue});
+                                }}
+                                required
+                                className="form-input"
+                                placeholder="1234 5678 9012 3456"
+                                maxLength="19"
+                            />
+                        </div>
+                        
+                        <div className="form-row">
+                            <div className="form-group expiry-group">
+                                <label htmlFor="expMonth">Expiration Date</label>
+                                <div className="expiry-inputs">
+                                    <select
+                                        id="expMonth"
+                                        name="expMonth"
+                                        value={newCard.expMonth}
+                                        onChange={handleCardInputChange}
+                                        required
+                                        className="form-select"
+                                    >
+                                        <option value="">Month</option>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                            <option key={month} value={month}>{month}</option>
+                                        ))}
+                                    </select>
+                                    <span className="expiry-separator">/</span>
+                                    <select
+                                        id="expYear"
+                                        name="expYear"
+                                        value={newCard.expYear}
+                                        onChange={handleCardInputChange}
+                                        required
+                                        className="form-select"
+                                    >
+                                        <option value="">Year</option>
+                                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div className="form-group cvv-group">
+                                <label htmlFor="cvv">CVV</label>
+                                <input
+                                    type="text"
+                                    id="cvv"
+                                    name="cvv"
+                                    value={newCard.cvv}
+                                    onChange={handleCardInputChange}
+                                    required
+                                    className="form-input"
+                                    placeholder="123"
+                                    maxLength="4"
+                                    pattern="\d{3,4}"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="form-group checkbox-group">
+                            <label className="checkbox-container">
+                                <input
+                                    type="checkbox"
+                                    name="makeDefault"
+                                    checked={newCard.makeDefault}
+                                    onChange={handleCardInputChange}
+                                />
+                                <span className="checkmark"></span>
+                                Set as default payment method
+                            </label>
+                        </div>
+                        
+                        <div className="form-buttons">
+                            <button type="submit" className="save-btn">Add Payment Method</button>
+                            <button 
+                                type="button" 
+                                className="cancel-btn"
+                                onClick={() => setShowAddForm(false)}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+        </div>
+    );
+
     const filteredOrders = getFilteredOrders();
 
     // Edit Profile Form component integrated directly
@@ -682,7 +983,7 @@ const UserAccountPage = () => {
         </div>
     );
 
-    // Render profile view (not editing)
+    // Render profile view 
     const renderProfileView = () => (
         <>
         <h2 className="section-title">Profile Information</h2>
@@ -948,12 +1249,7 @@ const UserAccountPage = () => {
                     </div>
                 )}
                 
-                {activeTab === 'payment' && (
-                    <div>
-                    <h2 className="section-title">Payment Methods</h2>
-                    <p>Your saved payment methods will appear here.</p>
-                    </div>
-                )}
+                {activeTab === 'payment' && renderPaymentMethodsSection()}
                 
                 {activeTab === 'security' && (
                     <div>
