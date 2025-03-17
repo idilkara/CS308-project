@@ -17,8 +17,10 @@ review_bp = Blueprint("review", __name__)
 def add_review():
     try:
         user = get_jwt_identity()
+        print(f"User: {user}")
         user_id = user["user_id"]
         data = request.json
+        print(f"Data received: {data}")
         product_id = data["product_id"]
         rating = data["rating"]
         comment = data.get("comment", None)  # Yorum zorunlu değil, None olabilir
@@ -34,6 +36,7 @@ def add_review():
         """, (user_id, product_id))
         
         order_status = cur.fetchone()
+        print(f"Order status: {order_status}")
 
         if not order_status:
             return jsonify({"error": "You can only review products you have purchased."}), 403
@@ -53,6 +56,7 @@ def add_review():
 
         return jsonify({"message": "Review submitted successfully!"}), 201
     except Exception as e:
+        print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
 
