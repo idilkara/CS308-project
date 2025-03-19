@@ -15,6 +15,8 @@
   font-size: 14px;
   color: var(--secondary-text-color);
   margin-bottom: 20px;
+  font-family: 'SourceSans3-Regular', sans-serif;
+
 }
 
 /* Product Details Container */
@@ -75,12 +77,14 @@
 .product-brand {
   font-size: 18px;
   font-weight: 500;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 .product-rating {
   display: flex;
   align-items: center;
   gap: 5px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .stars {
@@ -98,18 +102,21 @@
   font-size: 28px;
   font-weight: 600;
   margin: 0 0 10px 0;
+  font-family: 'SourceSans3-Bold', sans-serif;
 }
 
 .product-price {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 10px;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 .product-code {
   font-size: 14px;
   color: var(--secondary-text-color);
   margin-bottom: 15px;
+  font-family: 'SourceSans3-Light', sans-serif;
 }
 
 /* Stock indicator styles */
@@ -119,6 +126,7 @@
   gap: 8px;
   margin-bottom: 20px;
   font-size: 15px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .stock-indicator {
@@ -153,6 +161,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 .add-to-cart-btn:hover {
@@ -169,6 +178,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
   gap: 8px;
   background: none;
   border: 1px solid var(--warm-brown);
@@ -203,12 +213,14 @@
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 10px;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 .section-content {
   font-size: 16px;
   line-height: 1.6;
   color: var(--main-text-color);
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 /* Separator */
@@ -228,6 +240,8 @@
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 20px;
+  font-family: 'SourceSans3-Bold', sans-serif;
+  font-family: 'SourceSans3-Bold', sans-serif;
 }
 
 .similar-products-grid {
@@ -266,17 +280,21 @@
   font-weight: 600;
   font-size: 14px;
   margin: 10px 10px 5px 10px;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
+
 }
 
 .product-card-name {
   font-size: 16px;
   margin: 0 10px 5px 10px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .product-card-price {
   font-weight: 600;
   font-size: 16px;
   margin: 0 10px 10px 10px;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 /* Comments Section */
@@ -289,6 +307,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  font-family: 'SourceSans3-Bold', sans-serif;
 }
 
 .filterRating-dropdown {
@@ -297,6 +316,7 @@
   border-radius: 4px;
   font-size: 14px;
   background-color: white;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 /* Review Form Styles */
@@ -313,6 +333,7 @@
 
 .form-group {
   margin-bottom: 20px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .form-group label {
@@ -329,7 +350,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .form-group textarea {
@@ -362,6 +383,7 @@
   border-radius: 4px;
   font-size: 16px;
   font-weight: 500;
+  font-family: 'SourceSans3-Regular', sans-serif;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -381,6 +403,7 @@
   padding: 10px 15px;
   border-radius: 4px;
   margin-bottom: 15px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 .error-message {
@@ -389,6 +412,7 @@
   padding: 10px 15px;
   border-radius: 4px;
   margin-bottom: 15px;
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 /* Enhanced Comment Styling */
@@ -433,11 +457,13 @@
 .comment-user-name {
   font-weight: 600;
   font-size: 16px;
+  font-family: 'SourceSans3-SemiBold', sans-serif;
 }
 
 .comment-date {
   font-size: 14px;
   color: var(--secondary-text-color);
+  font-family: 'SourceSans3-Light', sans-serif;
 }
 
 .comment-rating {
@@ -450,6 +476,7 @@
   font-size: 15px;
   line-height: 1.6;
   color: var(--main-text-color);
+  font-family: 'SourceSans3-Regular', sans-serif;
 }
 
 /* Responsive Design */

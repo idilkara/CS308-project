@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.js"
 import bookCover from './img/BookCover.png';
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 const CategoryPage = () => {
   // State for managing dropdown visibility
@@ -58,6 +59,7 @@ const CategoryPage = () => {
   ];
 
   return (
+
     <div>
       <Navbar />
       <div className="ccontainer">
@@ -73,7 +75,7 @@ const CategoryPage = () => {
                 onClick={() => toggleDropdown('genres')}
               >
                 <span className="source-sans-regular">Genres</span>
-                <i className="dropdown-icon">{dropdowns.genres ? '▲' : '▼'}</i>
+                <i className="dropdown-icon">{dropdowns.genres ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</i>
               </div>
               <div 
                 className={`filter-dropdown-content ${dropdowns.genres ? 'active' : ''}`}
@@ -98,7 +100,7 @@ const CategoryPage = () => {
                 onClick={() => toggleDropdown('priceRange')}
               >
                 <span className="source-sans-regular">Price Range</span>
-                <i className="dropdown-icon">{dropdowns.priceRange ? '▲' : '▼'}</i>
+                <i className="dropdown-icon">{dropdowns.priceRange ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</i>
               </div>
               <div 
                 className={`filter-dropdown-content ${dropdowns.priceRange ? 'active' : ''}`}
@@ -127,7 +129,9 @@ const CategoryPage = () => {
                 onClick={() => toggleDropdown('author')}
               >
                 <span className="source-sans-regular">Author</span>
-                <i className="dropdown-icon">{dropdowns.author ? '▲' : '▼'}</i>
+                <i className="dropdown-icon">
+                  {dropdowns.author ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </i>
               </div>
               <div 
                 className={`filter-dropdown-content ${dropdowns.author ? 'active' : ''}`}
@@ -156,7 +160,7 @@ const CategoryPage = () => {
                 onClick={() => toggleDropdown('publicationYear')}
               >
                 <span className="source-sans-regular">Publication Year</span>
-                <i className="dropdown-icon">{dropdowns.publicationYear ? '▲' : '▼'}</i>
+                <i className="dropdown-icon">{dropdowns.publicationYear ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</i>
               </div>
               <div 
                 className={`filter-dropdown-content ${dropdowns.publicationYear ? 'active' : ''}`}

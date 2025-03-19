@@ -14,9 +14,9 @@ import { FaRegNewspaper, FaUserSecret, FaTheaterMasks, FaRocket } from "react-ic
 
 const HomePage = () => {
   const banners = [
-    { id: 1, text: "Banner 1", image: banner1   },
+    { id: 1, text: "Banner 1", image: banner3   },
     { id: 2, text: "Banner 2", image: banner2 },
-    { id: 3, text: "Banner 3", image: banner3 }
+    { id: 3, text: "Banner 3", image: banner1 }
   ];
 
   const products = [
@@ -143,7 +143,7 @@ const HomePage = () => {
           <FiChevronRight size={40} color="black" />
         </button>
       </div>
-
+      <hr />
       {/* SLIDING PRODUCTS */}
       <div className="products-container">
       <h2 className="source-sans-bold">New Arrivals</h2>

@@ -17,11 +17,12 @@ body {
     width: 100vw;
 } 
 
+
 .sidebar {
-    width: 250px;
-    background-color: var(--warm-green-light);
+    width: 300px;
+    background-color: var(--warm-green-lighterer);
     border-right: 1px solid var(--secondary-text-color);
-    padding: 10px;
+    padding: 15px;
     overflow-x: hidden;  /* Disable horizontal scrolling */
     overflow-y: auto;    /* Enable vertical scrolling */
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -47,24 +48,31 @@ body {
     overflow-y: auto;              /* Enable vertical scrolling */
     scrollbar-width: none;         /* Hide scrollbar in Firefox */
 }
-
 .filter-dropdown {
     margin-bottom: 10px;
-    border: 1px solid var(--background-color);
-    border-radius: 5px;
+    background-color: var(--warm-green-light);
+    border-radius: 12px; /* Increased border radius for curvier edges */
     position: relative;
+    overflow: hidden; /* Keep child elements within the curved borders */
 }
 
 .filter-dropdown-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 12px 15px; /* Slightly increased padding */
     cursor: pointer;
-    background-color: var(--warm-green-lighter);
+    background-color: transparent; /* Start with transparent background */
+    transition: background-color 0.3s ease, border-radius 0.3s ease;
+    border-radius: 10px; /* Curvier edges */
 }
 
+
+
 .filter-dropdown-content {
+    border-radius: 0 0 10px 10px; /* Match the curviness of the header */
+    border-top: none;
+    margin-top: -1px; 
     display: none;
     padding: 10px;
     background-color: var(--background-color);
@@ -137,10 +145,7 @@ body {
 }
 
 .slider-arrow:hover {
-    background-color: var(--warm-green-darker);
-}
-.slider-arrow:hover {
-    background-color: var(--warm-green-lighter);
+    background-color: var(--warm-peach);
 }
 
 .slider-prev {
@@ -164,13 +169,15 @@ body {
 }
 
 .category-pill.active {
-    background-color: var(--warm-green-light);
-    color: white;
-    border-color: var(--warm-green-light);
+    background-color: var(--warm-brown);
+    color: var(--main-text-color);
+    border-color: var(--main-text-color);
 }
 
 .category-pill:hover:not(.active) {
-    background-color: var(--secondary-text-color);
+    background-color: var(--warm-peach);
+    color: var(--warm-brown);
+    border-color: var(--warm-brown);
 }
 
 .top-bar {
@@ -198,11 +205,11 @@ body {
 .content-wrapper {
     display: flex;
     position: relative;
-    height: calc(100vh - 180px); /* Adjusted for horizontal nav */
+    
     overflow: hidden;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments 
 @media (max-width: 1200px) {
     .grid-container {
         grid-template-columns: repeat(3, 1fr);
@@ -234,7 +241,7 @@ body {
         flex-direction: column;
         gap: 10px;
     }
-}
+} */
 
 .price-range-slider {
     width: 100%;
