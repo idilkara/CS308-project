@@ -5,6 +5,11 @@ import CategoryPage from "./CategoryPage";
 import UserPage from "./UserPage";
 import ShoppingCart  from "./ShoppingCart";
 import ProductPage from "./ProductPage";
+import ManagerLoginPage from "./ManagerLoginPage";
+import LoginPage from "./LoginPage";
+import ManagerRegisterPage from "./ManagerRegisterPage";
+import RegisterPage from "./RegisterPage";
+
 
 function App() {
   return (
@@ -15,7 +20,11 @@ function App() {
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/product" element={<ProductPage />} />
-     
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/manager-login" element={<ManagerLoginPage />} />
+        <Route path="/manager-register" element={<ManagerRegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+    
         <Route path="/" element={<HomePage />} /> {/* Default route */}
       </Routes>
     </Router>
