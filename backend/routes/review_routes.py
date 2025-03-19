@@ -4,31 +4,50 @@
 # The comments should be approved by the product manager before they become visible. 
 # However, ratings are submitted directly without any manager’s approval.
 
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
-# Blueprint oluştur
+# Create Blueprint
 review_bp = Blueprint("review", __name__)
 
 @review_bp.route("/add", methods=["POST"])
 @jwt_required()
 def add_review():
     try:
-        user = get_jwt_identity()
-        print(f"User: {user}")
-        user_id = user["user_id"]
+        # Get user identity and handle string case
+        user_identity = get_jwt_identity()
+        print(f"Raw user identity: {user_identity}")
+        
+        # Convert string to int if needed
+        if isinstance(user_identity, str):
+            user_id = int(user_identity)
+        else:
+            user_id = user_identity.get('user_id') if isinstance(user_identity, dict) else None
+            
+        print(f"Processed user_id: {user_id}")
+        
+        if user_id is None:
+            return jsonify({"error": "User ID not found in JWT"}), 400
+            
+        # Get request data
+        if not request.is_json:
+            return jsonify({"error": "Missing JSON in request"}), 400
+            
         data = request.json
-        print(f"Data received: {data}")
-        product_id = data["product_id"]
-        rating = data["rating"]
-        comment = data.get("comment", None)  # Yorum zorunlu değil, None olabilir
+        print(f"Request data: {data}")
+        
+        product_id = data.get("product_id")
+        rating = data.get("rating")
+        comment = data.get("comment")
+        
+        if product_id is None or rating is None:
+            return jsonify({"error": "Product ID or rating is missing"}), 400
 
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Kullanıcının ürünü satın alıp almadığını ve teslim edilip edilmediğini kontrol et
+        # Check if the user has purchased the product and if it has been delivered
         cur.execute("""
             SELECT o.status FROM orders o
             JOIN orderitems oi ON o.order_id = oi.order_id
@@ -44,7 +63,7 @@ def add_review():
         if order_status[0] != "delivered":
             return jsonify({"error": "You can only review products after they are delivered."}), 403
 
-        # Yorumu ekle (yorum varsa onay bekler, puanlar direkt eklenir)
+        # Add the review (if there is a comment, it awaits approval; ratings are added directly)
         cur.execute("""
             INSERT INTO reviews (user_id, product_id, rating, comment, approved)
             VALUES (%s, %s, %s, %s, %s)
@@ -60,7 +79,7 @@ def add_review():
         return jsonify({"error": str(e)}), 400
 
 
-# Onaylanmış yorumları listele (JWT gerekmez)
+# List approved reviews (JWT not required)
 @review_bp.route("/product/<int:product_id>", methods=["GET"])
 def get_reviews(product_id):
     try:
@@ -84,7 +103,7 @@ def get_reviews(product_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# Yorum onaylama (Sadece "product_manager" rolü onaylayabilir)
+# Approve review (Only "product_manager" role can approve)
 @review_bp.route("/approve/<int:review_id>", methods=["PUT"])
 @jwt_required()
 def approve_review(review_id):
@@ -101,6 +120,6 @@ def approve_review(review_id):
         cur.close()
         conn.close()
 
-        return jsonify({"message": "Review approved!"}), 200
+        return jsonify({"message": "Review approved successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

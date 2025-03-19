@@ -18,7 +18,7 @@ from routes.sales_manager_routes import sm_bp
 from routes.sm_orders_routes import sm_orders_bp
 
 
-from routes.review_routes import review_bp  # review blueprint import 
+from routes.review_routes import review_bp  
 
 app = Flask(__name__)
 
