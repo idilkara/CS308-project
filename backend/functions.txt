@@ -23,9 +23,28 @@ $$$$$$$$$$$$$$$$
 customer: - TO TEST
 comment to a product
 rate a product
+belli yerlerde pdf gonderme durumu var
+notification handling
+
+
+change order delivery status - BUG
+view order status 
+
+customer: -profile page
+view user info The customer should be able to view their name, email address, and delivery address on a profile page.
+
+
+
+$$$$$$$$$$$$$$$$
+
+## BUG 
+customer: - TO TEST
+comment to a product
+rate a product
 
 customer:
 request refund by order id and product id
+
 
 sales manager:
 accept refund

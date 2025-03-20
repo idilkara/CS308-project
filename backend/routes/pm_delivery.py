@@ -42,8 +42,6 @@ def view_orders():
         """, (user_id,))
         orders = cur.fetchall()
 
-
-
         cur.close()
         conn.close()
 
@@ -67,59 +65,69 @@ def view_orders():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-
-# Update the status of an order given orderproduct_id
 @pm_delivery_bp.route("/update_status/<int:orderproduct_id>", methods=["PUT"])
 @jwt_required()
 def update_status(orderproduct_id):
     user_id = get_jwt_identity()
-    
     data = request.get_json()
-    new_status = data.get('status')
+    
+    if not data or "status" not in data:
+        return jsonify({"error": "Missing status field"}), 400
 
-    if new_status not in ['processing', 'in-transit', 'delivered']:
+    new_status = data["status"]
+    if new_status not in ["processing", "in-transit", "delivered"]:
         return jsonify({"error": "Invalid status"}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
-
+        # Verify user role
         cur.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
-        user_role = cur.fetchone()[0]       
-        if user_role != "product_manager":
-            raise ValueError("Unauthorized access")
-        
-        cur.execute("SELECT p.product_manager FROM products p orderitems oi WHERE p.product_id = oi.product_id AND p.product_manager = %s AND oi.orderitem_id = %s", (user_id,orderproduct_id))
-    
-        product_manager = cur.fetchone()
-        if not product_manager:
-            raise ValueError("Unauthorized access")
-        
-        # Update the status of the order
+        result = cur.fetchone()
+        if not result or result[0] != "product_manager":
+            return jsonify({"error": "Unauthorized access"}), 403
+
+        # Verify if the product manager owns this order item
         cur.execute("""
-            UPDATE orderitems
-            SET status = %s
-            WHERE orderitem_id = %s
+            SELECT p.product_manager 
+            FROM products p 
+            JOIN orderitems oi ON p.product_id = oi.product_id 
+            WHERE p.product_manager = %s AND oi.orderitem_id = %s
+        """, (user_id, orderproduct_id))
+
+        if not cur.fetchone():
+            return jsonify({"error": "Unauthorized access"}), 403
+
+        # Update the order item status
+        cur.execute("""
+            UPDATE orderitems 
+            SET status = %s 
+            WHERE orderitem_id = %s 
             RETURNING order_id;
         """, (new_status, orderproduct_id))
+        
         updated_order_id = cur.fetchone()
+        if not updated_order_id:
+            return jsonify({"error": "Failed to update order"}), 500
+        updated_order_id = updated_order_id[0]
 
-        # Update the status of the order
+        # Check the overall order status
         cur.execute("SELECT status FROM orderitems WHERE order_id = %s", (updated_order_id,))
-        order_status = cur.fetchall()	
+        order_status = [status[0] for status in cur.fetchall()]
 
-        if order_status.count('processing') == 0 and order_status.count('delivered') == 0:
+        # Determine new status for userorders
+        if "processing" not in order_status and "delivered" not in order_status:
             cur.execute("UPDATE userorders SET status = 'in-transit' WHERE order_id = %s", (updated_order_id,))
-        elif order_status.count('processing') == 0 and order_status.count('in-transit') == 0:
+        elif "processing" not in order_status and "in-transit" not in order_status:
             cur.execute("UPDATE userorders SET status = 'delivered' WHERE order_id = %s", (updated_order_id,))
-            
+
+        conn.commit()
+        return jsonify({"message": "Order status updated successfully"}), 200
+
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
-        conn.commit()
         cur.close()
         conn.close()
-
-    return jsonify({"message": "Order status updated successfully"}), 200

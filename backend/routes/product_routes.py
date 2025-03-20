@@ -7,15 +7,24 @@ products_bp = Blueprint("products", __name__)
 # and let users select and add the desired product/products 
 # to the shopping cart to purchase them.
 
-# present products all products - just views product - not category.
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
+
 @products_bp.route('/products', methods=['GET'])
 def get_products():
+    logging.debug(f"Received {request.method} request at /products")
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM products WHERE waiting = FALSE")
     products = cursor.fetchall()
     cursor.close()
     conn.close()
+
+    if not products:
+        logging.warning("No products found.")
 
     return jsonify([
         {
@@ -27,21 +36,23 @@ def get_products():
             "price": str(product[5]),
             "warranty_status": product[6],
             "distributor_information": product[7],
-            "sales_manager": product[8],
-            "product_manager": product[9],
-            "waiting": product[10]
+            # "sales_manager": product[8],
+            # "product_manager": product[9],
+            # "waiting": product[10]
         }
         for product in products
     ])
 
-
-# List all products with name, price, category, and description - this is to help search in frontend
 @products_bp.route('/viewall', methods=['GET'])
 def get_all_products():
+    logging.debug(f"Received {request.method} request at /viewall")
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting
+        SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories, 
+               p.warranty_status, p.distributor_information, p.sales_manager, 
+               p.product_manager, p.waiting
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
         LEFT JOIN categories c ON pc.category_id = c.category_id
@@ -51,6 +62,9 @@ def get_all_products():
     products = cursor.fetchall()
     cursor.close()
     conn.close()
+
+    if not products:
+        logging.warning("No products found in /viewall.")
 
     return jsonify([
         {

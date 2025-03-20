@@ -24,24 +24,25 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 sm_bp = Blueprint("sm", __name__)
 
-# check if the user is a sales manager
-def is_sales_manager(user_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
-    role = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    return role and role[0] == 'sales_manager'
+
 
 # View products that are waiting for price update
 # this one can view every waiting product
 @sm_bp.route("/waiting_products", methods=["GET"])
 @jwt_required()
 def get_waiting_products():
+
+    userid = get_jwt_identity()
     conn = get_db_connection()
     cursor = conn.cursor()
-    # TODO filter by companyid
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "sales_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
+
+
     cursor.execute("""
         SELECT product_id, name, model, description, stock_quantity, price, warranty_status, distributor_information, sales_manager, product_manager, waiting
         FROM products
@@ -75,15 +76,12 @@ logger = logging.getLogger(__name__)
 @sm_bp.route("/update_price/<int:product_id>", methods=["PUT"])
 @jwt_required()
 def update_price(product_id):
+
     logger.debug("Received request to update price for product_id: %d", product_id)
 
     user_id = get_jwt_identity()
     logger.debug("Authenticated user_id: %s", user_id)
-    
-    if not is_sales_manager(user_id):
-        logger.warning("Unauthorized access attempt by user_id: %s", user_id)
-        return jsonify({"error": "Unauthorized access"}), 403
-    
+
     data = request.get_json()
     logger.debug("Request JSON data: %s", data)
     new_price = data.get('price')
@@ -96,16 +94,26 @@ def update_price(product_id):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
+
+
+                cursor.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
+                role = cursor.fetchone()[0]
+                logger.debug("role: %s", role)
+                if (role != "sales_manager"):
+                    return jsonify({"error": "Unauthorized access"}), 403
+    
+
                 logger.debug("Executing SQL UPDATE for product_id: %d", product_id)
                 cursor.execute("""
                     UPDATE products
-                    SET price = %s, waiting = FALSE
+                    SET price = %s, waiting = FALSE, sales_manager = %s
                     WHERE product_id = %s
                     RETURNING product_id, name, price;
-                """, (new_price, product_id))
+                """, (new_price,  user_id ,product_id,))
                 updated_product = cursor.fetchone()
                 conn.commit()
                 logger.info("Successfully updated product: %s", updated_product)
+
 
         if updated_product:
             return jsonify({
