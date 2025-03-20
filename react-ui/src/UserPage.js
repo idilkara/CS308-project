@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "./UserPage.css";
-import Navbar from "./components/Navbar.js";
+import Navbar from "./components/Navbar.jsx";
 
 // Mock order details data
 const mockOrderDetails = {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './ShoppingCart.css';
-import Navbar from "./components/Navbar"; 
+import Navbar from "./components/Navbar.jsx";
 import { FaTrash } from "react-icons/fa";
 
 

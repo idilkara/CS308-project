@@ -7,7 +7,7 @@ import banner1 from "./img/HomePageBanner1.png";
 import banner2 from "./img/HomePageBanner2.png";
 import banner3 from "./img/HomePageBanner3.png";
 
-import Navbar from "./components/Navbar"; 
+import Navbar from "./components/Navbar.jsx";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { BsBook, BsThreeDots } from "react-icons/bs";
 import { FaRegNewspaper, FaUserSecret, FaTheaterMasks, FaRocket } from "react-icons/fa";

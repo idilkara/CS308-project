@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "./ProductPage.css";
-import Navbar from "./components/Navbar"; 
+import Navbar from "./components/Navbar.jsx";
 import ReviewForm from "./ReviewForm.js"; // Import the new component
 
 const ProductPage = () => {

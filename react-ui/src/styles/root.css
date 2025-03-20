@@ -12,14 +12,16 @@
 }
 
 /* Navbar Styles */
+/* --- Navbar --- */
 .navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--background-color);
-    padding: 15px 30px;
-    border-bottom: 2px solid var(--main-text-color); /* Adding border line under menu bar */
-    margin: 0; /* Removing any margin that might cause extra space */
+    /*height: 56px;*/ /* Use if needed */
+    padding: 10px 30px;
+    border-bottom: 2px solid var(--main-text-color);
+    margin: 0;
 }
 
 /* Website Name */
@@ -29,12 +31,14 @@
     font-size: 30px;
     color: var(--main-text-color);
     margin-right: 80px;
+    text-decoration: none;
 }
 
 /* Navbar Links */
 .menu {
     display: flex;
     gap: 20px;
+    align-items: center;
 }
 
 .menu a {
@@ -44,6 +48,7 @@
     font-size: 18px;
     color: var(--main-text-color);
     text-decoration: none;
+    align-items: center;
 }
 
 .menu a:hover {
