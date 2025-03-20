@@ -20,7 +20,7 @@ const Register = () => {
 
         try {
             // TODO: Replace with actual API URL when backend is ready
-            const response = await fetch("http://backend/auth/register", {
+            const response = await fetch("http://localhost/api/auth/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -15,12 +15,6 @@ review_bp = Blueprint("review", __name__)
 @jwt_required()
 def add_review():
     try:
-<<<<<<< HEAD
-
-        user = get_jwt_identity()
-        user_id = user["user_id"] ## user_id = user (try)
-
-=======
         # Get user identity and handle string case
         user_identity = get_jwt_identity()
         print(f"Raw user identity: {user_identity}")
@@ -40,7 +34,6 @@ def add_review():
         if not request.is_json:
             return jsonify({"error": "Missing JSON in request"}), 400
             
->>>>>>> backend
         data = request.json
         print(f"Request data: {data}")
         

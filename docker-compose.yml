@@ -30,7 +30,7 @@ services:
 
   frontend:
      build: ./react-ui # Ensure this matches the frontend Dockerfile location
-     container_name: frontend
+     container_name: react_app
      restart: unless-stopped
      depends_on:
        - backend
@@ -40,7 +40,22 @@ services:
        - app_network
      volumes:
        - .:/frontend
+
+  nginx:
+      image: nginx:latest
+      container_name: nginx-server
+      restart: unless-stopped
+      ports:
+        - "80:80"
+      volumes:
+        - ./nginx:/etc/nginx
+      depends_on:
+        - backend
+        - frontend
+      networks:
+        - app_network
  
+
 
 volumes:
   pgdata:
