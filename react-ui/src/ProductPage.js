@@ -89,8 +89,9 @@ const ProductPage = () => {
     <div>
       <Navbar />
       <div className="product-container">
-        <div className="category-path">Category 1 / Subcategory 1</div>
         
+        <br></br>
+
         <div className="product-details-container">
           <div className="product-gallery">
             <div className="main-image">
