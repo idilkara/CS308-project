@@ -1,0 +1,120 @@
+@import "../styles/root.css";
+
+/* Set background */
+body, html {
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+}
+
+/* Page Container */
+.categories-container,
+.authors-container {
+    padding: 40px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Page Title */
+.page-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 20px;
+}
+
+/* A-Z Navigation */
+.alphabet-nav-wrapper {
+    position: relative;
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid black;
+}
+
+.alphabet-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    background-color: var(--background-color);
+    padding: 10px;
+}
+
+.alphabet-link {
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    padding: 5px 10px;
+    transition: 0.3s;
+    background-color: var(--background-color);
+}
+
+.alphabet-link:hover {
+    background-color: var(--warm-peach);
+    color: var(--main-text-color);
+}
+
+/* Section Headers */
+.letter-section {
+    margin-bottom: 40px;
+    padding-bottom: 10px;
+}
+
+.letter-header {
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    margin-block-start: 20px;
+    margin-block-end: 20px;
+}
+
+/* Cards */
+.category-cards, .author-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.category-card, .author-card {
+    position: relative;
+    border: 1px solid var(--secondary-text-color);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+    background-color: var(--warm-green-lighter);
+    width: 100%;
+}
+
+/* Make single cards left-aligned */
+.category-card:nth-child(odd):last-child,
+.author-card:nth-child(odd):last-child {
+    grid-column: span 1;
+}
+
+/* Images */
+.category-image, .author-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    filter: brightness(70%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.category-card:hover .category-image,
+.author-card:hover .author-image {
+    transform: scale(1.1);
+}
+
+.category-name, .author-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: left;
+    padding: 15px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--background-color);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+}
