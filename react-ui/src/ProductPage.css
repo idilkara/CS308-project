@@ -75,7 +75,7 @@
 }
 
 .product-brand {
-  font-size: 18px;
+  font-size: 23px;
   font-weight: 500;
   font-family: 'SourceSans3-SemiBold', sans-serif;
 }
@@ -227,7 +227,7 @@
 .separator {
   height: 1px;
   background-color: var(--border-color);
-  margin: 40px 0;
+  margin: 50px 0;
 }
 
 /* Similar Products Section */
