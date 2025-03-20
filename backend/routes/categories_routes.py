@@ -47,9 +47,15 @@ def add_category():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
-        category_id = cursor.fetchone()[0]
-        conn.commit()
+        # Check if the category already exists
+        cursor.execute("SELECT category_id FROM categories WHERE name = %s", (category_name,))
+        category_id = cursor.fetchone()
+        if not category_id:
+
+            # Insert the new category if it does not exist
+            cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
+            category_id = cursor.fetchone()[0]
+            conn.commit()
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500

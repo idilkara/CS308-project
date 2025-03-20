@@ -56,7 +56,7 @@ def viewcategories ():
 def addcategory(token , name):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     data = {"name": name}
-    response = requests.put(f"{BASEURL}/categories/addcategory", json=data, headers=headers)
+    response = requests.post(f"{BASEURL}/categories/addcategory", json=data, headers=headers)
     
     # Check if the request was successful
     if response.status_code == 200:
@@ -75,11 +75,11 @@ def viewproducts_by_category ( categid):
     if response.status_code == 200:
         return response.json()  # Return the successful response from the API
     else:
-        return {"error": "Failed to viewall products", "status_code": response.status_code}
+        return {"error": "Failed to  products", "status_code": response.status_code}
 
 
 def viewproduct(prodid):
-    response = requests.get(f"{BASEURL}/products/products/info/{prodid}")
+    response = requests.get(f"{BASEURL}/products/product/info/{prodid}")
     
     # Check if the request was successful
     if response.status_code == 200:
@@ -88,24 +88,24 @@ def viewproduct(prodid):
         return {"error": "Failed to viewall products", "status_code": response.status_code}
     
 def removeproduct(token, prodid):
-    headers = {"Authorization": f"Bearer{token}", **HEADERS}
-    response = requests.delete(f"{BASEURL}/pm_products/product/delete/{prodid}")
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.delete(f"{BASEURL}/pm_products/product/delete/{prodid}", headers=headers)
     if response.status_code == 200:
         return response.json()        
     return {"error": "Failed to remove product", "status_code": response.status_code}
 
 def addcategory_to_product(token, prodid, categid):
-    headers = {"Authorization": f"Bearer{token}", **HEADERS}
-    data = {"category_id": categid}
-    response = requests.put(f"{BASEURL}/pm_products/product/addcategory/{prodid}", json=data, headers=headers)
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {"category_name": categid}
+    response = requests.post(f"{BASEURL}/pm_products/product/add_category/{prodid}", json=data, headers=headers)
     if response.status_code == 200:
         return response.json()
     return {"error": "Failed to add category to product", "status_code": response.status_code}
 
 def removecategory_from_product(token, prodid, categid):
-    headers = {"Authorization": f"Bearer{token}", **HEADERS}
-    data = {"category_id": categid}
-    response = requests.put(f"{BASEURL}/pm_products/product/removecategory/{prodid}", json=data, headers=headers)
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {"category_name": categid}
+    response = requests.delete(f"{BASEURL}/pm_products/product/remove_category/{prodid}", json=data, headers=headers)
     if response.status_code == 200:
         return response.json()
     return {"error": "Failed to remove category from product", "status_code": response.status_code}
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     price4 = update_price(sm_token, product4.get("product_id"), 400)
 
     #view products
+    print("1")
 
     products = viewproducts()
     print(products)
@@ -162,16 +163,16 @@ if __name__ == "__main__":
 
     categories = viewcategories()
     print(categories)
-
+    print(5)
 
     # add category to product given product Id
 
-    addcategory_to_product(pm_token, product1.get("product_id"), category1.get("category_id"))
-    addcategory_to_product(pm_token, product1.get("product_id"), category2.get("category_id"))
-    addcategory_to_product(pm_token, product2.get("product_id"), category2.get("category_id"))
-    addcategory_to_product(pm_token, product2.get("product_id"), category3.get("category_id"))
-    addcategory_to_product(pm_token, product3.get("product_id"), category3.get("category_id"))
-    addcategory_to_product(pm_token, product3.get("product_id"), category1.get("category_id"))
+    addcategory_to_product(pm_token, product1.get("product_id"), "category1")
+    addcategory_to_product(pm_token, product1.get("product_id"), "category2")
+    addcategory_to_product(pm_token, product2.get("product_id"), "category2")
+    addcategory_to_product(pm_token, product2.get("product_id"), "category3")
+    addcategory_to_product(pm_token, product3.get("product_id"), "category3")
+    addcategory_to_product(pm_token, product3.get("product_id"),"category1")
 
     categories = viewcategories()
     print(categories)
@@ -180,8 +181,8 @@ if __name__ == "__main__":
 
     # remove category from product given product Id
 
-    removecategory_from_product(pm_token, product1.get("product_id"), category1.get("category_id"))
-    removecategory_from_product(pm_token, product1.get("product_id"), category2.get("category_id"))
+    removecategory_from_product(pm_token, product1.get("product_id"), "category1")
+    removecategory_from_product(pm_token, product1.get("product_id"), "category2")
 
     categories = viewcategories()
     print(categories)
@@ -197,8 +198,8 @@ if __name__ == "__main__":
 
 
     #view products given category 
-
-    products = viewproducts_by_category(category1.get("category_id"))
+    print(category1.get("category_id")[0])
+    products = viewproducts_by_category(category1.get("category_id")[0])
     print(products)
 
     

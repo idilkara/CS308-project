@@ -75,6 +75,7 @@ def create_product():
             category = cursor.fetchone()
             
             if category:
+                logger.debug("Category found: %s", category)
                 category_id = category[0]
             else:
                 cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
@@ -241,20 +242,14 @@ def delete_product(product_id):
     logger.debug("role: %s", role)
     if (role != "product_manager"):
         return jsonify({"error": "Unauthorized access"}), 403
-    
+
             #check if product,s produtmanager is thsi user 
-    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, user_info["user_id"]))
+    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid))
     product = cursor.fetchone()
     if not product:
         return jsonify({"error": "Product not found or not authorized"}), 404
-    
-    try:
 
-        #check if product,s produtmanager is thsi user 
-        cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, user_info["user_id"]))
-        product = cursor.fetchone()
-        if not product:
-            return jsonify({"error": "Product not found or not authorized"}), 404
+    try:
         
         #delete the product
         cursor.execute("DELETE FROM productcategories WHERE product_id = %s", (product_id,))
@@ -273,6 +268,8 @@ def delete_product(product_id):
         return jsonify({"message": "Product deleted successfully"}), 200
     else:
         return jsonify({"error": "Product not found"}), 404
+
+    
     
 
 #  add category to a prduct
@@ -368,4 +365,5 @@ def remove_category_from_product(product_id):
         conn.close()
 
     return jsonify({"message": "Category removed from product successfully"}), 200
+
 
