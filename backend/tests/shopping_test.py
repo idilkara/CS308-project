@@ -87,8 +87,8 @@ if __name__ == "__main__":
 
     # Step 2: Add products to the cart
     print("Adding products to cart...")
-    add_to_cart(customer_token, product_id=1, quantity=2)
-    add_to_cart(customer_token, product_id=2, quantity=1)
+    add_to_cart(customer_token, product_id=7, quantity=2)
+    add_to_cart(customer_token, product_id=4, quantity=1)
     add_to_cart(customer_token, product_id=3, quantity=5)
     print("Products added to cart successfully!")
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     # Step 4: Remove a product from the cart
     print("Removing a product from cart...")
-    removefromcart(customer_token, product_id=1, quantity=1)
+    removefromcart(customer_token, product_id=13, quantity=1)
     print("Product removed from cart successfully!")
 
     # Step 5: Clear the cart
@@ -109,8 +109,8 @@ if __name__ == "__main__":
 
     # Step 6: Add products again and create an order
     print("Adding products to cart again...")
-    add_to_cart(customer_token, product_id=1, quantity=2)
-    add_to_cart(customer_token, product_id=2, quantity=1)
+    add_to_cart(customer_token, product_id=4, quantity=2)
+    add_to_cart(customer_token, product_id=3, quantity=1)
 
     print("Creating an order...")
     order = create_order(customer_token)

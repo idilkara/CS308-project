@@ -227,8 +227,8 @@ if __name__ == "__main__":
 
 
 
-    #view products given category 
-    print(category1.get("category_id")[0])
+    # #view products given category 
+    # print(category1.get("category_id")[0])
     products = viewproducts_by_category(category1.get("category_id")[0])
     print(products)
 

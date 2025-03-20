@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
+import logging as log
 
 #4. They, however, should login before placing an order and making a payment.
 #  Upon logging in, any products previously added to their cart should be retained.
@@ -61,6 +62,8 @@ def create_order():
 
         #TODO handle error when users home adress is not registered
         if delivery_address == "":
+
+            log.error("Delivery address cannot be empty")
             return jsonify({"error": "Delivery address cannot be empty"}), 400
 
 
@@ -89,6 +92,7 @@ def create_order():
 
     except Exception as e:
         conn.rollback()
+        log.error(f"Error occurred while creating order: {str(e)}")
         return jsonify({"error": str(e)}), 400
     else:
         conn.commit()
