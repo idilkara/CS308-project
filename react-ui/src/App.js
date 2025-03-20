@@ -11,6 +11,7 @@ import ManagerRegisterPage from "./ManagerRegisterPage";
 import RegisterPage from "./RegisterPage";
 import Authors from "./components/Authors";
 import Categories from "./components/Categories";
+import ProductManager from "./ProductManager";
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/authors" element={<Authors />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/productmanager" element={<ProductManager />} />
 
         <Route path="/" element={<HomePage />} /> {/* Default route */}
       </Routes>
