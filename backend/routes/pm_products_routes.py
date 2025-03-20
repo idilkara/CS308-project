@@ -14,8 +14,11 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
 
+
 # Create a new product - product manager does these
+
 import logging
+
 
 pm_products_bp = Blueprint("pm_products", __name__)
 
@@ -183,50 +186,50 @@ def update_product(product_id):
 @pm_products_bp.route('/product/update_stock_quantity/<int:product_id>', methods=['PUT'])
 @jwt_required()
 def update_product_stock(product_id):
-
     userid = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
-    role = cursor.fetchone()[0]
-    logger.debug("role: %s", role)
-    if (role != "product_manager"):
-        return jsonify({"error": "Unauthorized access"}), 403
-    
-    #check if product,s produtmanager is thsi user 
-    cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid))
-    product = cursor.fetchone()
-    if not product:
-        return jsonify({"error": "Product not found or not authorized"}), 404
-    
-    data = request.get_json()
-    stock_quantity = data.get('stock_quantity')
+    try:
+        # Check the user's role
+        cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+        role = cursor.fetchone()[0]
+        logger.debug("role: %s", role)
+        if role != "product_manager":
+            return jsonify({"error": "Unauthorized access"}), 403
 
-    try:    
+        # Check if the product belongs to this product manager
+        cursor.execute("SELECT product_id FROM products WHERE product_id = %s AND product_manager = %s", (product_id, userid))
+        product = cursor.fetchone()
+        if not product:
+            return jsonify({"error": "Product not found or not authorized"}), 404
+
+        # Get the new stock quantity from the request
+        data = request.get_json()
+        stock_quantity = data.get('stock_quantity')
+
+        # Update the stock quantity
         cursor.execute("""
             UPDATE products SET stock_quantity = %s
             WHERE product_id = %s RETURNING product_id;
-        """, ( stock_quantity, product_id))
+        """, (stock_quantity, product_id))
         updated_product = cursor.fetchone()
 
+        if not updated_product:
+            return jsonify({"error": "Product not found"}), 404
 
-        cursor.close()
-        conn.close()
-        return jsonify({"error": "Product not found"}), 404
-            
+        conn.commit()
+        return jsonify({"message": "Product quantity updated successfully"}), 200
+
     except Exception as e:
-        conn.rollback() 
+        conn.rollback()
+        logger.error(f"Error updating product stock: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
     finally:
-        conn.commit()
         cursor.close()
         conn.close()
-
-        return jsonify({"message": "Product quantity updated successfully"}), 200
-    
 
 # remove product by product ID 
 @pm_products_bp.route('/product/delete/<int:product_id>', methods=['DELETE'])

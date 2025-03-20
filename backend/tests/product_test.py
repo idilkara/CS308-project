@@ -133,7 +133,15 @@ def view_waiting_products(token):
             # If the error response is not valid JSON, return plain text
             return {"error": "Failed to fetch waiting products", "status_code": response.status_code, "details": response.text}
 
+def update_stock_quantity(token, product_id, stock_quantity):
+    
+    # Step 3: Update the stock quantity of the product
+    headers = {"Authorization": f"Bearer {pm_token}", **HEADERS}
+    data = {"stock_quantity": stock_quantity}
+    response = requests.put(f"{BASEURL}/pm_products/product/update_stock_quantity/{product_id}", json=data, headers=headers)
+    return
 
+    
 
 
 if __name__ == "__main__":
@@ -213,6 +221,8 @@ if __name__ == "__main__":
 
     removecategory_from_product(pm_token, product1.get("product_id"), "category1")
     removecategory_from_product(pm_token, product1.get("product_id"), "category2")
+
+    update_stock_quantity(pm_token, product3.get("product_id"), 500)
 
     categories = viewcategories()
     print(categories)
