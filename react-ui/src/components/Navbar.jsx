@@ -12,19 +12,19 @@ const Navbar = () => {
             <nav className="menu">
                 <a href="#">Shop</a>
 
-                {/* Publishers Dropdown */}
+                {/* Categories Dropdown */}
                 <div
                     className="dropdown"
                     onMouseEnter={() => setIsPublishersOpen(true)}
                     onMouseLeave={() => setIsPublishersOpen(false)}
                 >
-                    <a href="#" className="dropdown-trigger">Publishers ▾</a>
+                    <Link to="/Categories" className="dropdown-trigger">Publishers ▾</Link>
                     <div className={`dropdown-menu ${isPublishersOpen ? 'show' : ''}`}>
-                        <a href="#" >All Publishers</a>
-                        <a href="#">Publisher 1</a>
-                        <a href="#">Publisher 2</a>
-                        <a href="#">Publisher 3</a>
-                        <a href="#">Publisher 4</a>
+                        <a href="#">All Categories</a>
+                        <a href="#">Sci-fi</a>
+                        <a href="#">Fantasy</a>
+                        <a href="#">Crime</a>
+                        <a href="#">Magical Realism</a>
                     </div>
                 </div>
 
@@ -34,7 +34,7 @@ const Navbar = () => {
                     onMouseEnter={() => setIsAuthorsOpen(true)}
                     onMouseLeave={() => setIsAuthorsOpen(false)}
                 >
-                    <a href="#" className="dropdown-trigger">Authors ▾</a>
+                    <Link to="/Authors" className="dropdown-trigger">Authors ▾</Link>
                     <div className={`dropdown-menu ${isAuthorsOpen ? 'show' : ''}`}>
                         <a href="#">All Authors</a>
                         <a href="#">Haruki Murakami</a>
