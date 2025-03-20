@@ -111,6 +111,30 @@ def removecategory_from_product(token, prodid, categid):
     return {"error": "Failed to remove category from product", "status_code": response.status_code}
 
 
+    
+def view_waiting_products(token):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    
+    # Send a GET request to the view_order_history endpoint
+    response = requests.get(f"{BASEURL}/sm/waiting_products", headers=headers)
+    
+    # Check if the response was successful
+    if response.status_code == 200:
+        try:
+            # Check if response contains valid JSON
+            return response.json()  # Return the order history from the API
+        except ValueError:  # If the response is not valid JSON
+            return {"error": "Invalid JSON response", "status_code": response.status_code}
+    else:
+        try:
+            # Try to parse the error response as JSON
+            return {"error": "Failed to fetch waiting products", "status_code": response.status_code, "details": response.json()}
+        except ValueError:
+            # If the error response is not valid JSON, return plain text
+            return {"error": "Failed to fetch waiting products", "status_code": response.status_code, "details": response.text}
+
+
+
 
 if __name__ == "__main__":
 
@@ -135,8 +159,14 @@ if __name__ == "__main__":
     product3 = create_product(pm_token, "product3", "model3", "description3", 30, "distributor_information3")
     product4 = create_product(pm_token, "product4", "model4", "description4", 40, "distributor_information4")
 
+
+
     products = viewproducts()
     print(products) 
+
+    print("WIEV WAITING PRODUCTS")
+    products = view_waiting_products(sm_token)
+    print(products)
     # set prices to products as a sales_manager
 
     price1 = update_price(sm_token, product1.get("product_id"), 100)
