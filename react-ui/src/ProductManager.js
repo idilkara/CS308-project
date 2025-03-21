@@ -1,15 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
 
 const ProductManager = () => {
+  // Add scroll fix
+  useEffect(() => {
+    // Apply scroll fixes when component mounts
+    document.body.style.overflow = 'auto';
+    
+    // Find all parent containers that might be causing the issue
+    const fixContainers = () => {
+      // Get all parent elements
+      let element = document.querySelector('.product-manager');
+      if (!element) return;
+      
+      while (element && element !== document.body) {
+        const style = window.getComputedStyle(element);
+        
+        // Check if element has problematic styles
+        if (style.overflow === 'hidden' || 
+            style.height === '100vh' || 
+            style.height === '100%' ||
+            style.position === 'fixed') {
+          
+          // Override problematic styles
+          element.style.height = 'auto';
+          element.style.maxHeight = 'none';
+          element.style.overflow = 'visible';
+          
+          // Log which element was fixed for debugging
+          console.log('Fixed container:', element);
+        }
+        
+        // Move up to parent
+        element = element.parentElement;
+      }
+    };
+    
+    // Run the fix
+    fixContainers();
+    
+    // Also add a timeout to run the fix after content is fully loaded
+    setTimeout(fixContainers, 500);
+    
+    // Clean up when component unmounts
+    return () => {
+      // Restore original body overflow
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // State for active section
   const [activeSection, setActiveSection] = useState('add');
   
   // State for the new product form
   const [newProduct, setNewProduct] = useState({
     name: '',
-    author: '', // Added author field
-    cover_img_url: '', // Added cover image URL field
+    author: '',
+    cover_img_url: '',
     model: '',
     description: '',
     stock_quantity: '',
@@ -42,12 +89,8 @@ const ProductManager = () => {
     }
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Product submitted:', newProduct);
-    // Here you would typically send the data to your backend API
-    // Reset form after submission
+  // Helper function to reset the form
+  const resetForm = () => {
     setNewProduct({
       name: '',
       author: '',
@@ -63,6 +106,49 @@ const ProductManager = () => {
         end_date: ''
       }
     });
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate the form data
+    const requiredFields = [
+      'name', 'author', 'cover_img_url', 'stock_quantity', 'price'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !newProduct[field]);
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+    
+    // Check if dates are valid when discount is specified
+    if (newProduct.discount.discount_percentage && 
+       (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
+      alert('Please specify both start and end dates for the discount');
+      return;
+    }
+    
+    // Format the data for API submission
+    const productData = {
+      ...newProduct,
+      stock_quantity: parseInt(newProduct.stock_quantity, 10),
+      price: parseFloat(newProduct.price),
+      discount: newProduct.discount.discount_percentage 
+        ? {
+            ...newProduct.discount,
+            discount_percentage: parseFloat(newProduct.discount.discount_percentage)
+          } 
+        : null
+    };
+    
+    console.log('Product ready for submission:', productData);
+    
+    // Here you would typically send the data to your backend API
+    // For now, just simulate success
+    resetForm();
     alert('Product added successfully!');
   };
 
@@ -326,23 +412,11 @@ const ProductManager = () => {
                 <button type="submit" className="pm-btn-submit source-sans-semibold">
                   Add Product
                 </button>
-                <button type="button" className="pm-btn-cancel source-sans-regular" onClick={() => {
-                  setNewProduct({
-                    name: '',
-                    author: '',
-                    cover_img_url: '',
-                    model: '',
-                    description: '',
-                    stock_quantity: '',
-                    price: '',
-                    categories: [],
-                    discount: {
-                      discount_percentage: '',
-                      start_date: '',
-                      end_date: ''
-                    }
-                  });
-                }}>
+                <button 
+                  type="button" 
+                  className="pm-btn-cancel source-sans-regular"
+                  onClick={resetForm}
+                >
                   Clear Form
                 </button>
               </div>

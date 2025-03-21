@@ -1,7 +1,18 @@
 @import './styles/root.css';
 
+/* Base container - make sure nothing constrains it */
 .product-manager {
     background-color: var(--background-color);
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 30px !important;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: relative !important;
+    /* Prevent fixed height issues */
+    min-height: auto !important;
+    max-height: none !important;
 }
 
 .pm-section-title {
@@ -10,11 +21,17 @@
     color: var(--main-text-color);
 }
 
-/* Tab Navigation */
+/* Force horizontal tabs */
 .pm-section-tabs {
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
     border-bottom: 2px solid var(--warm-green-light);
     margin-bottom: 30px;
+    width: 100% !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
 }
 
 .pm-tab {
@@ -27,6 +44,9 @@
     cursor: pointer;
     color: var(--secondary-text-color);
     transition: all 0.3s ease;
+    flex: 0 0 auto !important; /* Don't grow, don't shrink, use natural size */
+    width: auto !important;
+    height: auto !important;
 }
 
 .pm-tab:hover {
@@ -38,27 +58,62 @@
     color: var(--main-text-color);
 }
 
-/* Content Area */
+/* Content Area - Fix scrolling and size issues */
 .pm-section-content {
     background-color: var(--warm-green-lighterer);
     border-radius: 8px;
     padding: 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    width: 100% !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    margin-left: 0 !important;
+    /* Critical Fix: Ensure content area displays fully */
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+
+/* Add product section */
+.add-product-section {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    /* Make sure all children are visible */
+    margin-bottom: 30px !important;
+    padding: 0 !important; /* Remove any internal padding */
+    box-sizing: border-box !important;
+}
+
+/* Form elements need to be fully visible */
+form {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin-bottom: 30px !important;
+    box-sizing: border-box !important;
 }
 
 /* Form Styling */
 .pm-form-group {
     margin-bottom: 20px;
+    width: 100% !important;
+    padding-right: 0 !important;
 }
 
 .pm-form-row {
-    display: flex;
-    gap: 20px;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 30px;
     margin-bottom: 20px;
 }
 
 .pm-form-group.half {
-    flex: 1;
+    flex: 1 !important;
 }
 
 label {
@@ -68,7 +123,7 @@ label {
 }
 
 .pm-form-control {
-    width: 100%;
+    width: 100% !important;
     padding: 12px;
     border: 1px solid var(--warm-green-light);
     border-radius: 6px;
@@ -76,6 +131,8 @@ label {
     font-family: 'SourceSans3-Regular', sans-serif;
     color: var(--main-text-color);
     transition: border-color 0.3s ease;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
 }
 
 .pm-form-control:focus {
@@ -84,24 +141,25 @@ label {
     box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.2);
 }
 
-textarea.form-control {
+/* Fix textarea */
+textarea.pm-form-control {
     resize: vertical;
     min-height: 120px;
 }
 
-
-/* Category Selection - Simplified */
+/* Category Selection */
 .pm-categories-container {
-    display: flex;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-direction: row !important;
     gap: 18px;
     margin-top: 10px;
 }
 
 .pm-category-item {
-    display: flex;
-    align-items: center;
-    width: 70px;
+    display: flex !important;
+    align-items: center !important;
+    width: 120px !important; /* Wider to fit category names */
     background-color: transparent;
     padding: 0;
     cursor: pointer;
@@ -123,17 +181,45 @@ textarea.form-control {
 /* Discount Section */
 .pm-discount-section {
     background-color: white;
-
     border-radius: 8px;
-    padding: 20px;
+    padding: 20px 30px !important; /* Add consistent padding on all sides */
     margin-bottom: 30px;
-
     border: 1px solid var(--warm-green-light);
-   
-   
     font-family: 'SourceSans3-Regular', sans-serif;
-    
-    
+    width: calc(100% - 2px) !important; /* Account for padding */
+    display: block !important;
+    position: relative !important;
+    box-sizing: border-box !important; /* Critical for proper sizing */
+    max-width: 100% !important; /* Prevent overflow */
+    overflow: hidden !important;
+}
+
+/* Fix input fields to stay within boundaries */
+.pm-discount-section .pm-form-control {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+
+/* Ensure the form rows stay contained */
+.pm-discount-section .pm-form-row {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix date inputs specifically */
+.pm-discount-section input[type="date"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Make sure half-width form groups are properly contained */
+.pm-discount-section .pm-form-group.half {
+    flex: 1 !important;
+    max-width: calc(50% - 10px) !important;
+    box-sizing: border-box !important;
 }
 
 .pm-discount-section h3 {
@@ -145,9 +231,12 @@ textarea.form-control {
 
 /* Buttons */
 .pm-form-actions {
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
     gap: 15px;
     margin-top: 30px;
+    margin-bottom: 30px !important; /* Extra margin at bottom */
+    position: relative !important;
 }
 
 .pm-btn-submit {
@@ -187,19 +276,47 @@ textarea.form-control {
     justify-content: center;
 }
 
+/* Cover Image Preview */
+.cover-preview {
+    margin-top: 10px;
+}
+
+.preview-label {
+    margin-bottom: 5px;
+}
+
+.cover-image-preview {
+    max-width: 150px;
+    max-height: 200px;
+    border: 1px solid var(--warm-green-light);
+    border-radius: 4px;
+}
+
+/* Force parent containers to respect our layout */
+.container .product-manager,
+.row .product-manager,
+.col .product-manager,
+.content .product-manager,
+.page .product-manager,
+.main .product-manager {
+    height: auto !important;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .pm-form-row {
-        flex-direction: column;
+        flex-direction: column !important;
         gap: 10px;
     }
     
     .pm-section-tabs {
-        flex-wrap: wrap;
+        flex-wrap: wrap !important;
     }
     
     .pm-tab {
-        flex-grow: 1;
+        flex-grow: 1 !important;
         text-align: center;
         margin-bottom: 5px;
     }
