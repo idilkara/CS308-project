@@ -69,6 +69,180 @@ const ProductManager = () => {
     }
   });
 
+  // State for order management
+  const [deliveries, setDeliveries] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // State for comment management
+  const [comments, setComments] = useState([]);
+  const [commentIsLoading, setCommentIsLoading] = useState(false);
+  const [commentFilter, setCommentFilter] = useState('pending'); // 'pending', 'approved', 'rejected', 'all'
+
+  // Load deliveries data when the "orders" section is active
+  useEffect(() => {
+    if (activeSection === 'orders') {
+      // Simulate loading from an API
+      setIsLoading(true);
+      
+      // Simulate API call with a timeout
+      setTimeout(() => {
+        const sampleDeliveries = [
+          { id: 101, orderId: "ORD-2023-001", customer: "John Doe", product: "Fiction Book Title", status: "Pending", date: "2025-03-15" },
+          { id: 102, orderId: "ORD-2023-002", customer: "Jane Smith", product: "Non-Fiction Book Title", status: "Shipped", date: "2025-03-16" },
+          { id: 103, orderId: "ORD-2023-003", customer: "Bob Johnson", product: "Sci-fi Book Title", status: "Delivered", date: "2025-03-12" },
+          { id: 104, orderId: "ORD-2023-004", customer: "Alice Williams", product: "Fantasy Book Title", status: "Returned", date: "2025-03-10" },
+          { id: 105, orderId: "ORD-2023-005", customer: "Charlie Brown", product: "Fiction Book Title", status: "Processing", date: "2025-03-18" },
+        ];
+        
+        setDeliveries(sampleDeliveries);
+        
+        // Initialize selected status for each delivery
+        const initialStatus = {};
+        sampleDeliveries.forEach(delivery => {
+          initialStatus[delivery.id] = delivery.status;
+        });
+        setSelectedStatus(initialStatus);
+        
+        setIsLoading(false);
+      }, 800);
+    }
+  }, [activeSection]);
+
+  // Load comments when the "comments" section is active
+  useEffect(() => {
+    if (activeSection === 'comments') {
+      // Simulate loading from an API
+      setCommentIsLoading(true);
+      
+      // Simulate API call with a timeout
+      setTimeout(() => {
+        const sampleComments = [
+          { 
+            id: 1, 
+            productId: 101, 
+            productName: "Fiction Novel", 
+            userId: 201, 
+            userName: "John Smith", 
+            rating: 4, 
+            comment: "Great book, really enjoyed the characters and plot development.", 
+            date: "2025-03-12", 
+            status: "pending" 
+          },
+          { 
+            id: 2, 
+            productId: 102, 
+            productName: "Non-Fiction Book", 
+            userId: 202, 
+            userName: "Jane Doe", 
+            rating: 5, 
+            comment: "Very informative and well-written. Highly recommend for anyone interested in this subject.", 
+            date: "2025-03-14", 
+            status: "pending" 
+          },
+          { 
+            id: 3, 
+            productId: 103, 
+            productName: "Sci-Fi Novel", 
+            userId: 203, 
+            userName: "Bob Johnson", 
+            rating: 2, 
+            comment: "I found the story confusing and the characters underdeveloped.", 
+            date: "2025-03-10", 
+            status: "pending" 
+          },
+          { 
+            id: 4, 
+            productId: 104, 
+            productName: "Fantasy Book", 
+            userId: 204, 
+            userName: "Alice Williams", 
+            rating: 3, 
+            comment: "The world-building was excellent but the pacing was a bit slow.", 
+            date: "2025-03-15", 
+            status: "approved" 
+          },
+          { 
+            id: 5, 
+            productId: 105, 
+            productName: "Mystery Novel", 
+            userId: 205, 
+            userName: "Charlie Brown", 
+            rating: 1, 
+            comment: "Very disappointing. The plot had too many holes and the ending was predictable.", 
+            date: "2025-03-11", 
+            status: "rejected" 
+          },
+        ];
+        
+        setComments(sampleComments);
+        setCommentIsLoading(false);
+      }, 800);
+    }
+  }, [activeSection]);
+
+  // Handle status change for deliveries
+  const handleStatusChange = (deliveryId, newStatus) => {
+    setSelectedStatus(prev => ({
+      ...prev,
+      [deliveryId]: newStatus
+    }));
+  };
+
+  // Handle save changes for deliveries
+  const handleSaveStatus = (deliveryId) => {
+    // Find the delivery
+    const delivery = deliveries.find(d => d.id === deliveryId);
+    
+    // In a real app, you would make an API call here
+    console.log(`Updating delivery ${deliveryId} (Order: ${delivery.orderId}) status to: ${selectedStatus[deliveryId]}`);
+    
+    // Update the delivery status in the local state
+    setDeliveries(prevDeliveries => 
+      prevDeliveries.map(d => 
+        d.id === deliveryId ? {...d, status: selectedStatus[deliveryId]} : d
+      )
+    );
+    
+    // Show feedback
+    alert(`Status updated for Order ${delivery.orderId}`);
+  };
+
+  // Handle comment approval
+  const handleApproveComment = (commentId) => {
+    // In a real app, you would make an API call here
+    setComments(prevComments => 
+      prevComments.map(comment => 
+        comment.id === commentId ? {...comment, status: "approved"} : comment
+      )
+    );
+    
+    alert(`Comment #${commentId} has been approved and is now visible to users.`);
+  };
+
+  // Handle comment rejection
+  const handleRejectComment = (commentId) => {
+    // In a real app, you would make an API call here
+    setComments(prevComments => 
+      prevComments.map(comment => 
+        comment.id === commentId ? {...comment, status: "rejected"} : comment
+      )
+    );
+    
+    alert(`Comment #${commentId} has been rejected and will not be visible to users.`);
+  };
+
+  // Get filtered comments based on current filter
+  const getFilteredComments = () => {
+    if (commentFilter === 'all') {
+      return comments;
+    }
+    return comments.filter(comment => comment.status === commentFilter);
+  };
+
+  // Define available status options for deliveries
+  const statusOptions = ["Pending", "Processing", "Packed", "Shipped", "In Transit", "Delivered", "Returned", "Cancelled"];
+
   // Handle input changes for product details
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -88,6 +262,138 @@ const ProductManager = () => {
       });
     }
   };
+
+  //  Manage Stocks
+  const [stockProducts, setStockProducts] = useState([]);
+  const [stockIsLoading, setStockIsLoading] = useState(false);
+  const [stockFilter, setStockFilter] = useState(''); // For filtering products by name
+  const [stockSortField, setStockSortField] = useState('name'); // 'name', 'stock', 'price'
+  const [stockSortDirection, setStockSortDirection] = useState('asc'); // 'asc', 'desc'
+  const [editStockId, setEditStockId] = useState(null);
+  const [newStockValue, setNewStockValue] = useState('');
+
+  // Load stock data when the "stocks" section is active
+useEffect(() => {
+  if (activeSection === 'stocks') {
+    // Simulate loading from an API
+    setStockIsLoading(true);
+    
+    // Simulate API call with a timeout
+    setTimeout(() => {
+      const sampleProducts = [
+        { id: 101, name: "Fiction Novel", author: "John Author", stock: 15, price: 12.99, lastUpdated: "2025-03-10" },
+        { id: 102, name: "Non-Fiction Book", author: "Jane Writer", stock: 8, price: 14.99, lastUpdated: "2025-03-12" },
+        { id: 103, name: "Sci-Fi Novel", author: "Robert Pen", stock: 22, price: 11.99, lastUpdated: "2025-03-15" },
+        { id: 104, name: "Fantasy Book", author: "Sarah Storyteller", stock: 5, price: 16.99, lastUpdated: "2025-03-08" },
+        { id: 105, name: "Mystery Novel", author: "Michael Mystery", stock: 30, price: 9.99, lastUpdated: "2025-03-14" },
+        { id: 106, name: "Historical Fiction", author: "Helen Historian", stock: 12, price: 13.99, lastUpdated: "2025-03-11" },
+        { id: 107, name: "Biography", author: "Thomas Truth", stock: 3, price: 19.99, lastUpdated: "2025-03-09" },
+        { id: 108, name: "Poetry Collection", author: "Patricia Poet", stock: 18, price: 8.99, lastUpdated: "2025-03-13" },
+      ];
+      
+      setStockProducts(sampleProducts);
+      setStockIsLoading(false);
+    }, 800);
+  }
+}, [activeSection]);
+
+// Handle stock update input change
+const handleStockInputChange = (e) => {
+  setNewStockValue(e.target.value);
+};
+
+// Handle stock update submission
+const handleStockUpdate = (id) => {
+  if (newStockValue === '' || isNaN(newStockValue) || parseInt(newStockValue) < 0) {
+    alert('Please enter a valid stock quantity (must be a non-negative number)');
+    return;
+  }
+  
+  // In a real app, you would make an API call here
+  setStockProducts(prevProducts => 
+    prevProducts.map(product => 
+      product.id === id ? {
+        ...product, 
+        stock: parseInt(newStockValue),
+        lastUpdated: new Date().toISOString().split('T')[0]
+      } : product
+    )
+  );
+  
+  setEditStockId(null);
+  setNewStockValue('');
+  
+  alert(`Stock updated successfully for product #${id}`);
+};
+
+// Cancel stock editing
+const cancelStockEdit = () => {
+  setEditStockId(null);
+  setNewStockValue('');
+};
+
+// Start editing stock for a product
+const startEditStock = (product) => {
+  setEditStockId(product.id);
+  setNewStockValue(product.stock.toString());
+};
+
+// Filter products by name
+const handleFilterChange = (e) => {
+  setStockFilter(e.target.value);
+};
+
+// Handle sort change
+const handleSortChange = (field) => {
+  if (field === stockSortField) {
+    // If clicking the same field, toggle direction
+    setStockSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  } else {
+    // If clicking a new field, set it and default to ascending
+    setStockSortField(field);
+    setStockSortDirection('asc');
+  }
+};
+
+// Get filtered and sorted products
+const getFilteredAndSortedProducts = () => {
+  // First filter
+  let filteredProducts = stockProducts;
+  if (stockFilter) {
+    const filter = stockFilter.toLowerCase();
+    filteredProducts = stockProducts.filter(product => 
+      product.name.toLowerCase().includes(filter) || 
+      product.author.toLowerCase().includes(filter)
+    );
+  }
+  
+  // Then sort
+  return filteredProducts.sort((a, b) => {
+    let comparison = 0;
+    
+    switch (stockSortField) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name);
+        break;
+      case 'author':
+        comparison = a.author.localeCompare(b.author);
+        break;
+      case 'stock':
+        comparison = a.stock - b.stock;
+        break;
+      case 'price':
+        comparison = a.price - b.price;
+        break;
+      case 'lastUpdated':
+        comparison = new Date(a.lastUpdated) - new Date(b.lastUpdated);
+        break;
+      default:
+        comparison = 0;
+    }
+    
+    return stockSortDirection === 'asc' ? comparison : -comparison;
+  });
+};
 
   // Helper function to reset the form
   const resetForm = () => {
@@ -424,27 +730,377 @@ const ProductManager = () => {
           </div>
         )}
         
-        {/* Manage Stocks Section (Placeholder) */}
+        {/* Manage Stocks Section */}
         {activeSection === 'stocks' && (
           <div className="pm-stocks-section">
             <h2 className="source-sans-semibold">Manage Stocks</h2>
-            <p className="source-sans-light">This section is under development.</p>
+            
+            {stockIsLoading ? (
+              <div className="pm-loading">
+                <p className="source-sans-regular">Loading product stock data...</p>
+              </div>
+            ) : (
+              <>
+                <div className="pm-stocks-header">
+                  <h3 className="source-sans-semibold">Inventory Management</h3>
+                  <p className="source-sans-light">Update product stock levels and monitor inventory</p>
+                  
+                  <div className="pm-stocks-tools">
+                    <div className="pm-stocks-search">
+                      <input
+                        type="text"
+                        placeholder="Search by product name or author..."
+                        value={stockFilter}
+                        onChange={handleFilterChange}
+                        className="pm-search-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {stockProducts.length === 0 ? (
+                  <p className="source-sans-regular pm-no-products">No products found in inventory.</p>
+                ) : (
+                  <div className="pm-stocks-table-container">
+                    <table className="pm-stocks-table">
+                      <thead>
+                        <tr>
+                          <th 
+                            className={`sortable ${stockSortField === 'name' ? `sorted-${stockSortDirection}` : ''}`}
+                            onClick={() => handleSortChange('name')}
+                          >
+                            Product Name
+                            {stockSortField === 'name' && (
+                              <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </th>
+                          <th 
+                            className={`sortable ${stockSortField === 'author' ? `sorted-${stockSortDirection}` : ''}`}
+                            onClick={() => handleSortChange('author')}
+                          >
+                            Author
+                            {stockSortField === 'author' && (
+                              <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </th>
+                          <th 
+                            className={`sortable ${stockSortField === 'stock' ? `sorted-${stockSortDirection}` : ''}`}
+                            onClick={() => handleSortChange('stock')}
+                          >
+                            Current Stock
+                            {stockSortField === 'stock' && (
+                              <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </th>
+                          <th 
+                            className={`sortable ${stockSortField === 'price' ? `sorted-${stockSortDirection}` : ''}`}
+                            onClick={() => handleSortChange('price')}
+                          >
+                            Price
+                            {stockSortField === 'price' && (
+                              <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </th>
+                          <th 
+                            className={`sortable ${stockSortField === 'lastUpdated' ? `sorted-${stockSortDirection}` : ''}`}
+                            onClick={() => handleSortChange('lastUpdated')}
+                          >
+                            Last Updated
+                            {stockSortField === 'lastUpdated' && (
+                              <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getFilteredAndSortedProducts().map(product => (
+                          <tr key={product.id} className={product.stock <= 5 ? 'low-stock' : ''}>
+                            <td>{product.name}</td>
+                            <td>{product.author}</td>
+                            <td className="stock-column">
+                              {editStockId === product.id ? (
+                                <input
+                                  type="number"
+                                  value={newStockValue}
+                                  onChange={handleStockInputChange}
+                                  min="0"
+                                  className="pm-stock-input"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span className={`stock-value ${product.stock <= 5 ? 'low-stock-text' : ''}`}>
+                                  {product.stock}
+                                </span>
+                              )}
+                            </td>
+                            <td>${product.price.toFixed(2)}</td>
+                            <td>{product.lastUpdated}</td>
+                            <td>
+                              {editStockId === product.id ? (
+                                <div className="stock-edit-actions">
+                                  <button
+                                    className="pm-btn-save-stock"
+                                    onClick={() => handleStockUpdate(product.id)}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    className="pm-btn-cancel-stock"
+                                    onClick={cancelStockEdit}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  className="pm-btn-edit-stock"
+                                  onClick={() => startEditStock(product)}
+                                >
+                                  Update Stock
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                
+                <div className="pm-stocks-summary">
+                  <div className="summary-card total-products">
+                    <h4>Total Products</h4>
+                    <p>{stockProducts.length}</p>
+                  </div>
+                  <div className="summary-card total-inventory">
+                    <h4>Total Items in Stock</h4>
+                    <p>{stockProducts.reduce((total, product) => total + product.stock, 0)}</p>
+                  </div>
+                  <div className="summary-card low-stock-items">
+                    <h4>Low Stock Items</h4>
+                    <p>{stockProducts.filter(product => product.stock <= 5).length}</p>
+                  </div>
+                  <div className="summary-card inventory-value">
+                    <h4>Total Inventory Value</h4>
+                    <p>${stockProducts.reduce((total, product) => total + (product.stock * product.price), 0).toFixed(2)}</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
         
-        {/* Manage Orders Section (Placeholder) */}
+        {/* Manage Orders Section with Deliveries */}
         {activeSection === 'orders' && (
           <div className="pm-orders-section">
             <h2 className="source-sans-semibold">Manage Orders</h2>
-            <p className="source-sans-light">This section is under development.</p>
+            
+            {isLoading ? (
+              <div className="pm-loading">
+                <p className="source-sans-regular">Loading deliveries data...</p>
+              </div>
+            ) : (
+              <>
+                <div className="pm-deliveries-header">
+                  <h3 className="source-sans-semibold">Delivery Management</h3>
+                  <p className="source-sans-light">Update the status of customer deliveries</p>
+                </div>
+                
+                {deliveries.length === 0 ? (
+                  <p className="source-sans-regular">No deliveries found.</p>
+                ) : (
+                  <div className="pm-deliveries-table-container">
+                    <table className="pm-deliveries-table">
+                      <thead>
+                        <tr>
+                          <th>Order ID</th>
+                          <th>Customer</th>
+                          <th>Product</th>
+                          <th>Order Date</th>
+                          <th>Current Status</th>
+                          <th>Update Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {deliveries.map(delivery => (
+                          <tr key={delivery.id}>
+                            <td>{delivery.orderId}</td>
+                            <td>{delivery.customer}</td>
+                            <td>{delivery.product}</td>
+                            <td>{delivery.date}</td>
+                            <td>
+                              <span className={`status-badge status-${delivery.status.toLowerCase()}`}>
+                                {delivery.status}
+                              </span>
+                            </td>
+                            <td>
+                              <select
+                                value={selectedStatus[delivery.id]}
+                                onChange={(e) => handleStatusChange(delivery.id, e.target.value)}
+                                className="pm-status-select"
+                              >
+                                {statusOptions.map(option => (
+                                  <option key={option} value={option}>{option}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td>
+                              <button
+                                className="pm-btn-action"
+                                onClick={() => handleSaveStatus(delivery.id)}
+                                disabled={selectedStatus[delivery.id] === delivery.status}
+                              >
+                                Save
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
         
-        {/* Manage Comments Section (Placeholder) */}
+        {/* Manage Comments Section */}
         {activeSection === 'comments' && (
           <div className="pm-comments-section">
             <h2 className="source-sans-semibold">Manage Comments</h2>
-            <p className="source-sans-light">This section is under development.</p>
+            
+            {commentIsLoading ? (
+              <div className="pm-loading">
+                <p className="source-sans-regular">Loading comments...</p>
+              </div>
+            ) : (
+              <>
+                <div className="pm-comments-header">
+                  <h3 className="source-sans-semibold">Comment Approval</h3>
+                  <p className="source-sans-light">Review and approve user comments before they become visible on the product pages</p>
+                  
+                  <div className="pm-comments-filter">
+                    <span className="source-sans-regular">Filter:</span>
+                    <div className="pm-filter-buttons">
+                      <button 
+                        className={`pm-filter-btn ${commentFilter === 'pending' ? 'active' : ''}`}
+                        onClick={() => setCommentFilter('pending')}
+                      >
+                        Pending
+                      </button>
+                      <button 
+                        className={`pm-filter-btn ${commentFilter === 'approved' ? 'active' : ''}`}
+                        onClick={() => setCommentFilter('approved')}
+                      >
+                        Approved
+                      </button>
+                      <button 
+                        className={`pm-filter-btn ${commentFilter === 'rejected' ? 'active' : ''}`}
+                        onClick={() => setCommentFilter('rejected')}
+                      >
+                        Rejected
+                      </button>
+                      <button 
+                        className={`pm-filter-btn ${commentFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setCommentFilter('all')}
+                      >
+                        All
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                {getFilteredComments().length === 0 ? (
+                  <p className="source-sans-regular pm-no-comments">
+                    {commentFilter === 'pending' 
+                      ? 'No pending comments to review.' 
+                      : commentFilter === 'approved' 
+                        ? 'No approved comments.' 
+                        : commentFilter === 'rejected' 
+                          ? 'No rejected comments.' 
+                          : 'No comments found.'}
+                  </p>
+                ) : (
+                  <div className="pm-comments-list">
+                    {getFilteredComments().map(comment => (
+                      <div key={comment.id} className={`pm-comment-card pm-comment-${comment.status}`}>
+                        <div className="pm-comment-header">
+                          <div className="pm-comment-product">
+                            <span className="source-sans-semibold">Product:</span> {comment.productName}
+                          </div>
+                          <div className="pm-comment-user">
+                            <span className="source-sans-semibold">User:</span> {comment.userName}
+                          </div>
+                          <div className="pm-comment-date">
+                            <span className="source-sans-semibold">Date:</span> {comment.date}
+                          </div>
+                          <div className="pm-comment-rating">
+                            <span className="source-sans-semibold">Rating:</span> 
+                            <div className="star-rating">
+                              {[...Array(5)].map((_, i) => (
+                                <span 
+                                  key={i} 
+                                  className={i < comment.rating ? "star filled" : "star"}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="pm-comment-content">
+                          <p className="source-sans-regular">{comment.comment}</p>
+                        </div>
+                        
+                        <div className="pm-comment-status">
+                          <span className={`pm-status-badge pm-status-${comment.status}`}>
+                            {comment.status.charAt(0).toUpperCase() + comment.status.slice(1)}
+                          </span>
+                        </div>
+                        
+                        <div className="pm-comment-actions">
+                          {comment.status === 'pending' && (
+                            <>
+                              <button 
+                                className="pm-btn-approve" 
+                                onClick={() => handleApproveComment(comment.id)}
+                              >
+                                Approve
+                              </button>
+                              <button 
+                                className="pm-btn-reject" 
+                                onClick={() => handleRejectComment(comment.id)}
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {comment.status === 'approved' && (
+                            <button 
+                              className="pm-btn-reject" 
+                              onClick={() => handleRejectComment(comment.id)}
+                            >
+                              Remove Approval
+                            </button>
+                          )}
+                          {comment.status === 'rejected' && (
+                            <button 
+                              className="pm-btn-approve" 
+                              onClick={() => handleApproveComment(comment.id)}
+                            >
+                              Approve Instead
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

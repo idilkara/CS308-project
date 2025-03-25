@@ -321,3 +321,732 @@ textarea.pm-form-control {
         margin-bottom: 5px;
     }
 }
+
+/* Orders section styling */
+.pm-orders-section {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 0 !important;
+}
+
+.pm-orders-section h2 {
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.pm-deliveries-header {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.pm-deliveries-header h3 {
+    margin-bottom: 5px;
+    color: var(--main-text-color);
+}
+
+.pm-deliveries-header p {
+    color: var(--secondary-text-color);
+}
+
+/* Loading state */
+.pm-loading {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table styling */
+.pm-deliveries-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    box-sizing: border-box !important;
+}
+
+.pm-deliveries-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.pm-deliveries-table th {
+    background-color: var(--warm-green-light);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--main-text-color);
+    border-bottom: 2px solid var(--warm-green);
+}
+
+.pm-deliveries-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--warm-green-lighterer);
+}
+
+.pm-deliveries-table tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.pm-deliveries-table tr:hover {
+    background-color: rgba(200, 216, 194, 0.2);
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.status-processing {
+    background-color: #D1ECF1;
+    color: #0C5460;
+}
+
+.status-packed {
+    background-color: #CCE5FF;
+    color: #004085;
+}
+
+.status-shipped {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.status-in.transit {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.status-delivered {
+    background-color: #C3E6CB;
+    color: #155724;
+}
+
+.status-returned {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.status-cancelled {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+/* Status select dropdown */
+.pm-status-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--warm-green-light);
+    border-radius: 4px;
+    background-color: white;
+    font-family: 'SourceSans3-Regular', sans-serif;
+    color: var(--main-text-color);
+    transition: border-color 0.3s ease;
+    box-sizing: border-box !important;
+}
+
+.pm-status-select:focus {
+    outline: none;
+    border-color: var(--warm-brown);
+    box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.2);
+}
+
+/* Action button */
+.pm-btn-action {
+    padding: 8px 15px;
+    background-color: var(--warm-brown);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-action:hover {
+    background-color: #c09367;
+}
+
+.pm-btn-action:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .pm-deliveries-table-container {
+        overflow-x: auto;
+    }
+    
+    .pm-deliveries-table {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pm-deliveries-table td, 
+    .pm-deliveries-table th {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .pm-btn-action {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Comments section styling */
+.pm-comments-section {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.pm-comments-section h2 {
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.pm-comments-header {
+    width: 100%;
+    margin-bottom: 30px;
+    box-sizing: border-box !important;
+}
+
+.pm-comments-header h3 {
+    margin-bottom: 5px;
+    color: var(--main-text-color);
+}
+
+.pm-comments-header p {
+    color: var(--secondary-text-color);
+    margin-bottom: 20px;
+}
+
+/* Filter controls */
+.pm-comments-filter {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.pm-comments-filter span {
+    margin-right: 15px;
+    font-size: 1rem;
+}
+
+.pm-filter-buttons {
+    display: flex !important;
+    gap: 10px !important;
+    width: auto !important;
+    flex-wrap: wrap !important;
+}
+
+.pm-filter-btn {
+    padding: 8px 15px;
+    background-color: var(--warm-green-lighterer);
+    border: 1px solid var(--warm-green-lighter);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    transition: all 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-filter-btn:hover {
+    background-color: var(--warm-green-lighter);
+}
+
+.pm-filter-btn.active {
+    background-color: var(--warm-green-light);
+    color: var(--main-text-color);
+    font-weight: 600;
+}
+
+/* No comments message */
+.pm-no-comments {
+    display: block;
+    width: 100%;
+    padding: 40px 0;
+    text-align: center;
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
+/* Comment cards */
+.pm-comments-list {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+}
+
+.pm-comment-card {
+    position: relative !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+    width: 100% !important; 
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border: 1px solid #f0f0f0 !important;
+    border-left-width: 4px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pm-comment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pm-comment-pending {
+    border-left-color: #FFC107 !important; /* Yellow for pending */
+}
+
+.pm-comment-approved {
+    border-left-color: #4CAF50 !important; /* Green for approved */
+}
+
+.pm-comment-rejected {
+    border-left-color: #F44336 !important; /* Red for rejected */
+    opacity: 0.8;
+}
+
+/* Comment header info */
+.pm-comment-header {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 15px !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.pm-comment-header > div {
+    flex: 1 1 150px !important;
+    min-width: 0 !important; /* Allow text to truncate if needed */
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.pm-comment-product,
+.pm-comment-user,
+.pm-comment-date,
+.pm-comment-rating {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pm-comment-header .source-sans-semibold {
+    font-size: 0.85rem;
+    color: var(--secondary-text-color);
+}
+
+/* Star rating styling */
+.star-rating {
+    display: flex;
+}
+
+.star {
+    font-size: 1.2rem;
+    color: #ddd;
+}
+
+.star.filled {
+    color: #FFC107; /* Gold color for filled stars */
+}
+
+/* Comment content */
+.pm-comment-content {
+    width: 100% !important;
+    margin: 0 0 15px 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+}
+
+.pm-comment-content p {
+    margin: 0;
+}
+
+/* Comment actions row with status and buttons */
+.pm-comment-actions-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Status badge */
+.pm-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pm-status-pending {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.pm-status-approved {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.pm-status-rejected {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+/* Action buttons */
+.pm-comment-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    margin-top: 0 !important;
+    margin-left: auto !important;
+}
+
+.pm-btn-approve {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-approve:hover {
+    background-color: #3e8e41;
+}
+
+.pm-btn-reject {
+    padding: 8px 15px;
+    background-color: #F44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-reject:hover {
+    background-color: #d32f2f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pm-comment-header {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .pm-comment-actions-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+    }
+    
+    .pm-comment-actions {
+        margin-left: 0 !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+    
+    .pm-btn-approve,
+    .pm-btn-reject {
+        flex: 1 !important;
+        text-align: center !important;
+    }
+    
+    .pm-comment-card {
+        padding: 15px !important;
+    }
+}
+
+/* Stocks section styling */
+.pm-stocks-section {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 0 !important;
+}
+
+.pm-stocks-section h2 {
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.pm-stocks-header {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.pm-stocks-header h3 {
+    margin-bottom: 5px;
+    color: var(--main-text-color);
+}
+
+.pm-stocks-header p {
+    color: var(--secondary-text-color);
+    margin-bottom: 20px;
+}
+
+/* Search and tools */
+.pm-stocks-tools {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.pm-stocks-search {
+    flex: 1;
+    max-width: 400px;
+}
+
+.pm-search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--warm-green-light);
+    border-radius: 4px;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-search-input:focus {
+    outline: none;
+    border-color: var(--warm-brown);
+    box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.2);
+}
+
+/* Table styling */
+.pm-stocks-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    box-sizing: border-box !important;
+}
+
+.pm-stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.pm-stocks-table th {
+    background-color: var(--warm-green-light);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--main-text-color);
+    border-bottom: 2px solid var(--warm-green);
+    position: relative;
+}
+
+.pm-stocks-table th.sortable {
+    cursor: pointer;
+}
+
+.pm-stocks-table th.sortable:hover {
+    background-color: var(--warm-green);
+}
+
+.pm-stocks-table th .sort-indicator {
+    margin-left: 5px;
+    display: inline-block;
+}
+
+.pm-stocks-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--warm-green-lighterer);
+    vertical-align: middle;
+}
+
+.pm-stocks-table tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.pm-stocks-table tr:hover {
+    background-color: rgba(200, 216, 194, 0.2);
+}
+
+/* Stock status indicators */
+.pm-stocks-table tr.low-stock {
+    background-color: rgba(255, 243, 205, 0.4);
+}
+
+.stock-value.low-stock-text {
+    color: #e65100;
+    font-weight: 600;
+}
+
+/* Stock column input */
+.stock-column {
+    min-width: 120px;
+}
+
+.pm-stock-input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid var(--warm-green-light);
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* Action buttons */
+.stock-edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pm-btn-edit-stock {
+    padding: 6px 12px;
+    background-color: var(--warm-green);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-edit-stock:hover {
+    background-color: var(--warm-green-dark);
+}
+
+.pm-btn-save-stock {
+    padding: 6px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-save-stock:hover {
+    background-color: #3e8e41;
+}
+
+.pm-btn-cancel-stock {
+    padding: 6px 12px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.pm-btn-cancel-stock:hover {
+    background-color: #d32f2f;
+}
+
+/* Dashboard summary */
+.pm-stocks-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.summary-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.summary-card h4 {
+    margin: 0 0 10px 0;
+    color: var(--main-text-color);
+    font-size: 1rem;
+}
+
+.summary-card p {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--warm-brown);
+}
+
+.total-products {
+    background-color: #e8f5e9;
+}
+
+.total-inventory {
+    background-color: #e3f2fd;
+}
+
+.low-stock-items {
+    background-color: #fff3e0;
+}
+
+.inventory-value {
+    background-color: #f3e5f5;
+}
+
+/* No products message */
+.pm-no-products {
+    display: block;
+    width: 100%;
+    padding: 40px 0;
+    text-align: center;
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
