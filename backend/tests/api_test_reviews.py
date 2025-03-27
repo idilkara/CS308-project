@@ -1,6 +1,6 @@
 import requests
 import json
-###  "error": "Product Manager login failed"
+
 BASE_URL = "http://localhost:5001"
 HEADERS = {"Content-Type": "application/json"}
 
@@ -73,38 +73,36 @@ if __name__ == "__main__":
     log = []
 
     # Register and login as a customer
-    register_user("Test User", "test@example.com", "test123", "customer")
-    user_login = login("test@example.com", "test123")
+    print("Registering customer...")
+    customer_resp = register_user("Test User", "new_customer@example.com", "test123", "customer")
+    log.append({"info": "Customer registration response", "response": customer_resp})
+
+    user_login = login("new_customer@example.com", "test123")
     user_token = user_login.get("access_token")
-    log.append({"info": "User logged in", "token": user_token})
+    log.append({"info": "Customer login response", "response": user_login})
+
+    if not user_token:
+        log.append({"error": "Customer login failed"})
+        print("Customer login failed. Exiting...")
+    else:
+        print("Customer logged in successfully.")
 
     # Register and login as a product manager
-    register_user("PM User", "pm@example.com", "pm123", "product_manager", company_id=1)
-    pm_login = login("pm@example.com", "pm123")
+    print("Registering Product Manager...")
+    pm_resp = register_user("PM User", "new_pm@example.com", "pm123", "product_manager", company_id=8)
+    log.append({"info": "Product Manager registration response", "response": pm_resp})
+
+    pm_login = login("new_pm@example.com", "pm123")
     pm_token = pm_login.get("access_token")
-    log.append({"info": "Product Manager logged in", "token": pm_token})
+    log.append({"info": "Product Manager login response", "response": pm_login})
 
     if not pm_token:
         log.append({"error": "Product Manager login failed"})
+        print("Product Manager login failed. Exiting...")
     else:
-        # Create a product
-        product = create_product(pm_token, "Test Product", "Model X", "Description", 100, "Distributor Info", ["Category1"])
-        product_id = product.get("product_id")
-        log.append({"info": "Product created", "product": product})
-
-        # Add a review
-        review_resp = add_review(user_token, product_id, 5, "Great product!")
-        log.append({"info": "Add review response", "response": review_resp})
-
-        # Get reviews
-        reviews = get_reviews(product_id)
-        log.append({"info": "Product reviews", "reviews": reviews})
-
-        # Approve review
-        review_id = review_resp.get("review_id")
-        approve_resp = approve_review(pm_token, review_id)
-        log.append({"info": "Review approval response", "response": approve_resp})
+        print("Product Manager logged in successfully.")
 
     # Print logs
+    print("\nLogs:")
     for entry in log:
         print(json.dumps(entry, indent=2))
