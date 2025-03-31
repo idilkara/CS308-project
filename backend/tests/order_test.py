@@ -55,42 +55,73 @@ def view_orderitem (token, orderitem_id):
     
 
 
+
+
 if __name__ == "__main__":
-    # Step 1: Login as a product manager
+    # Step 1: Login as a product manager and a customer
     pm_login = login("pm@example.com", "password")
     pm_token = pm_login.get("access_token")
 
     cm_login = login("customer@example.com", "password")
     cm_token = cm_login.get("access_token")
+
     if not pm_token:
         print("Failed to log in as product manager")
         exit()
-    print("Product manager logged in successfully!")
+    if not cm_token:
+        print("Failed to log in as customer")
+        exit()
 
-    # Step 2: View all orders for the product manager
+    print("Product manager and customer logged in successfully.")
+
+    
+    # Step 2: Customer places an order
+    print("Customer is placing an order...")
+    headers = {"Authorization": f"Bearer {cm_token}", **HEADERS}
+    checkout_data = {
+        "delivery_address": "123 Main Street, Test City",
+        "items": [
+            {"product_id": 19, "quantity": 1},
+            {"product_id": 15, "quantity": 2}
+        ]
+    }
+    response = requests.post(f"{BASE_URL}/order/checkout", json=checkout_data, headers=headers)
+
+    if response.status_code == 201:
+        print("Order placed successfully:", response.json())
+    else:
+        print("Failed to place order:", response.status_code)
+        try:
+            print("Error response:", response.json())
+        except ValueError:
+            print("Raw response:", response.text)
+
+
+    # Step 3: View all orders as product manager (delivery role)
     print("Viewing orders for product manager...")
     orders = view_orders_pm(pm_token)
     print("Orders:", orders)
 
-
-    # Update the status to "in-transit"
+    # Step 4: Update the status of order items
+    print("Updating order item #1 to 'in-transit'...")
     update_response = deliver_orders_pm(pm_token, 1, "in-transit")
     print("Update response:", update_response)
 
-    # Update the status to "delivered"
+    print("Updating order item #2 to 'delivered'...")
     update_response = deliver_orders_pm(pm_token, 2, "delivered")
     print("Update response:", update_response)
-    
 
-    # Step 2: View all orders for the product manager
-    print("Viewing orders for product manager...")
+    # Step 5: View updated orders again
+    print("Viewing orders for product manager after updates...")
     orders = view_orders_pm(pm_token)
     print("Orders:", orders)
 
-    # Step 3: View order item details
-    print("Viewing order item details...")
+    # Step 6: View order item details as customer
+    print("Viewing order item #1 details...")
     orderitem = view_orderitem(cm_token, 1)
     print("Order item:", orderitem)
-    print("Viewing order item details...")
+
+    print("Viewing order item #2 details...")
     orderitem = view_orderitem(cm_token, 2)
     print("Order item:", orderitem)
+

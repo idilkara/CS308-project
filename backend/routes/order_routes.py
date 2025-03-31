@@ -122,3 +122,81 @@ def view_orderitem(orderitem_id):
     finally:
         cur.close()
         conn.close()
+
+
+
+
+#The user sends the products and quantities in his/her cart.
+#The stock of the products is checked.
+#The order is created (user orders)
+#Order items are added (orderitems)
+#Stock is reduced (products.stock_quantity)
+#Order status = starts as 'processing'.
+@order_bp.route("/checkout", methods=["POST"])
+@jwt_required()
+def checkout():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    # Validate JSON structure
+    if not data or "items" not in data or "delivery_address" not in data:
+        return jsonify({"error": "Request must include 'items' and 'delivery_address'"}), 400
+
+    items = data["items"]
+    delivery_address = data["delivery_address"]
+
+    # Validate each item
+    if not isinstance(items, list) or not all("product_id" in i and "quantity" in i for i in items):
+        return jsonify({"error": "Each item must include 'product_id' and 'quantity'"}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        total_price = 0
+
+        # Validate stock availability and calculate total price
+        for item in items:
+            cur.execute("SELECT price, stock_quantity FROM products WHERE product_id = %s", (item['product_id'],))
+            result = cur.fetchone()
+            if not result:
+                return jsonify({"error": f"Product {item['product_id']} not found"}), 404
+            price, stock_quantity = result
+            if stock_quantity < item['quantity']:
+                return jsonify({"error": f"Insufficient stock for product {item['product_id']}"}), 400
+            total_price += float(price) * item['quantity']
+
+        # Insert order into userorders table with delivery_address
+        cur.execute("""
+            INSERT INTO userorders (user_id, order_date, total_price, delivery_address, status)
+            VALUES (%s, CURRENT_TIMESTAMP, %s, %s, 'processing')
+            RETURNING order_id
+        """, (user_id, total_price, delivery_address))
+        order_id = cur.fetchone()[0]
+
+        # Insert order items and update stock
+        for item in items:
+            cur.execute("SELECT price FROM products WHERE product_id = %s", (item['product_id'],))
+            unit_price = cur.fetchone()[0]
+
+            cur.execute("""
+                INSERT INTO orderitems (order_id, product_id, quantity, price, status)
+                VALUES (%s, %s, %s, %s, 'processing')
+            """, (order_id, item['product_id'], item['quantity'], unit_price))
+
+            cur.execute("""
+                UPDATE products
+                SET stock_quantity = stock_quantity - %s
+                WHERE product_id = %s
+            """, (item['quantity'], item['product_id']))
+
+        conn.commit()
+        return jsonify({"message": "Order placed successfully", "order_id": order_id}), 201
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Order failed: {str(e)}"}), 500
+
+    finally:
+        cur.close()
+        conn.close()
