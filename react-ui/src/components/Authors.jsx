@@ -7,12 +7,38 @@ const Authors = () => {
     const [authors, setAuthors] = useState([]);
 
     useEffect(() => {
-        const fetchedAuthors = [
-            { name: "Haruki Murakami", image: "murakami.jpg" },
-            { name: "Hermann Hesse", image: "hesse.jpg" },
-            { name: "Ursula K. Le Guin", image: "ursula.jpg" },
-        ];
-        setAuthors(fetchedAuthors);
+        const fetchAuthors = async () => {
+            try {
+                const response = await fetch("http://backend/products/viewall");
+                const products = await response.json();
+
+                const authorSet = new Set();
+
+                products.forEach(product => {
+                    if (product.author) {
+                        authorSet.add(product.author.trim());
+                    }
+                });
+
+                const authorList = Array.from(authorSet).map((name) => {
+                    const imageName = name
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")
+                        .replace(/[^a-z0-9-]/g, "");
+
+                    return {
+                        name,
+                        image: `${imageName}.jpg`,
+                    };
+                });
+
+                setAuthors(authorList);
+            } catch (error) {
+                console.error("Failed to fetch authors:", error);
+            }
+        };
+
+        fetchAuthors();
     }, []);
 
     const authorsByLetter = authors.reduce((acc, author) => {
@@ -26,10 +52,8 @@ const Authors = () => {
         <div>
             <Navbar />
             <div className="authors-container">
-                {/* Page Title */}
                 <h1 className="page-title">Authors</h1>
 
-                {/* A-Z Navigation with Divider */}
                 <div className="alphabet-nav-wrapper">
                     <div className="alphabet-nav">
                         {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map((letter) => (
@@ -40,23 +64,28 @@ const Authors = () => {
                     </div>
                 </div>
 
-                {/* Authors List */}
                 <div className="authors-list">
-                    {Object.keys(authorsByLetter)
-                        .sort()
-                        .map((letter) => (
-                            <div key={letter} id={letter} className="letter-section">
-                                <h2 className="letter-header">{letter}</h2>
-                                <div className="author-cards">
-                                    {authorsByLetter[letter].map((author, index) => (
-                                        <div key={index} className="author-card">
-                                            <img src={`/images/${author.image}`} alt={author.name} className="author-image" />
-                                            <div className="author-name">{author.name}</div>
-                                        </div>
-                                    ))}
-                                </div>
+                    {Object.keys(authorsByLetter).sort().map((letter) => (
+                        <div key={letter} id={letter} className="letter-section">
+                            <h2 className="letter-header">{letter}</h2>
+                            <div className="author-cards">
+                                {authorsByLetter[letter].map((author, index) => (
+                                    <div key={index} className="author-card">
+                                        <img
+                                            src={`/images/authorImages/${author.image}`}
+                                            alt={author.name}
+                                            className="author-image"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = "/images/authorImages/default.jpg";
+                                            }}
+                                        />
+                                        <div className="author-name">{author.name}</div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
+                    ))}
                 </div>
             </div>
             <Footer />

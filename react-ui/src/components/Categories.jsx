@@ -7,12 +7,32 @@ const Categories = () => {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        const fetchedCategories = [
-            { name: "Science Fiction", image: "sci-fi.jpg" },
-            { name: "Fantasy", image: "fantasy.jpg" },
-            { name: "Mystery", image: "mystery.jpg" },
-        ];
-        setCategories(fetchedCategories);
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch("http://backend/categories/categories");
+                const data = await response.json();
+
+                const categoriesWithImages = data.map((category) => {
+                    const imageName = category.name
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")
+                        .replace(/[^a-z0-9-]/g, "");
+
+                    return {
+                        ...category,
+                        image: `${imageName}.jpg`
+                    };
+                });
+
+                console.log("Fetched categories:", data);
+
+                setCategories(categoriesWithImages);
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            }
+        };
+
+        fetchCategories();
     }, []);
 
     const categoriesByLetter = categories.reduce((acc, category) => {
@@ -44,7 +64,15 @@ const Categories = () => {
                             <div className="category-cards">
                                 {categoriesByLetter[letter].map((category, index) => (
                                     <div key={index} className="category-card">
-                                        <img src={`/images/${category.image}`} alt={category.name} className="category-image" />
+                                        <img
+                                            src={`/images/categoryImages/${category.image}`}
+                                            alt={category.name}
+                                            className="category-image"
+                                            onError={(e) => {
+                                                e.target.onerror = null; // prevent infinite loop
+                                                e.target.src = "/images/categoryImages/default.jpg"; // fallback image
+                                            }}
+                                        />
                                         <div className="category-name">{category.name}</div>
                                     </div>
                                 ))}
