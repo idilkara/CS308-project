@@ -29,7 +29,7 @@ const Navbar = () => {
             <a href="/" className="brand">Odyssey</a>
 
             <nav className="menu">
-                <a href="#">Shop</a>
+            <Link to="/category">Shop</Link>
 
                 {/* Categories Dropdown */}
                 <div
@@ -106,8 +106,10 @@ const Navbar = () => {
             </div>
 
             <div className="icons">
-                <BsBag className="icon" />
-                <Link to="/login">
+                <Link to="/cart">
+                    <BsBag className="icon" />
+                </Link>
+                <Link to="/user">
                     <BsPersonCircle className="icon" />
                 </Link>
             </div>

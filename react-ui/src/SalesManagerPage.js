@@ -3,6 +3,7 @@ import { BsHeart, BsHeartFill, BsCart, BsDownload, BsPrinter, BsGear, BsBarChart
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './SalesManagerPage.css';
+import "./ProductManager.css"
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -155,7 +156,7 @@ alert(`Refund #${refundId} has been rejected.`);
 };
 
 return (
-<div className="container">
+<div className="sm-container">
     {/* Sidebar */}
     <div className="sidebar">
     <div className="sidebar-header">

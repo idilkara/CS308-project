@@ -1,5 +1,5 @@
 @import './styles/root.css';
-
+/*
 .container {
     display: flex;
     height: 100vh;
@@ -8,14 +8,14 @@
 
 
 
-/*    top navigator   */
+ 
 .pm-section-title {
     font-size: 2.2rem;
     margin-bottom: 2rem;
     color: var(--main-text-color);
 }
 
-/* Tab Navigation */
+
 
 
 .pm-section-tabs {
@@ -51,7 +51,6 @@
 
 
 
-/* Sidebar Styling */
 .sidebar {
     width: 250px;
     background-color: var(--warm-green-light);
@@ -104,7 +103,7 @@
     margin-right: 10px;
 }
 
-/* Main Content Styling */
+
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -128,7 +127,7 @@
     overflow-y: auto;
 }
 
-/* Tab Container Styling */
+
 .tab-container {
     background-color: var(--warm-green-lighterer);
     border-radius: 8px;
@@ -149,7 +148,7 @@
     margin-bottom: 20px;
 }
 
-/* Grid Layout for Products */
+
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -208,7 +207,7 @@
     border-radius: 4px;
 }
 
-/* Form Elements */
+
 .price-input-container {
     width: 100%;
     margin-top: 10px;
@@ -249,7 +248,7 @@
     cursor: not-allowed;
 }
 
-/* Discount Section */
+
 .discount-control {
     display: flex;
     align-items: center;
@@ -268,7 +267,7 @@
     width: 80px;
 }
 
-/* Price Display */
+
 .price-display {
     width: 100%;
     text-align: center;
@@ -282,7 +281,7 @@
 
 .discounted-price {
     font-weight: bold;
-    color: #e53935; /* Red color for discounted price */
+    color: #e53935; 
     margin: 0;
 }
 
@@ -292,7 +291,7 @@
     margin: 0;
 }
 
-/* Item Actions */
+
 .item-actions {
     position: absolute;
     top: 10px;
@@ -310,7 +309,7 @@
 }
 
 .favorite-btn:hover, .favorite-btn.active {
-    color: #e53935; /* Red for heart icon */
+    color: #e53935; 
 }
 
 .heart-filled {
@@ -321,7 +320,7 @@
     color: var(--secondary-text-color);
 }
 
-/* Date Range Controls */
+
 .date-range-selector {
     display: flex;
     gap: 20px;
@@ -341,7 +340,7 @@
     border-color: var(--warm-brown);
 }
 
-/* Table Styling */
+
 .invoices-table, .refunds-table {
     overflow-x: auto;
 }
@@ -401,7 +400,7 @@ td {
     color: var(--warm-brown);
 }
 
-/* Status Badges */
+
 .status-badge {
     padding: 5px 10px;
     border-radius: 15px;
@@ -424,7 +423,7 @@ td {
     color: #f44336;
 }
 
-/* Action Buttons */
+
 .approve-btn, .reject-btn {
     padding: 5px 10px;
     border: none;
@@ -453,7 +452,7 @@ td {
     background-color: #e53935;
 }
 
-/* Financial Chart Section */
+
 .financial-chart {
     margin-top: 20px;
     height: 400px;
@@ -492,7 +491,7 @@ td {
     margin: 0;
 }
 
-/* No Products Message */
+
 .no-products {
     background-color: white;
     padding: 20px;
@@ -502,7 +501,7 @@ td {
     grid-column: 1 / -1;
 }
 
-/* Responsive Adjustments */
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
@@ -536,3 +535,6 @@ td {
         margin: 10px 0;
     }
 }
+
+
+*/

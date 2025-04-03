@@ -31,7 +31,10 @@ const HomePage = () => {
     { id: 9, name: "Book 9", image: "https://via.placeholder.com/150" },
     { id: 10, name: "Book 10", image: "https://via.placeholder.com/150" },
     { id: 11, name: "Book 11", image: "https://via.placeholder.com/150" },
-    { id: 12, name: "Book 12", image: "https://via.placeholder.com/150" }
+    { id: 12, name: "Book 12", image: "https://via.placeholder.com/150" },
+    { id: 13, name: "Book 13", image: "https://via.placeholder.com/150" },
+    { id: 14, name: "Book 14", image: "https://via.placeholder.com/150" },
+    { id: 15, name: "Book 15", image: "https://via.placeholder.com/150" }
   ];
 
   const [bannerIndex, setBannerIndex] = useState(1);          //tracks which banner ad is shown
@@ -231,7 +234,7 @@ const HomePage = () => {
           <hr />
     {/* BEST SELLERS */}
     <div className="products-container">
-      <h2 className="source-sans-bold">New Arrivals</h2>
+      <h2 className="source-sans-bold">Best Sellers</h2>
       <div className="products-slider">
         <div 
           className="products-wrapper" 
