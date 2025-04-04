@@ -1,9 +1,5 @@
 #auth
 #product
-
-
-
-
 from config import BASEURL as BASE_URL, HEADERS
 import requests
 import json
@@ -53,9 +49,6 @@ def view_orderitem (token, orderitem_id):
         return response.json()
     return {"error": "Failed to view orderitem", "status_code": response.status_code}
     
-
-
-
 
 if __name__ == "__main__":
     # Step 1: Login as a product manager and a customer

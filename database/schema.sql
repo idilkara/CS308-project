@@ -52,6 +52,7 @@ CREATE TABLE products (
     distributor_information TEXT, -- is this related to any of user roles -- 'product_manager'
     sales_manager INT,
     product_manager INT NOT NULL,
+    author TEXT,
     waiting BOOLEAN DEFAULT TRUE, --until a price is set by a sales manager
     FOREIGN KEY (sales_manager) REFERENCES users(user_id),
     FOREIGN KEY (product_manager) REFERENCES users(user_id)
