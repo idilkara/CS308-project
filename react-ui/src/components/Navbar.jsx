@@ -13,8 +13,18 @@ const Navbar = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await fetch("http://localhost:5001/viewall");
+                //const res = await fetch("http://backend/api/categories/categories");
+
+                const res = await fetch("http://localhost/api/categories/categories", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                console.log("Raw response:", res);
                 const data = await res.json();
+                console.log("Fetched categories:", data);
                 setAllProducts(data);
             } catch (err) {
                 console.error("Failed to fetch products for search", err);

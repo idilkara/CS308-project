@@ -12,7 +12,7 @@ const Login = () => {
 
         try {
             // TODO: Replace with actual API URL when backend is ready
-            const response = await fetch("http://backend/auth/login", {
+            const response = await fetch("http://localhost/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

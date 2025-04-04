@@ -9,14 +9,14 @@ const Authors = () => {
     useEffect(() => {
         const fetchAuthors = async () => {
             try {
-                const response = await fetch("http://backend/products/viewall");
+                const response = await fetch("http://localhost/api/products/products");
                 const products = await response.json();
-
+                console.log("Fetched products:", products);
                 const authorSet = new Set();
 
                 products.forEach(product => {
                     if (product.author) {
-                        authorSet.add(product.author.trim());
+                        authorSet.add(product.author.trim()); 
                     }
                 });
 

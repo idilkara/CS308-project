@@ -9,7 +9,7 @@ const Categories = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch("http://backend/categories/categories");
+                const response = await fetch("http://localhost/api/categories/categories");
                 const data = await response.json();
 
                 const categoriesWithImages = data.map((category) => {
