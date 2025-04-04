@@ -2,18 +2,13 @@ todo/ to test:
 
 product manager: 
 approve of a comment to product
-list all deliveries and ability to change the status
+
 
 belli yerlerde pdf gonderme durumu var
 notification handling
 
-
-change order delivery status - BUG
-view order status 
-
 customer: -profile page
 view user info The customer should be able to view their name, email address, and delivery address on a profile page.
-
 
 
 $$$$$$$$$$$$$$$$
@@ -32,9 +27,6 @@ reject refund
 
 
 $$$$$$$$$$$$$$
-
-
-
 
 
 TESTED:
@@ -56,6 +48,9 @@ purchase the items in the shopping cart:
     turn items in the cart to an order list - add stock check and stock decrease
 
 
+change order delivery status - resolved
+view order status 
+list all deliveries and ability to change the status
 
 product manager - delivery department: 
 remove product
@@ -66,3 +61,4 @@ GET methods for the customer:
 present products given categories
 present product information given product id
 present categories
+
