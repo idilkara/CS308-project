@@ -1,0 +1,147 @@
+from flask import Blueprint, request, jsonify
+from db import get_db_connection
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+user_bp = Blueprint("user", __name__)
+
+# A customer has the following properties at the very least: 
+# ID, name, e-mail address, home address, and password. 
+# The customer should be able to view their name, email address, 
+# and delivery address on a profile page.
+
+# Return user info based on userID
+# view user info The customer should be able to view their name, email address, and delivery address on a profile page.
+@user_bp.route("/userinfo", methods=["GET"])
+@jwt_required()
+def user_info():
+    try:
+        user_id = get_jwt_identity()["user_id"]
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute('SELECT user_id, name, email, home_address, role FROM Users WHERE user_id = %s', (user_id,))
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        user_info = {
+            "user_id": user[0],
+            "name": user[1],
+            "email": user[2],
+            "home_address": user[3],
+            "role": user[4]
+        }
+
+        return jsonify(user_info), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+
+# Edit user home address
+@user_bp.route("/edit_address", methods=["PUT"])
+@jwt_required()
+def edit_home_address():
+    
+    user_id = get_jwt_identity()["user_id"]
+    new_address = request.json.get("home_address")
+
+    if not new_address:
+        return jsonify({"error": "New home address is required"}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('UPDATE Users SET home_address = %s WHERE user_id = %s', (new_address, user_id))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 400
+    finally:
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    return jsonify({"message": "Home address updated successfully!"}), 200
+
+    
+
+# # Add user
+# @user_bp.route("/add", methods=["POST"])
+# def add_user():
+#     try:
+#         data = request.json
+#         name = data["name"]
+#         email = data["email"]
+#         password = data["password"]
+#         home_address = data.get("home_address", "")
+#         role = data["role"]
+
+#         conn = get_db_connection()
+#         cur = conn.cursor()
+
+#         cur.execute('''
+#             INSERT INTO Users (name, email, password, home_address, role) 
+#             VALUES (%s, %s, %s, %s, %s)
+#         ''', (name, email, password, home_address, role))
+
+#         conn.commit()
+#         cur.close()
+#         conn.close()
+
+#         return jsonify({"message": "User added successfully!"}), 201
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
+
+# # Show all users
+# @user_bp.route("/show", methods=["GET"])
+# def show_users():
+#     try:
+#         conn = get_db_connection()
+#         cur = conn.cursor()
+
+#         cur.execute('SELECT * FROM Users')
+#         users = cur.fetchall()
+
+#         cur.close()
+#         conn.close()
+
+#         users_list = [
+#             {
+#                 "user_id": user[0],
+#                 "name": user[1],
+#                 "email": user[2],
+#                 "password": user[3],
+#                 "home_address": user[4],
+#                 "role": user[5]
+#             }
+#             for user in users
+#         ]
+
+#         return jsonify(users_list), 200
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
+
+# # Delete a user
+# @user_bp.route("/delete/<int:user_id>", methods=["DELETE"])
+# def delete_user(user_id):
+#     try:
+#         conn = get_db_connection()
+#         cur = conn.cursor()
+
+#         cur.execute('DELETE FROM Users WHERE user_id = %s', (user_id,))
+
+#         conn.commit()
+#         cur.close()
+#         conn.close()
+
+#         return jsonify({"message": f"User with user_id {user_id} deleted successfully!"}), 200
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
+

@@ -29,8 +29,20 @@ Technologies:
         
             docker exec -it postgres_db psql -U admin -d mydatabase
 
-        
+            run any query such as SELECT * FROM users;
+
+
     Backend: Python Flask
+
+        To run tests: 
+
+            go into the backend container 
+            go to exec 
+            run the command : 
+
+            cd tests 
+            PYTHONPATH=.. pytest test_products.py
+
     
     Frontend: ReactJS
 
@@ -50,3 +62,50 @@ Technologies:
 
 
 
+
+
+curl -X POST http://localhost:5001/shopping/add \
+    -H "Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTQ0NiwianRpIjoiYThhNDc2ZjctNWUyNS00Nzk5LTlkMWUtM2I0NmY5NDg0YTlmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk0NDYsImNzcmYiOiI0YzYyZTVmMS03OTkxLTQxMWItOGJiNy0yMTQ4YWU3YzVjNjYiLCJleHAiOjE3NDE2NTAzNDZ9.RLd_9ioP1xi1hmAJoEh3QkLkaEz6XmBBqOfpayxrp5o" " \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 2,
+        "quantity": 1
+    }'
+
+
+    curl -X POST http://localhost:5001/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{
+        "email": "testuser@example.com",
+        "password": "testpassword"
+    }'
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MDUwOSwianRpIjoiNTFiMjdhMjgtYjY2Yi00ZWI5LWIzM2MtOWVmNTRhYzkzZWQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NTA1MDksImNzcmYiOiI2ZTBkNzE1ZS01NjJiLTRlYjktYjFlZS0wMmI0NDZlYmVmMDEiLCJleHAiOjE3NDE2NTE0MDl9.rvTtd4HpIQ0kRXHDlg0cSY8CCOxWy1Op0fj3uI0shSQ
+
+
+curl -X GET http://localhost:5001/wishlist/view \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MDUwOSwianRpIjoiNTFiMjdhMjgtYjY2Yi00ZWI5LWIzM2MtOWVmNTRhYzkzZWQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NTA1MDksImNzcmYiOiI2ZTBkNzE1ZS01NjJiLTRlYjktYjFlZS0wMmI0NDZlYmVmMDEiLCJleHAiOjE3NDE2NTE0MDl9.rvTtd4HpIQ0kRXHDlg0cSY8CCOxWy1Op0fj3uI0shSQ"
+
+
+    curl -X GET http://localhost:5001/shopping/view \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MTk3OCwianRpIjoiOGZmZDZjNjAtOGJiOC00OGQ1LWJkNWQtYjQzNWFhMjZhMTk5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjQiLCJuYmYiOjE3NDE2NTE5NzgsImNzcmYiOiIzZjRkMDljNS00YmE0LTQ4MGYtYjZmNy01ZGExOWI4ZThhYjIiLCJleHAiOjE3NDE2NTI4Nzh9.QwD2ZNNx8QOMnkVB4sfdZcCyi9buO0R8ShBKXa3Dko4"
+
+    curl -X POST http://localhost:5001/shopping/add \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MTk3OCwianRpIjoiOGZmZDZjNjAtOGJiOC00OGQ1LWJkNWQtYjQzNWFhMjZhMTk5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjQiLCJuYmYiOjE3NDE2NTE5NzgsImNzcmYiOiIzZjRkMDljNS00YmE0LTQ4MGYtYjZmNy01ZGExOWI4ZThhYjIiLCJleHAiOjE3NDE2NTI4Nzh9.QwD2ZNNx8QOMnkVB4sfdZcCyi9buO0R8ShBKXa3Dko4" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 1,
+        "quantity": 1
+    }'
+
+    curl -X POST http://localhost:5001/shopping/remove \
+   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY0OTgwMSwianRpIjoiZTc5MGE0YTQtMjdhZi00MTAzLTkxZWUtZjc3M2ZiZmFjYjVmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjciLCJuYmYiOjE3NDE2NDk4MDEsImNzcmYiOiI2YzRjZGZjNy1jZTZhLTQyMTYtOGRkZC1kNDNhMmZlZjJmNzYiLCJleHAiOjE3NDE2NTA3MDF9.uiBpiHNM8mZgE9c-uEQaCf1LEUhUyrPELdDpgq94gV4" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "product_id": 1
+    }'
+
+
+    curl -X GET http://localhost:5001/order/view_orders \
+   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MTY1MjQ0OCwianRpIjoiMjRiNGQyOWYtZjYwNC00MTFjLTgzOTItMmY3NDk4ZmUyMjJkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjQiLCJuYmYiOjE3NDE2NTI0NDgsImNzcmYiOiJlN2RmOGNkNi1mNjExLTRmYjEtYmYxOC1kODk2MzQ0ZDQ0ZWUiLCJleHAiOjE3NDE2NTMzNDh9.cbjN1tqYeOd07KTfZGQrFPvNREG2GTkUPQa9lRUcs8g"
