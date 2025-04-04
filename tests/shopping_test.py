@@ -76,6 +76,7 @@ def view_orders(token):
     else:
         return {"error": "Failed to fetch order history", "status_code": response.status_code, "details": response.json()}
     
+    
 if __name__ == "__main__":
     # Step 1: Login as a customer
     customer_login1 = login("customer@example.com", "password")
