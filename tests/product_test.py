@@ -66,8 +66,6 @@ def addcategory(token , name):
         return {"error": "Failed to viewall products", "status_code": response.status_code}
 
 
-
-
 def viewproducts_by_category ( categid):
 
     response = requests.get(f"{BASEURL}/products/products/category/{categid}")
@@ -248,7 +246,7 @@ if __name__ == "__main__":
     print(product)
 
 
-
+    
 
 
 
