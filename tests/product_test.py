@@ -5,7 +5,7 @@ from auth_test import login
 
 
 
-def create_product(token, name, model, description, stock_quantity, distributor_information):
+def create_product(token, name, model, description, stock_quantity, distributor_information,author):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     data = {
         "name": name,
@@ -13,6 +13,7 @@ def create_product(token, name, model, description, stock_quantity, distributor_
         "description": description,
         "stock_quantity": stock_quantity,
         "distributor_information": distributor_information,
+        "author": author
     }
     response = requests.post(f"{BASEURL}/pm_products/product/create", json=data, headers=headers)
     if response.status_code == 201 :
@@ -63,8 +64,6 @@ def addcategory(token , name):
         return response.json()  # Return the successful response from the API
     else:
         return {"error": "Failed to viewall products", "status_code": response.status_code}
-
-
 
 
 def viewproducts_by_category ( categid):
@@ -162,12 +161,10 @@ if __name__ == "__main__":
 
     # add products as a product manager
 
-    product1 = create_product(pm_token, "product1", "model1", "description1", 10, "distributor_information1")
-    product2 = create_product(pm_token, "product2", "model2", "description2", 20, "distributor_information2")
-    product3 = create_product(pm_token, "product3", "model3", "description3", 30, "distributor_information3")
-    product4 = create_product(pm_token, "product4", "model4", "description4", 40, "distributor_information4")
-
-
+    product1 = create_product(pm_token, "product1", "model1", "description1", 10, "distributor_information1", "auth1")
+    product2 = create_product(pm_token, "product2", "model2", "description2", 20, "distributor_information2", "auth2")
+    product3 = create_product(pm_token, "product3", "model3", "description3", 30, "distributor_information3", "auth1")
+    product4 = create_product(pm_token, "product4", "model4", "description4", 40, "distributor_information4", "auth2")
 
     products = viewproducts()
     print(products) 
@@ -249,7 +246,7 @@ if __name__ == "__main__":
     print(product)
 
 
-
+    
 
 
 

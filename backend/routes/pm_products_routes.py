@@ -53,6 +53,7 @@ def create_product():
         stock_quantity = data.get('stock_quantity')
         distributor_information = data.get('distributor_information')
         categories = data.get('categories', [])
+        author = data.get('author')
         
         if not all([name, model, description, stock_quantity, distributor_information]):
             raise ValueError("Missing required fields")
@@ -67,9 +68,9 @@ def create_product():
         
         # Insert the new product
         cursor.execute("""
-            INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager)
-            VALUES (%s, %s, %s, %s, %s, %s) RETURNING product_id;
-        """, (name, model, description, stock_quantity, distributor_information, userid))
+            INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager, author)
+            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING product_id;
+        """, (name, model, description, stock_quantity, distributor_information, userid, author))
         product_id = cursor.fetchone()[0]
         
         # Process categories and insert them into productcategories

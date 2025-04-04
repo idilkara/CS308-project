@@ -36,6 +36,7 @@ def get_products():
             "price": str(product[5]),
             "warranty_status": product[6],
             "distributor_information": product[7],
+            "author": product[10],
             # "sales_manager": product[8],
             # "product_manager": product[9],
             # "waiting": product[10]
@@ -52,7 +53,7 @@ def get_all_products():
     cursor.execute("""
         SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories, 
                p.warranty_status, p.distributor_information, p.sales_manager, 
-               p.product_manager, p.waiting
+               p.product_manager, p.waiting, p.author
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
         LEFT JOIN categories c ON pc.category_id = c.category_id
@@ -77,7 +78,8 @@ def get_all_products():
             "distributor_information": product[6],
             "sales_manager": product[7],
             "product_manager": product[8],
-            "waiting": product[9]
+            "waiting": product[9],
+            "author": product[10]
         }
         for product in products
     ])
@@ -90,7 +92,7 @@ def get_products_by_category(category_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting
+        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting, p.author
         FROM products p
         JOIN productcategories pc ON p.product_id = pc.product_id
         WHERE pc.category_id = %s AND p.waiting = FALSE
@@ -111,7 +113,8 @@ def get_products_by_category(category_id):
             "distributor_information": product[7],
             "sales_manager": product[8],
             "product_manager": product[9],
-            "waiting": product[10]
+            "waiting": product[10],
+            "author": product[11]
         }
         for product in products
     ])
@@ -123,7 +126,7 @@ def get_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting
+        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting, p.author
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
         LEFT JOIN categories c ON pc.category_id = c.category_id
@@ -147,7 +150,8 @@ def get_product(product_id):
             "distributor_information": product[8],
             "sales_manager": product[9],
             "product_manager": product[10],
-            "waiting": product[11]
+            "waiting": product[11],
+            "author": product[12]
         })
     else:
         return jsonify({"error": "Product not found"}), 404
