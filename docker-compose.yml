@@ -25,7 +25,7 @@ services:
 
   frontend:
     build: ./react-ui # Ensure this matches the frontend Dockerfile location
-    container_name: frontend
+    container_name: react-ui
     restart: unless-stopped
     depends_on:
       - backend
