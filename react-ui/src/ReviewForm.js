@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useAuth } from './context/AuthContext';
 
-const ReviewForm = ({ onSubmitReview }) => {
+const ReviewForm = ({ onSubmitReview, product_id }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
@@ -8,6 +9,45 @@ const ReviewForm = ({ onSubmitReview }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const { token } = useAuth();
+  console.log(token);
+  console.log(product_id);
+  // SUBMIT REVIEW API
+
+  const addReview = async (token, product_id, rating, comment) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    const data = {
+      product_id,
+      rating,
+      comment,
+    };
+  
+    try {
+      const response = await fetch("http://localhost/api/reviews/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Review added successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to add review:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to add review" };
+      }
+    } catch (error) {
+      console.error("Error adding review:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
 
   const handleRatingClick = (selectedRating) => {
     setRating(selectedRating);

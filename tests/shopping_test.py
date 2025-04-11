@@ -4,13 +4,7 @@ import json
 from auth_test import login 
 
 
-def add_to_cart(token, product_id, quantity):
-    headers = {"Authorization": f"Bearer {token}", **HEADERS}
-    data = {"product_id": product_id, "quantity": quantity}
-    response = requests.post(f"{BASE_URL}/shopping/add", json=data, headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    return {"error": "Failed to add to cart", "status_code": response.status_code}
+ 
 
 def view_cart(token):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}

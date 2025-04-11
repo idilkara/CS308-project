@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
+import { useAuth } from './context/AuthContext';
 
 const ProductManager = () => {
+
+    const { token } = useAuth();
+
   // Add scroll fix
   useEffect(() => {
     // Apply scroll fixes when component mounts
@@ -78,6 +82,212 @@ const ProductManager = () => {
   const [comments, setComments] = useState([]);
   const [commentIsLoading, setCommentIsLoading] = useState(false);
   const [commentFilter, setCommentFilter] = useState('pending'); // 'pending', 'approved', 'rejected', 'all'
+
+
+  const createProduct = async (token, productData) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    try {
+      const response = await fetch("http://localhost/api/pm_products/product/create", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(productData),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Product created successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to create product:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to create product" };
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+  const addCategoryToProduct = async (token, productId, categoryId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    const data = { category_name: categoryId };
+  
+    try {
+      const response = await fetch(`http://localhost/api/pm_products/product/add_category/${productId}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Category added successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to add category:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to add category" };
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+  
+  const removeCategoryFromProduct = async (token, productId, categoryId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    const data = { category_name: categoryId };
+  
+    try {
+      const response = await fetch(`http://localhost/api/pm_products/product/remove_category/${productId}`, {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Category removed successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to remove category:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to remove category" };
+      }
+    } catch (error) {
+      console.error("Error removing category:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+  
+  const updatePrice = async (token, productId, price) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    const data = { price };
+  
+    try {
+      const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Price updated successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to update price:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to update price" };
+      }
+    } catch (error) {
+      console.error("Error updating price:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  const removeProduct = async (token, productId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  
+    try {
+      const response = await fetch(`http://localhost/api/pm_products/product/delete/${productId}`, {
+        method: "DELETE",
+        headers,
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Product removed successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to remove product:", errorData.message || "Unknown error");
+        return { error: errorData.message || "Failed to remove product" };
+      }
+    } catch (error) {
+      console.error("Error removing product:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+
+
+  //ORDERS API CALLS
+
+
+const viewOrdersPM = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await fetch("http://localhost/api/delivery/view_orders", {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Orders fetched successfully:", result);
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to fetch orders:", errorData.message || "Unknown error");
+      return { error: errorData.message || "Failed to fetch orders" };
+    }
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+const deliverOrdersPM = async (token, orderItemId, newStatus) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const data = { status: newStatus };
+
+  try {
+    const response = await fetch(`http://localhost/api/delivery/update_status/${orderItemId}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Order status updated successfully:", result);
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to update order status:", errorData.message || "Unknown error");
+      return { error: errorData.message || "Failed to update order status" };
+    }
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
 
   // Load deliveries data when the "orders" section is active
   useEffect(() => {
@@ -241,10 +451,11 @@ const ProductManager = () => {
   };
 
   // Define available status options for deliveries
-  const statusOptions = ["Pending", "Processing", "Packed", "Shipped", "In Transit", "Delivered", "Returned", "Cancelled"];
+  const statusOptions = ["Processing",  "In Transit", "Delivered"];
 
   // Handle input changes for product details
   const handleInputChange = (e) => {
+
     const { name, value } = e.target;
     if (name.includes('discount.')) {
       const discountField = name.split('.')[1];

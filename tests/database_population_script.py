@@ -16,7 +16,7 @@ from product_test import create_product, update_price, addcategory_to_product
 # 3- sales manager
 
 customer_resp1 = register_user("Customer", "customer@example.com", "password", "customer", home="home")
-customer_resp2 = register_user("homelessCustomer", "homelesscustomer@example.com", "password", "customer")
+customer_resp2 = register_user("htomer", "htomer@example.com", "password", "customer")
 pm_resp = register_user("Product Manager", "pm@example.com", "password", "product_manager", company_id=1)
 sm_resp = register_user("Sales Manager", "sm@example.com", "password", "sales_manager", company_id=1)
 

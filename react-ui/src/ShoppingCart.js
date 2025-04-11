@@ -53,6 +53,8 @@ const ShoppingCart = () => {
   };
 
 
+
+
     // Fetch cart data when the component mounts
     useEffect(() => {
       const loadCart = async () => {
@@ -66,6 +68,139 @@ const ShoppingCart = () => {
   
       loadCart();
   }, [token]);
+
+
+  // REMOVE FROM CART 
+  // Clear the entire cart
+const clearCart = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await fetch("http://localhost/api/shopping/clear", {
+      method: "DELETE",
+      headers,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Cart cleared successfully:", result);
+      alert("Cart cleared successfully!");
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to clear cart:", errorData.message || "Unknown error");
+      alert(errorData.message || "Failed to clear cart");
+      return { error: errorData.message || "Failed to clear cart" };
+    }
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    alert("An error occurred while clearing the cart.");
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// to increase the quentity of the item
+const addToCart = async (token, productId, quantity) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  const data = { product_id: productId, quantity };
+
+  try {
+    const response = await fetch("http://localhost/api/shopping/add", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Added to cart:", result);
+      return result;
+    } else {
+      return {
+        error: "Failed to add to cart",
+        status_code: response.status,
+      };
+    }
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Remove a specific item from the cart
+const removeFromCart = async (token, productId, quantity) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const data = {
+    product_id: productId,
+    quantity,
+  };
+
+  try {
+    const response = await fetch("http://localhost/api/shopping/remove", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Removed from cart successfully:", result);
+      alert("Product removed from cart successfully!");
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to remove product from cart:", errorData.message || "Unknown error");
+      alert(errorData.message || "Failed to remove product from cart");
+      return { error: errorData.message || "Failed to remove product from cart" };
+    }
+  } catch (error) {
+    console.error("Error removing product from cart:", error);
+    alert("An error occurred while removing the product from the cart.");
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Create an order CHECKOUT
+const createOrder = async (token) => {
+  console.log("Creating order...");
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await fetch("http://localhost/api/payment/create_order", {
+      method: "POST",
+      headers,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Order created successfully:", result);
+      alert("Order created successfully!");
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to create order:", errorData.message || "Unknown error");
+      alert(errorData.message || "Failed to create order");
+      return { error: errorData.message || "Failed to create order", status_code: response.status };
+    }
+  } catch (error) {
+    console.error("Error creating order:", error);
+    alert("An error occurred while creating the order.");
+    return { error: "An unexpected error occurred" };
+  }
+};
 
 
   // Calculate total

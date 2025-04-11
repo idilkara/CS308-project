@@ -10,11 +10,10 @@ import { useAuth } from "./context/AuthContext"; // Import AuthContext if using 
 
 const CategoryPage = () => {
 
-
+  const navigate = useNavigate();
   //token getting
    const { token } = useAuth();
     console.log("Token from context:", token); // Log the token to check if it's being passed correctly
-
 
   const [dropdowns, setDropdowns] = useState({
     genres: false,
@@ -84,6 +83,32 @@ const CategoryPage = () => {
     fetchCategories();
   }, []);
 
+  // fetch the items in the wishlist 
+  const fetchWishlist = async (token) => {
+      try {
+          const response = await fetch("http://localhost/api/wishlist/view", {
+              method: "GET",
+              headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json"
+              }
+          });
+
+          if (response.ok) {
+              const wishlistData = await response.json();
+              console.log("Wishlist fetched successfully:", wishlistData);
+              //setWishlistBooks(wishlistData); // Update the wishlist state
+          } else {
+              const errorData = await response.json();
+              console.error("Failed to fetch wishlist:", errorData.message || "Unknown error");
+              alert(errorData.message || "Failed to fetch wishlist");
+          }
+      } catch (error) {
+          console.error("Error fetching wishlist:", error);
+          alert("An error occurred while fetching the wishlist.");
+      }
+  };
+
 
   //add item to cart api 
   const addToCart = async (token, productId, quantity) => {
@@ -102,6 +127,7 @@ const CategoryPage = () => {
   
       if (response.ok) {
         const result = await response.json();
+        console.log("Added to cart:", result);
         return result;
       } else {
         return {
@@ -115,8 +141,70 @@ const CategoryPage = () => {
     }
   };
 
+  //ADD ITEM TO wishLIST API
+  const addToWishlist = async (token, productId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    const data = { product_id: productId };
+  
+    try {
+      const response = await fetch("http://localhost/api/wishlist/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Added to wishlist:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to add to wishlist:", errorData);
+        return {
+          error: errorData.message || "Failed to add to wishlist",
+          status_code: response.status,
+        };
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
 
-
+  const removeFromWishlist = async (token, productId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    const data = { product_id: productId };
+  
+    try {
+      const response = await fetch("http://localhost/api/wishlist/remove", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Removed from wishlist:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to remove from wishlist:", errorData);
+        return {
+          error: errorData.message || "Failed to remove from wishlist",
+          status_code: response.status,
+        };
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
 
   const updateDisplayedProducts = (newFilters = filters, newSort = sortMethod, newCategory = activeCategory) => {
     let updatedFilters = { ...newFilters };
@@ -280,12 +368,53 @@ const CategoryPage = () => {
               {filteredProducts.map((book, index) => (
                 <div className="grid-item" key={index}>
                   <div className="item-actions">
-                    <button className={`favorite-btn ${favorites[index] ? 'active' : ''}`} onClick={() => toggleFavorite(index)}>
+                    {/* <button className={`favorite-btn ${favorites[index] ? 'active' : ''}`} onClick={() => toggleFavorite(index)}>
                       {favorites[index] ? <span className="heart-filled">♥</span> : <span className="heart-outline">♡</span>}
-                    </button>
+                    </button> */}
+  <button
+    className={`favorite-btn ${favorites[index] ? 'active' : ''}`}
+    onClick={() => {
+      if (favorites[index]) {
+        // If already in the wishlist, remove it
+        removeFromWishlist(token, book.product_id).then((result) => {
+          if (result.error) {
+            alert(result.error);
+          } else {
+            // Update the favorite state to reflect removal
+            setFavorites({ ...favorites, [index]: false });
+            alert("Product removed from wishlist successfully!");
+          }
+        });
+      } else {
+        // If not in the wishlist, add it
+        addToWishlist(token, book.product_id).then((result) => {
+          if (result.error) {
+            alert(result.error);
+          } else {
+            // Update the favorite state to reflect addition
+            setFavorites({ ...favorites, [index]: true });
+            alert("Product added to wishlist successfully!");
+          }
+        });
+      }
+    }}
+  >
+    {favorites[index] ? (
+      <span className="heart-filled">♥</span> // Filled heart for active
+    ) : (
+      <span className="heart-outline">♡</span> // Outline heart for inactive
+    )}
+  </button>
                     <button className="cart-btn">
                       <span>🛒</span>
                     </button>
+
+                    <button
+                        className="view-item-btn"
+                        onClick={() => navigate('/product', { state: { product_id: book.product_id } })}
+                      >
+                        VIEW ITEM
+                      </button>
                   </div>
                   <div className="grid-item-content">
                     <img src={book.imageUrl || bookCover} alt="Book Cover" />
