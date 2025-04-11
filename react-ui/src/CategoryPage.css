@@ -2,6 +2,7 @@
 
 body {
     overflow-y: hidden !important;
+    
 }
 
 
@@ -13,8 +14,11 @@ body {
 
 .container {
     display: flex;
-    height: 100vh;
-    width: 100vw;
+    height: calc(100vh - 60px); /* Adjust for navbar height if needed */
+    width: calc(100% - 160px); /* 80px padding on each side */
+    margin: 0 auto;
+    padding: 0 80px;
+    max-width: 1920px; /* Prevent extreme stretching on wide screens */
 } 
 
 
