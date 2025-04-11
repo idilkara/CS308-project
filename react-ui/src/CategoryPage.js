@@ -30,6 +30,9 @@ const CategoryPage = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({});
   const [sortMethod, setSortMethod] = useState("alpha-ascend");
+  const [categories, setCategories] = useState([]); // State to hold categories
+
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -49,6 +52,30 @@ const CategoryPage = () => {
 
     fetchProducts();
   }, []);
+
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+
+                const res = await fetch("http://localhost/api/categories/categories", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                const data = await res.json();
+                console.log("Fetched categories:", data);
+                setCategories(data);
+            } catch (err) {
+                console.error("Failed to fetch products for search", err);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
 
   const updateDisplayedProducts = (newFilters = filters, newSort = sortMethod, newCategory = activeCategory) => {
     let updatedFilters = { ...newFilters };
@@ -73,7 +100,7 @@ const CategoryPage = () => {
     setFavorites({ ...favorites, [index]: !favorites[index] });
   };
 
-  const categories = ['All', 'Bestsellers', 'New Releases', 'Fiction', 'Non-Fiction', 'Children', 'Young Adult'];
+  // const categories = ['All', 'Bestsellers', 'New Releases', 'Fiction', 'Non-Fiction', 'Children', 'Young Adult'];
 
   const handleFilterChange = (filterType, value, checked) => {
     const prevValues = filters[filterType] || [];
@@ -102,15 +129,16 @@ const CategoryPage = () => {
                   <i className="dropdown-icon">{dropdowns.genres ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</i>
                 </div>
                 <div className={`filter-dropdown-content ${dropdowns.genres ? 'active' : ''}`} ref={filterRefs.genres}>
-                  {["Fiction", "Non-Fiction", "Science Fiction", "Mystery"].map((genre, index) => (
-                      <label key={index} className="source-sans-regular">
-                        <input
-                            type="checkbox"
-                            value={genre}
-                            onChange={(e) => handleFilterChange("genres", genre, e.target.checked)}
-                        /> {genre}
-                        <span className="filter-count">(50)</span>
-                      </label>
+
+                  {categories.map((category, index) => (
+                    <label key={index} className="source-sans-regular">
+                      <input
+                        type="checkbox"
+                        value={category.name} // Use the 'name' field from the category object
+                        onChange={(e) => handleFilterChange("genres", category.name, e.target.checked)}
+                      /> {category.name} {/* Display the category name */}
+                      <span className="filter-count">(50)</span> {/* Replace with actual count if available */}
+                    </label>
                   ))}
                 </div>
               </div>
@@ -157,18 +185,19 @@ const CategoryPage = () => {
             <div className="horizontal-nav">
               <div className="categories-slider">
                 <div className="categories-slider-container">
-                  {categories.map((category, index) => (
-                      <button
-                          key={index}
-                          className={`category-pill ${activeCategory === category ? 'active' : ''}`}
-                          onClick={() => {
-                            setActiveCategory(category);
-                            updateDisplayedProducts(filters, sortMethod, category);
-                          }}
-                      >
-                        {category}
-                      </button>
-                  ))}
+{categories.map((category, index) => (
+  <button
+    key={index}
+    className={`category-pill ${activeCategory === category.name ? 'active' : ''}`}
+    onClick={() => {
+      setActiveCategory(category.name); // Use category.name for activeCategory
+      updateDisplayedProducts(filters, sortMethod, category.name); // Pass category.name
+    }}
+  >
+    {category.name} {/* Render the name field */}
+  </button>
+))}
+              
                 </div>
 
                 <div className="top-bar">

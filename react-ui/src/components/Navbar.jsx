@@ -21,7 +21,6 @@ const Navbar = () => {
                         "Content-Type": "application/json",
                     },
                 });
-
                 console.log("Raw response:", res);
                 const data = await res.json();
                 console.log("Fetched categories:", data);
@@ -33,6 +32,8 @@ const Navbar = () => {
 
         fetchProducts();
     }, []);
+
+    //TODO add authors fetching
 
     return (
         <header className="navbar">

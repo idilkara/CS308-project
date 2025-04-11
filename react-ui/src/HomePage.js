@@ -26,7 +26,12 @@ const HomePage = () => {
       try {
         const response = await fetch("http://localhost/api/products/products"); // Replace with your API URL
         const data = await response.json();
-        setProducts(data); // Update the products state with fetched data
+        console.log("Fetched products:", data);
+        const formattedData = data.map((product) => ({
+          ...product,
+          image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg", // Add the image field
+        }));
+        setProducts(formattedData);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -35,23 +40,6 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
-  // const products = [
-  //   { id: 1, name: "Book 1", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
-  //   { id: 2, name: "Book 2",image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg"  },
-  //   { id: 3, name: "Book 3", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
-  //   { id: 4, name: "Book 4",image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg"},
-  //   { id: 5, name: "Book 5", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
-  //   { id: 6, name: "Book 6", image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg" },
-  //   { id: 7, name: "Book 7", image: "https://via.placeholder.com/150" },
-  //   { id: 8, name: "Book 8", image: "https://via.placeholder.com/150" },
-  //   { id: 9, name: "Book 9", image: "https://via.placeholder.com/150" },
-  //   { id: 10, name: "Book 10", image: "https://via.placeholder.com/150" },
-  //   { id: 11, name: "Book 11", image: "https://via.placeholder.com/150" },
-  //   { id: 12, name: "Book 12", image: "https://via.placeholder.com/150" },
-  //   { id: 13, name: "Book 13", image: "https://via.placeholder.com/150" },
-  //   { id: 14, name: "Book 14", image: "https://via.placeholder.com/150" },
-  //   { id: 15, name: "Book 15", image: "https://via.placeholder.com/150" }
-  // ];
 
   const [bannerIndex, setBannerIndex] = useState(1);          //tracks which banner ad is shown
   const [isTransitioning, setIsTransitioning] = useState(false);  //prevents rapid clicking
@@ -115,15 +103,6 @@ const HomePage = () => {
     fetchCategories();
   }, []);
 
-  //categories
-  // const categories = [
-  //   { name: "Fiction", icon: <BsBook /> },
-  //   { name: "Non-Fiction", icon: <FaRegNewspaper /> },
-  //   { name: "Mystery", icon: <FaUserSecret /> },
-  //   { name: "Drama", icon: <FaTheaterMasks /> },
-  //   { name: "Science-Fiction", icon: <FaRocket /> },
-  //   { name: "More...", onClick: () => navigate("/category") },
-  // ];
 
   const publishers = [
     { name: "Macmillan", image: "https://macmillan.com/img/macmillan-publishers.jpg" },

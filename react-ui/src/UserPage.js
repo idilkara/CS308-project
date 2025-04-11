@@ -1,7 +1,7 @@
 import React, { useState ,useEffect  }  from 'react';
 import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; 
 
 
 
@@ -151,6 +151,7 @@ const mockPaymentMethods = [
 const UserAccountPage = () => {
 
     const location = useLocation();
+    const navigate = useNavigate(); // Initialize useNavigate
     const token = location.state?.token; // Retrieve the token from state
     console.log("Token received:", token); // Debugging: Log the token
 
@@ -163,19 +164,29 @@ const UserAccountPage = () => {
     const [expandedOrderId, setExpandedOrderId] = useState(null);
 
     useEffect(() => {
-        if (token) {
+        if (!token) {
+            console.error("Token is missing or invalid. Redirecting to login page.");
+            navigate("/login"); // Redirect to userLogin page
+        } else {
             fetch("http://localhost/api/users/userinfo", {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Invalid token");
+                }
+                return response.json();
+            })
             .then(data => console.log("User data fetched successfully:", data))
-            .catch(error => console.error("Error fetching user data:", error));
-            
+            .catch(error => {
+                console.error("Error fetching user data:", error);
+                navigate("/login"); // Redirect to userLogin page on error
+            });
         }
-    }, [token]);
+    }, [token, navigate]);
     
 
     // Payment methods state
