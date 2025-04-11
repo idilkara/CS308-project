@@ -34,8 +34,9 @@ const CategoryPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://backend/products/viewall");
+        const res = await fetch("http://backend/products/products");
         const data = await res.json();
+        console.log("Fetched products:", data);
         setAllProducts(data);
         setFilteredProducts(data);
       } catch (error) {

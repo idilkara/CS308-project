@@ -57,7 +57,7 @@ products = [
     ("Dracula", "D-017", "A gothic horror novel about a vampire.", 26, "Archibald Constable and Company", "Bram Stoker", ["Horror", "Gothic"]),
     ("Les Misérables", "LM-018", "A novel about redemption and revolution.", 45, "A. Lacroix, Verboeckhoven & Cie", "Victor Hugo", ["Classic", "Historical"]),
     ("The Divine Comedy", "DC-019", "A poetic journey through the afterlife.", 50, "Italy", "Dante Alighieri", ["Classic", "Philosophy"]),
-    ("Don Quixote", "DQ-020", "A satirical novel about chivalry.", 38, "Francisco de Robles", "Miguel de Cervantes", ["Classic", "Satire"])
+    ("Don Quixote", "DQ-020", "A satirical novel about chivalry.", 38, "Francisco de Robles", "Miguel de Cervantes", ["Classic", "Satire"]),
 ]
 
 # Create book products

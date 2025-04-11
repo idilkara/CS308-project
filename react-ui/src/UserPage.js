@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect  }  from 'react';
 import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
+import { useLocation } from 'react-router-dom';
+
+
 
 // Mock order details data
 const mockOrderDetails = {
@@ -146,11 +149,34 @@ const mockPaymentMethods = [
   ];
 
 const UserAccountPage = () => {
+
+    const location = useLocation();
+    const token = location.state?.token; // Retrieve the token from state
+    console.log("Token received:", token); // Debugging: Log the token
+
+
+
     const [userData, setUserData] = useState(mockUserData);
     const [activeTab, setActiveTab] = useState('profile');
     const [orderTab, setOrderTab] = useState('all');
     const [wishlistBooks, setWishlistBooks] = useState(mockWishlistBooks);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+    useEffect(() => {
+        if (token) {
+            fetch("http://localhost/api/users/userinfo", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            .then(response => response.json())
+            .then(data => console.log("User data fetched successfully:", data))
+            .catch(error => console.error("Error fetching user data:", error));
+            
+        }
+    }, [token]);
+    
 
     // Payment methods state
     const [paymentMethods, setPaymentMethods] = useState(mockPaymentMethods);

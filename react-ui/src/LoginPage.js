@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./LoginRegister.css";
 
 const Login = () => {
     const [email, setEmail] = useState("");  // State for email input
     const [password, setPassword] = useState(""); // State for password input
     const [errorMessage, setErrorMessage] = useState(""); // State for error messages
+    const [userToken, setUserToken ]= useState(""); // State for user token
+    const navigate = useNavigate(); // Initialize useNavigate
+
 
     const handleLogin = async (e) => {
         e.preventDefault(); // Prevent page reload
@@ -21,9 +24,11 @@ const Login = () => {
             });
 
             const data = await response.json();
+            setUserToken(data.token); // Store the token in state
 
             if (response.ok) {
                 console.log("Login successful:", data);
+                navigate("/user", { state: { token: data.access_token } });
                 // TODO: Redirect user to dashboard or homepage
             } else {
                 setErrorMessage(data.message || "Invalid email or password.");
