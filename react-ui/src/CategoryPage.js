@@ -6,7 +6,16 @@ import bookCover from './img/BookCover.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { filterItems, sortItems } from "./utils/FilterUtils";
 
+import { useAuth } from "./context/AuthContext"; // Import AuthContext if using Context API
+
 const CategoryPage = () => {
+
+
+  //token getting
+   const { token } = useAuth();
+    console.log("Token from context:", token); // Log the token to check if it's being passed correctly
+
+
   const [dropdowns, setDropdowns] = useState({
     genres: false,
     priceRange: false,
@@ -74,6 +83,40 @@ const CategoryPage = () => {
 
     fetchCategories();
   }, []);
+
+
+  //add item to cart api 
+  const addToCart = async (token, productId, quantity) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    const data = { product_id: productId, quantity };
+  
+    try {
+      const response = await fetch("http://localhost/api/shopping/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        return result;
+      } else {
+        return {
+          error: "Failed to add to cart",
+          status_code: response.status,
+        };
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+
+
 
   const updateDisplayedProducts = (newFilters = filters, newSort = sortMethod, newCategory = activeCategory) => {
     let updatedFilters = { ...newFilters };
