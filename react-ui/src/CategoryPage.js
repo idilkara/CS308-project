@@ -34,7 +34,10 @@ const CategoryPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://backend/products/products");
+        const res = await fetch("http://localhost/api/products/products");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
         console.log("Fetched products:", data);
         setAllProducts(data);
