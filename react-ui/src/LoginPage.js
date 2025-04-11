@@ -2,11 +2,15 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./LoginRegister.css";
 
+import { useAuth } from "./context/AuthContext"; // Import AuthContext if using Context API
+
+
 const Login = () => {
     const [email, setEmail] = useState("");  // State for email input
     const [password, setPassword] = useState(""); // State for password input
     const [errorMessage, setErrorMessage] = useState(""); // State for error messages
     const [userToken, setUserToken ]= useState(""); // State for user token
+    const { setToken } = useAuth(); // Access the setToken function from AuthContext
     const navigate = useNavigate(); // Initialize useNavigate
 
 
@@ -28,6 +32,9 @@ const Login = () => {
 
             if (response.ok) {
                 console.log("Login successful:", data);
+                setToken(data.access_token); // Save the token in AuthContext
+                localStorage.setItem("token", data.access_token); // Option
+
                 navigate("/user", { state: { token: data.access_token } });
                 // TODO: Redirect user to dashboard or homepage
             } else {

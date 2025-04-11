@@ -14,13 +14,17 @@ import Authors from "./components/Authors";
 import Categories from "./components/Categories";
 import ProductManager from "./ProductManager";
 
+
+import { AuthProvider } from "./context/AuthContext";
+
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <Routes>
         <Route path="/home" element={<HomePage />} />
         <Route path="/category" element={<CategoryPage />} />
-        <Route path="/cart" element={<ShoppingCart />} />
+        <Route path="/cart" element={<ShoppingCart/>} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/product" element={<ProductPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -35,6 +39,7 @@ function App() {
         <Route path="/" element={<HomePage />} /> {/* Default route */}
       </Routes>
     </Router>
+    </AuthProvider>
   );
 }
 

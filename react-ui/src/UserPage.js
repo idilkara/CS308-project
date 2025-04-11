@@ -2,7 +2,7 @@ import React, { useState ,useEffect  }  from 'react';
 import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
 import { useLocation, useNavigate } from 'react-router-dom'; 
-
+import { useAuth } from "./context/AuthContext";
 
 
 // Mock order details data
@@ -12,24 +12,7 @@ const mockOrderDetails = {
     { id: "ITEM-002", title: "The Iron Heel", author: "Jack London", quantity: 2, price: "$15.99", coverImage: "/images/iron-heel.jpg" },
     { id: "ITEM-003", title: "The Alchemist", author: "Paulo Coelho", quantity: 1, price: "$14.99", coverImage: "/images/alchemist.jpg" },
     { id: "ITEM-004", title: "1984", author: "George Orwell", quantity: 1, price: "$12.99", coverImage: "/images/1984.jpg" },
-  ],
-  "ORD-10044": [
-    { id: "ITEM-005", title: "To Kill a Mockingbird", author: "Harper Lee", quantity: 1, price: "$17.50", coverImage: "/images/mockingbird.jpg" },
-    { id: "ITEM-006", title: "The Great Gatsby", author: "F. Scott Fitzgerald", quantity: 1, price: "$16.99", coverImage: "/images/gatsby.jpg" },
-    { id: "ITEM-007", title: "The Hobbit", author: "J.R.R. Tolkien", quantity: 1, price: "$18.99", coverImage: "/images/hobbit.jpg" },
-  ],
-  "ORD-10043": [
-    { id: "ITEM-008", title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling", quantity: 1, price: "$24.99", coverImage: "/images/harry-potter.jpg" },
-    { id: "ITEM-009", title: "The Lord of the Rings: The Fellowship of the Ring", author: "J.R.R. Tolkien", quantity: 1, price: "$29.99", coverImage: "/images/lotr.jpg" },
-    { id: "ITEM-010", title: "The Silmarillion", author: "J.R.R. Tolkien", quantity: 1, price: "$22.99", coverImage: "/images/silmarillion.jpg" },
-    { id: "ITEM-011", title: "The Chronicles of Narnia", author: "C.S. Lewis", quantity: 1, price: "$32.99", coverImage: "/images/narnia.jpg" },
-    { id: "ITEM-012", title: "Dune", author: "Frank Herbert", quantity: 1, price: "$19.99", coverImage: "/images/dune.jpg" },
-  ],
-  "ORD-10042": [
-    { id: "ITEM-013", title: "Pride and Prejudice", author: "Jane Austen", quantity: 1, price: "$11.99", coverImage: "/images/pride.jpg" },
-    { id: "ITEM-014", title: "Emma", author: "Jane Austen", quantity: 1, price: "$10.99", coverImage: "/images/emma.jpg" },
-    { id: "ITEM-015", title: "Sense and Sensibility", author: "Jane Austen", quantity: 1, price: "$9.99", coverImage: "/images/sense.jpg" },
-  ],
+  ]
 };
 
 // Updated mock user data with addresses array
@@ -64,26 +47,6 @@ const mockOrders = [
     date: "March 5, 2025",
     price: "$149.99",
     status: "delivered"
-  },
-  {
-    id: "ORD-10044",
-    date: "February 28, 2025",
-    price: "$79.50",
-    status: "ongoing"
-  },
-  {
-    id: "ORD-10043",
-    date: "February 20, 2025",
-    price: "$225.00",
-    status: "returned",
-    returnReason: "Wrong size"
-  },
-  {
-    id: "ORD-10042",
-    date: "February 15, 2025",
-    price: "$32.99",
-    status: "cancelled",
-    cancellationReason: "Out of stock"
   }
 ];
 
@@ -95,34 +58,6 @@ const mockWishlistBooks = [
     author: "V.E. Schwab",
     price: "$24.99",
     coverImage: "/images/addie-larue.jpg"
-  },
-  {
-    id: "BK-4267",
-    title: "The Song of Achilles",
-    author: "Madeline Miller",
-    price: "$16.99",
-    coverImage: "/images/achilles.jpg"
-  },
-  {
-    id: "BK-1584",
-    title: "Project Hail Mary",
-    author: "Andy Weir",
-    price: "$28.99",
-    coverImage: "/images/hail-mary.jpg"
-  },
-  {
-    id: "BK-7391",
-    title: "The Seven Husbands of Evelyn Hugo",
-    author: "Taylor Jenkins Reid",
-    price: "$17.99",
-    coverImage: "/images/evelyn-hugo.jpg"
-  },
-  {
-    id: "BK-8954",
-    title: "A Court of Thorns and Roses",
-    author: "Sarah J. Maas",
-    price: "$19.99",
-    coverImage: "/images/thorns-roses.jpg"
   }
 ];
 
@@ -152,10 +87,11 @@ const UserAccountPage = () => {
 
     const location = useLocation();
     const navigate = useNavigate(); // Initialize useNavigate
-    const token = location.state?.token; // Retrieve the token from state
-    console.log("Token received:", token); // Debugging: Log the token
+    // const token = location.state?.token; // Retrieve the token from state
+    // console.log("Token received:", token); // Debugging: Log the token
 
-
+    const { token } = useAuth(); // Access the token from AuthContext
+    console.log("Token from context:", token); // Log the token to check if it's being passed correctly
 
     const [userData, setUserData] = useState(mockUserData);
     const [activeTab, setActiveTab] = useState('profile');
@@ -163,31 +99,148 @@ const UserAccountPage = () => {
     const [wishlistBooks, setWishlistBooks] = useState(mockWishlistBooks);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
 
+
+    //CHECKS FOR THE TOKEN
+    // useEffect to handle token validation and user info fetching
     useEffect(() => {
         if (!token) {
             console.error("Token is missing or invalid. Redirecting to login page.");
             navigate("/login"); // Redirect to userLogin page
-        } else {
-            fetch("http://localhost/api/users/userinfo", {
+            getUserInfo(token, navigate)
+        } 
+        else{
+            getUserInfo(token, navigate)
+            //to test other api requests
+            fetchOrderHistory(token);
+            fetchWishlist(token);
+        }
+    }, [token, navigate]);
+    
+    const getUserInfo = async (token, navigate) => {
+        try {
+            const response = await fetch("http://localhost/api/users/userinfo", {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Invalid token");
-                }
-                return response.json();
-            })
-            .then(data => console.log("User data fetched successfully:", data))
-            .catch(error => {
-                console.error("Error fetching user data:", error);
-                navigate("/login"); // Redirect to userLogin page on error
             });
-        }
-    }, [token, navigate]);
     
+            if (!response.ok) {
+                throw new Error("Invalid token");
+            }
+    
+            const data = await response.json();
+            console.log("User data fetched successfully:", data);
+            return data; // Return the fetched data
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            navigate("/login"); // Redirect to userLogin page on error
+            throw error; // Re-throw the error if needed
+        }
+    };
+
+
+    const editHomeAddress = async (token, newAddress) => {
+        try {
+            const response = await fetch("http://localhost/api/users/edit_address", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ home_address: newAddress })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                return { error: "Failed to edit address" };
+            }
+        } catch (error) {
+            return { error: "An error occurred while editing the address" };
+        }
+    };
+
+
+    const updatePassword = async (token, newPassword) => {
+        try {
+            const response = await fetch("http://localhost/api/users/update_password", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                return { error: "Failed to update password" };
+            }
+        } catch (error) {
+            return { error: "An error occurred while updating the password" };
+        }
+    };
+
+
+    // view wishlist
+    const fetchWishlist = async (token) => {
+        try {
+            const response = await fetch("http://localhost/api/wishlist/view", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            if (response.ok) {
+                const wishlistData = await response.json();
+                console.log("Wishlist fetched successfully:", wishlistData);
+                setWishlistBooks(wishlistData); // Update the wishlist state
+            } else {
+                const errorData = await response.json();
+                console.error("Failed to fetch wishlist:", errorData.message || "Unknown error");
+                alert(errorData.message || "Failed to fetch wishlist");
+            }
+        } catch (error) {
+            console.error("Error fetching wishlist:", error);
+            alert("An error occurred while fetching the wishlist.");
+        }
+    };
+
+    // view order history
+    const fetchOrderHistory = async (token) => {
+        try {
+            const response = await fetch("http://localhost/api/order/view_order_history", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            if (response.ok) {
+                const orderHistory = await response.json();
+                console.log("Order history fetched successfully:", orderHistory);
+                return orderHistory; // Return the fetched order history
+            } else {
+                const errorData = await response.json();
+                console.error("Failed to fetch order history:", errorData.message || "Unknown error");
+                return { error: errorData.message || "Failed to fetch order history", status_code: response.status };
+            }
+        } catch (error) {
+            console.error("Error fetching order history:", error);
+            return { error: "An error occurred while fetching the order history" };
+        }
+    };
+
+    // view payment methods - does not exist 
+
+
 
     // Payment methods state
     const [paymentMethods, setPaymentMethods] = useState(mockPaymentMethods);
