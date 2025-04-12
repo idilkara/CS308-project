@@ -630,6 +630,11 @@ const CategoryPage = () => {
           </div>
         </div>
       </div>
+      {notification.visible && (
+        <div className="cart-notification">
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 };

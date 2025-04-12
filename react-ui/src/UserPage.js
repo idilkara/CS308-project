@@ -1152,20 +1152,20 @@ const mockPaymentMethods = [
                         <span> #{selectedAddressIndex + 1}</span>
                     )}
                 </div>
-                <div className="info-value">
-                    {userData.addresses 
-                        ? <>
-                            {userData.addresses[selectedAddressIndex].street}<br />
-                            {userData.addresses[selectedAddressIndex].city}, {userData.addresses[selectedAddressIndex].state} {userData.addresses[selectedAddressIndex].zipCode}<br />
-                            {userData.addresses[selectedAddressIndex].country}
-                          </>
-                        : <>
-                            {userData.address.street}<br />
-                            {userData.address.city}, {userData.address.state} {userData.address.zipCode}<br />
-                            {userData.address.country}
-                          </>
-                    }
-                </div>
+                {/* <div className="info-value">
+                    {userData.address
+                        // ? <>
+                        //     {userData.addresses[selectedAddressIndex].street}<br />
+                        //     {userData.addresses[selectedAddressIndex].city}, {userData.addresses[selectedAddressIndex].state} {userData.addresses[selectedAddressIndex].zipCode}<br />
+                        //     {userData.addresses[selectedAddressIndex].country}
+                        //   </>
+                        // : <>
+                        //     {userData.address.street}<br />
+                        //     {userData.address.city}, {userData.address.state} {userData.address.zipCode}<br />
+                        //     {userData.address.country}
+                        //   </>
+                    } */}
+                {/* </div> */}
             </div>
         </div>
         

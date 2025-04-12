@@ -58,16 +58,31 @@ const ShoppingCart = () => {
     // Fetch cart data when the component mounts
     useEffect(() => {
       const loadCart = async () => {
-          if (token) {
-              const cartData = await fetchCart(token);
-              setCartItems(cartData); // Update the cart state with fetched data
-          } else {
-              console.error("Token is missing. Unable to fetch cart.");
+        if (token) {
+          // Check if there are items in the temporary cart
+          const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+          
+          // If there are temporary items, add them to the user's cart
+          if (tempCart.length > 0) {
+            for (const item of tempCart) {
+              await addToCart(token, item.product_id, item.quantity);
+            }
+            // Clear temporary cart after transferring items
+            localStorage.removeItem('tempCart');
           }
+          
+          // Fetch the user's cart (now including any transferred items)
+          const cartData = await fetchCart(token);
+          setCartItems(cartData);
+        } else {
+          // User is not logged in, use the temporary cart
+          const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+          setCartItems(tempCart);
+        }
       };
-  
+    
       loadCart();
-  }, [token]);
+    }, [token]);
 
 
   // REMOVE FROM CART 
@@ -204,7 +219,12 @@ const createOrder = async (token) => {
 
 
   // Calculate total
-  const cartTotal = 10.0; //cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  //const cartTotal = 10.0; //cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const cartTotal = cartItems.reduce((total, item) => {
+    const price = parseFloat(item.price) || 0;
+    const quantity = parseInt(item.quantity) || 0;
+    return total + (price * quantity);
+  }, 0);
 
   // Handle quantity change
   const updateQuantity = (id, newQuantity) => {
@@ -216,13 +236,44 @@ const createOrder = async (token) => {
   };
 
   // Remove item from cart
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
+  // Update the removeItem function to call your API
+// Update the removeItem function to call your API
+const removeItem = (id) => {
+  if (token) {
+    // Get the quantity of the item to be removed
+    const itemToRemove = cartItems.find(item => item.id === id);
+    if (itemToRemove) {
+      removeFromCart(token, id, itemToRemove.quantity)
+        .then(result => {
+          if (!result.error) {
+            // Only update the state if the API call was successful
+            setCartItems(cartItems.filter(item => item.id !== id));
+          }
+        });
+    }
+  } else {
+    // For non-logged in users with local storage cart
+    const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+    const updatedCart = tempCart.filter(item => item.id !== id);
+    localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+    setCartItems(updatedCart);
+  }
+};
 
   // Empty the cart
   const emptyCart = () => {
-    setCartItems([]);
+    if (token) {
+      clearCart(token)
+        .then(result => {
+          if (!result.error) {
+            setCartItems([]);
+          }
+        });
+    } else {
+      // For non-logged in users
+      localStorage.removeItem('tempCart');
+      setCartItems([]);
+    }
   };
 
   return (
@@ -267,7 +318,10 @@ const createOrder = async (token) => {
                       </div>
                       <div className="item-price">
                           <span className="price-label source-sans-semibold">Price</span>
-                          <p className="current-price source-sans-semibold">${item.price.toFixed(2)}</p>
+                          <p className="current-price source-sans-semibold">
+                            ${(parseFloat(item.price) || 0).toFixed(2)}
+                          </p>
+
                       </div>
                       <div className="item-actions">
                           <button className="remove-item source-sans-regular" onClick={() => removeItem(item.id)}>
