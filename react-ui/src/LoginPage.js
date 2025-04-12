@@ -16,7 +16,7 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault(); // Prevent page reload
-
+    
         try {
             // TODO: Replace with actual API URL when backend is ready
             const response = await fetch("http://localhost/api/auth/login", {
@@ -26,16 +26,20 @@ const Login = () => {
                 },
                 body: JSON.stringify({ email, password }),
             });
-
+    
             const data = await response.json();
             setUserToken(data.token); // Store the token in state
-
+    
             if (response.ok) {
                 console.log("Login successful:", data);
-                setToken(data.access_token); // Save the token in AuthContext
-                localStorage.setItem("token", data.access_token); // Option
-
-                navigate("/user", { state: { token: data.access_token } });
+                const accessToken = data.access_token;
+                setToken(accessToken); // Save the token in AuthContext
+                localStorage.setItem("token", accessToken); // Option
+                
+                // Transfer temporary cart items after successful login
+                await transferTempCartItems(accessToken);
+                
+                navigate("/user", { state: { token: accessToken } });
                 // TODO: Redirect user to dashboard or homepage
             } else {
                 setErrorMessage(data.message || "Invalid email or password.");
@@ -45,6 +49,42 @@ const Login = () => {
             setErrorMessage("Something went wrong. Please try again later.");
         }
     };
+    
+    // Add this function to transfer temporary cart items
+    const transferTempCartItems = async (token) => {
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        console.log("Transferring temporary cart items:", tempCart);
+        
+        if (tempCart.length > 0) {
+            for (const item of tempCart) {
+                try {
+                    const response = await fetch("http://localhost/api/shopping/add", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ 
+                            product_id: item.product_id, 
+                            quantity: item.quantity 
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log(`Item ${item.product_id} added to cart successfully`);
+                    } else {
+                        console.error(`Failed to add item ${item.product_id} to cart`);
+                    }
+                } catch (error) {
+                    console.error(`Error adding item ${item.product_id} to cart:`, error);
+                }
+            }
+            // Clear temporary cart after transferring items
+            localStorage.removeItem('tempCart');
+        }
+    };
+
+    
 
     return (
         <div className="auth-page">

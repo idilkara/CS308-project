@@ -37,6 +37,10 @@ const CategoryPage = () => {
   const [filters, setFilters] = useState({});
   const [sortMethod, setSortMethod] = useState("alpha-ascend");
   const [categories, setCategories] = useState([]);
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -107,6 +111,60 @@ const CategoryPage = () => {
           console.error("Error fetching wishlist:", error);
           alert("An error occurred while fetching the wishlist.");
       }
+  };
+
+  // Add this function to handle cart button clicks 
+  const handleAddToCart = (event, book) => {
+    event.stopPropagation(); // Stop the event from propagating to the parent div
+    
+    if (token) {
+      // User is logged in, add to their cart in the database
+      addToCart(token, book.product_id, 1).then((result) => {
+        if (result.error) {
+          setNotification({
+            message: result.error,
+            visible: true
+          });
+        } else {
+          // Show success message
+          setNotification({
+            message: "Added to cart successfully!",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+        }
+      });
+    } else {
+      // User is not logged in, store the item in local storage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const existingItemIndex = tempCart.findIndex(item => item.product_id === book.product_id);
+      
+      if (existingItemIndex >= 0) {
+        // Item already exists, increase quantity
+        tempCart[existingItemIndex].quantity += 1;
+      } else {
+        // New item, add to cart
+        tempCart.push({
+          product_id: book.product_id,
+          name: getBookName(book),
+          price: book.price || 0,
+          quantity: 1,
+          author: book.author || "Unknown Author",
+          image: `assets/covers/${book.name.replace(/\s+/g, '').toLowerCase()}.png`
+        });
+      }
+      
+      localStorage.setItem('tempCart', JSON.stringify(tempCart));
+      setNotification({
+        message: "Product added to temporary cart!",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+    }
   };
 
 
@@ -410,9 +468,12 @@ const CategoryPage = () => {
       <span className="heart-outline">♡</span> // Outline heart for inactive
     )}
   </button>
-                    <button className="cart-btn">
-                      <span>🛒</span>
-                    </button>
+                    <button 
+                    className="cart-btn" 
+                    onClick={(e) => handleAddToCart(e, book)}
+                  >
+                    <span>🛒</span>
+                  </button>
                   </div>
                   <div className="grid-item-content">
                   <img
@@ -438,6 +499,11 @@ const CategoryPage = () => {
           </div>
         </div>
       </div>
+      {notification.visible && (
+        <div className="cart-notification">
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 };
