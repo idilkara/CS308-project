@@ -157,9 +157,14 @@ body, html {
     color: var(--main-text-color);
     box-shadow: 1px 1px 10px lightgray;
     position: relative;
-    
-  }
+    transition: box-shadow 0.3s ease-in-out; /* Smooth transition for hover effect */
 
+    
+}
+
+.grid-item:hover {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* Slight grey glow on hover */
+}
 .grid-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
