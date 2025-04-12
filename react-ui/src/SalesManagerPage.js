@@ -1,559 +1,807 @@
 import React, { useState, useEffect } from 'react';
-import { BsHeart, BsHeartFill, BsCart, BsDownload, BsPrinter, BsGear, BsBarChart, BsReceipt, BsArrowReturnLeft, BsTag } from 'react-icons/bs';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './SalesManagerPage.css';
-import "./ProductManager.css"
+import { useAuth } from './context/AuthContext';
+import Chart from 'chart.js/auto';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+const SalesManager = () => {
+  const { token } = useAuth();
 
-const SalesManagerDashboard = () => {
-  // State management
-const [activeTab, setActiveTab] = useState('pricing');
-const [pendingProducts, setPendingProducts] = useState([]);
-const [allProducts, setAllProducts] = useState([]);
-const [selectedProducts, setSelectedProducts] = useState([]);
-const [discountRate, setDiscountRate] = useState(0);
-const [invoiceRange, setInvoiceRange] = useState({ startDate: '', endDate: '' });
-const [invoices, setInvoices] = useState([]);
-const [financialRange, setFinancialRange] = useState({ startDate: '', endDate: '' });
-const [financialData, setFinancialData] = useState(null);
-const [refundRequests, setRefundRequests] = useState([]);
-
-// Mock data loading for demonstration
-useEffect(() => {
-// Simulate API calls
-setPendingProducts([
-    { id: 1, name: "Premium Headphones", description: "Noise cancelling", image: "/api/placeholder/140/180", cost: 75 },
-    { id: 2, name: "Wireless Mouse", description: "Ergonomic design", image: "/api/placeholder/140/180", cost: 20 },
-    { id: 3, name: "Mechanical Keyboard", description: "RGB backlit", image: "/api/placeholder/140/180", cost: 45 }
-]);
-
-setAllProducts([
-    { id: 4, name: "Desktop Monitor", description: "27 inch 4K", image: "/api/placeholder/140/180", price: 299.99, cost: 150 },
-    { id: 5, name: "Laptop Stand", description: "Adjustable height", image: "/api/placeholder/140/180", price: 49.99, cost: 25 },
-    { id: 6, name: "USB-C Hub", description: "10-in-1 ports", image: "/api/placeholder/140/180", price: 79.99, cost: 40 }
-]);
-
-setInvoices([
-    { id: 101, date: '2025-03-15', customer: 'John Doe', total: 429.97, items: [{ id: 4, qty: 1 }, { id: 5, qty: 1 }, { id: 6, qty: 1 }] },
-    { id: 102, date: '2025-03-17', customer: 'Jane Smith', total: 349.98, items: [{ id: 4, qty: 1 }, { id: 6, qty: 1 }] },
-    { id: 103, date: '2025-03-18', customer: 'Bob Johnson', total: 49.99, items: [{ id: 5, qty: 1 }] }
-]);
-
-setRefundRequests([
-    { id: 201, invoiceId: 101, date: '2025-03-18', customer: 'John Doe', item: { id: 5, name: 'Laptop Stand', price: 49.99 }, reason: 'Defective product', status: 'pending' },
-    { id: 202, invoiceId: 102, date: '2025-03-19', customer: 'Jane Smith', item: { id: 6, name: 'USB-C Hub', price: 79.99 }, reason: 'Changed mind', status: 'pending' }
-]);
-}, []);
-
-// Set price for pending products
-const handleSetPrice = (productId, price) => {
-const updatedPending = pendingProducts.map(product => 
-    product.id === productId ? { ...product, price: parseFloat(price) } : product
-);
-setPendingProducts(updatedPending);
-};
-
-// Publish product (move from pending to all products)
-const handlePublishProduct = (productId) => {
-const productToMove = pendingProducts.find(p => p.id === productId);
-if (productToMove && productToMove.price > 0) {
-    setPendingProducts(pendingProducts.filter(p => p.id !== productId));
-    setAllProducts([...allProducts, productToMove]);
-}
-};
-
-// Toggle product selection for discount
-const handleToggleProductSelection = (productId) => {
-if (selectedProducts.includes(productId)) {
-    setSelectedProducts(selectedProducts.filter(id => id !== productId));
-} else {
-    setSelectedProducts([...selectedProducts, productId]);
-}
-};
-
-// Apply discount to selected products
-const handleApplyDiscount = () => {
-if (discountRate <= 0 || discountRate > 90) {
-    alert('Please enter a valid discount rate between 1 and 90%');
-    return;
-}
-
-const updatedProducts = allProducts.map(product => {
-    if (selectedProducts.includes(product.id)) {
-    const originalPrice = product.price;
-    const discountedPrice = originalPrice * (1 - discountRate / 100);
-    return { 
-        ...product, 
-        originalPrice,
-        discountRate,
-        price: parseFloat(discountedPrice.toFixed(2))
+  // Fix scroll issues (same approach as ProductManager)
+  useEffect(() => {
+    document.body.style.overflow = 'auto';
+    
+    const fixContainers = () => {
+      let element = document.querySelector('.sales-manager');
+      if (!element) return;
+      
+      while (element && element !== document.body) {
+        const style = window.getComputedStyle(element);
+        
+        if (style.overflow === 'hidden' || 
+            style.height === '100vh' || 
+            style.height === '100%' ||
+            style.position === 'fixed') {
+          
+          element.style.height = 'auto';
+          element.style.maxHeight = 'none';
+          element.style.overflow = 'visible';
+          
+          console.log('Fixed container:', element);
+        }
+        
+        element = element.parentElement;
+      }
     };
-    }
-    return product;
-});
-
-setAllProducts(updatedProducts);
-setSelectedProducts([]);
-setDiscountRate(0);
-alert(`Discount applied to ${selectedProducts.length} products and notifications sent to users with these items in their wishlist.`);
-};
-
-// Search invoices based on date range
-const handleSearchInvoices = () => {
-const { startDate, endDate } = invoiceRange;
-const filteredInvoices = invoices.filter(invoice => 
-    invoice.date >= startDate && invoice.date <= endDate
-);
-return filteredInvoices;
-};
-
-// Generate financial report data
-const handleGenerateFinancialData = () => {
-const { startDate, endDate } = financialRange;
-const months = ['January', 'February', 'March', 'April', 'May'];
-
-// Sample data for demonstration
-const data = {
-    labels: months,
-    datasets: [
-    {
-        label: 'Revenue',
-        data: [15000, 18000, 22000, 20000, 25000],
-        borderColor: 'rgb(53, 162, 235)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-    },
-    {
-        label: 'Profit',
-        data: [7500, 9000, 11000, 10000, 12500],
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-    }
-    ],
-};
-
-setFinancialData(data);
-};
-
-// Handle approve refund
-const handleApproveRefund = (refundId) => {
-const updatedRefunds = refundRequests.map(refund => 
-    refund.id === refundId ? { ...refund, status: 'approved' } : refund
-);
-setRefundRequests(updatedRefunds);
-alert(`Refund #${refundId} has been approved.`);
-};
-
-// Handle reject refund
-const handleRejectRefund = (refundId) => {
-const updatedRefunds = refundRequests.map(refund => 
-    refund.id === refundId ? { ...refund, status: 'rejected' } : refund
-);
-setRefundRequests(updatedRefunds);
-alert(`Refund #${refundId} has been rejected.`);
-};
-
-return (
-<div className="sm-container">
-    {/* Sidebar */}
-    <div className="sidebar">
-    <div className="sidebar-header">
-        <div className="brand">Sales Manager</div>
-    </div>
-    <div className="sidebar-menu">
-        <div 
-        className={`filter-dropdown ${activeTab === 'pricing' ? 'active' : ''}`}
-        onClick={() => setActiveTab('pricing')}
-        >
-        <div className="filter-dropdown-header">
-            <span><BsTag className="icon" />Price Management</span>
-        </div>
-        </div>
-        
-        <div 
-        className={`filter-dropdown ${activeTab === 'discounts' ? 'active' : ''}`}
-        onClick={() => setActiveTab('discounts')}
-        >
-        <div className="filter-dropdown-header">
-            <span><BsTag className="icon" />Discounts</span>
-        </div>
-        </div>
-        
-        <div 
-        className={`filter-dropdown ${activeTab === 'invoices' ? 'active' : ''}`}
-        onClick={() => setActiveTab('invoices')}
-        >
-        <div className="filter-dropdown-header">
-            <span><BsReceipt className="icon" />Invoices</span>
-        </div>
-        </div>
-        
-        <div 
-        className={`filter-dropdown ${activeTab === 'financials' ? 'active' : ''}`}
-        onClick={() => setActiveTab('financials')}
-        >
-        <div className="filter-dropdown-header">
-            <span><BsBarChart className="icon" />Financial Reports</span>
-        </div>
-        </div>
-        
-        <div 
-        className={`filter-dropdown ${activeTab === 'refunds' ? 'active' : ''}`}
-        onClick={() => setActiveTab('refunds')}
-        >
-        <div className="filter-dropdown-header">
-            <span><BsArrowReturnLeft className="icon" />Refund Requests</span>
-        </div>
-        </div>
-    </div>
-    </div>
     
-    {/* Main Content */}
-    <div className="main-content">
-    <div className="top-bar">
-        <h1 className="source-sans-semibold">
-        {activeTab === 'pricing' && 'Price Management'}
-        {activeTab === 'discounts' && 'Discounts'}
-        {activeTab === 'invoices' && 'Invoices'}
-        {activeTab === 'financials' && 'Financial Reports'}
-        {activeTab === 'refunds' && 'Refund Requests'}
-        </h1>
-    </div>
+    fixContainers();
+    setTimeout(fixContainers, 500);
     
-    <div className="content-wrapper">
-        {/* Pricing Tab */}
-        {activeTab === 'pricing' && (
-        <div className="tab-container">
-            <h2>Set Prices for New Products</h2>
-            <p>Products must have prices set before they can appear in the store.</p>
-            
-            <div className="grid-container">
-            {pendingProducts.map(product => (
-                <div className="grid-item" key={product.id}>
-                <div className="grid-item-header">
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <p>Cost: ${product.cost.toFixed(2)}</p>
-                </div>
-                <div className="grid-item-content">
-                    <img src={product.image} alt={product.name} />
-                    <div className="price-input-container">
-                    <label htmlFor={`price-${product.id}`}>Set Price ($):</label>
-                    <input
-                        id={`price-${product.id}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        defaultValue={product.price || ''}
-                        onChange={e => handleSetPrice(product.id, e.target.value)}
-                        className="price-input"
-                    />
-                    <button 
-                        onClick={() => handlePublishProduct(product.id)}
-                        className="publish-btn"
-                        disabled={!product.price}
-                    >
-                        Publish Product
-                    </button>
-                    </div>
-                </div>
-                </div>
-            ))}
-            {pendingProducts.length === 0 && (
-                <div className="no-products">
-                <p>No pending products require pricing.</p>
-                </div>
-            )}
-            </div>
-        </div>
-        )}
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // State for active section
+  const [activeSection, setActiveSection] = useState('pricing');
+  
+  // State for new product pricing
+  const [newProducts, setNewProducts] = useState([]);
+  const [pricingIsLoading, setPricingIsLoading] = useState(false);
+  const [editPriceId, setEditPriceId] = useState(null);
+  const [newPrice, setNewPrice] = useState('');
+  const [newCost, setNewCost] = useState('');
+  
+  // State for discounts
+  const [allProducts, setAllProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [discountRate, setDiscountRate] = useState('');
+  const [discountStartDate, setDiscountStartDate] = useState('');
+  const [discountEndDate, setDiscountEndDate] = useState('');
+  
+  // State for reports
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [reportData, setReportData] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [chartInstance, setChartInstance] = useState(null);
+  
+  // State for refunds
+  const [refundRequests, setRefundRequests] = useState([]);
+  const [refundIsLoading, setRefundIsLoading] = useState(false);
+
+  // API calls for pricing
+  const fetchNewProducts = async () => {
+    setPricingIsLoading(true);
+    try {
+      // Simulate API call
+      setTimeout(() => {
+        const sampleNewProducts = [
+          { id: 201, name: "New Novel", author: "J. Author", stock: 20, price: "", cost: "", status: "Pending" },
+          { id: 202, name: "Business Guide", author: "B. Writer", stock: 15, price: "", cost: "", status: "Pending" },
+          { id: 203, name: "Adventure Book", author: "A. Explorer", stock: 25, price: "", cost: "", status: "Pending" }
+        ];
+        setNewProducts(sampleNewProducts);
+        setPricingIsLoading(false);
+      }, 800);
+    } catch (error) {
+      console.error("Error fetching new products:", error);
+      setPricingIsLoading(false);
+    }
+  };
+
+  const updatePrice = async (productId, price, cost) => {
+    try {
+      // Simulate API call
+      console.log(`Updating product ${productId} with price: ${price}, cost: ${cost}`);
+      
+      // Update local state
+      setNewProducts(prevProducts => 
+        prevProducts.map(product => 
+          product.id === productId 
+            ? {...product, price, cost, status: "Priced"} 
+            : product
+        )
+      );
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating price:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  // API calls for discounts
+  const fetchAllProducts = async () => {
+    try {
+      // Simulate API call
+      setTimeout(() => {
+        const sampleProducts = [
+          { id: 101, name: "Fiction Novel", author: "John Author", price: 12.99, discounted: false },
+          { id: 102, name: "Non-Fiction Book", author: "Jane Writer", price: 14.99, discounted: false },
+          { id: 103, name: "Sci-Fi Novel", author: "Robert Pen", price: 11.99, discounted: false },
+          { id: 104, name: "Fantasy Book", author: "Sarah Storyteller", price: 16.99, discounted: false },
+          { id: 201, name: "New Novel", author: "J. Author", price: 13.99, discounted: false },
+          { id: 202, name: "Business Guide", author: "B. Writer", price: 19.99, discounted: false }
+        ];
+        setAllProducts(sampleProducts);
+      }, 800);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const applyDiscount = async () => {
+    if (!discountRate || !discountStartDate || !discountEndDate || selectedProducts.length === 0) {
+      alert("Please fill all discount details and select at least one product");
+      return;
+    }
+    
+    try {
+      // Simulate API call
+      console.log(`Applying ${discountRate}% discount to ${selectedProducts.length} products`);
+      console.log(`From ${discountStartDate} to ${discountEndDate}`);
+      
+      // Update local state to show discount applied
+      setAllProducts(prevProducts => 
+        prevProducts.map(product => 
+          selectedProducts.includes(product.id) 
+            ? {...product, discounted: true} 
+            : product
+        )
+      );
+      
+      // Reset form
+      setSelectedProducts([]);
+      setDiscountRate('');
+      setDiscountStartDate('');
+      setDiscountEndDate('');
+      
+      alert("Discount applied successfully! Customers have been notified.");
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error applying discount:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  // API calls for reports
+  const fetchInvoices = async () => {
+    if (!startDate || !endDate) {
+      alert("Please select both start and end dates");
+      return;
+    }
+    
+    try {
+      // Simulate API call
+      setTimeout(() => {
+        const sampleInvoices = [
+          { id: "INV-2023-001", date: "2025-03-12", customer: "John Smith", total: 37.97, items: 3 },
+          { id: "INV-2023-002", date: "2025-03-13", customer: "Mary Jones", total: 42.98, items: 2 },
+          { id: "INV-2023-003", date: "2025-03-14", customer: "Robert Brown", total: 24.99, items: 1 },
+          { id: "INV-2023-004", date: "2025-03-15", customer: "Jane Miller", total: 54.97, items: 3 },
+          { id: "INV-2023-005", date: "2025-03-16", customer: "Sam Wilson", total: 29.98, items: 2 }
+        ];
+        setInvoices(sampleInvoices);
         
-        {/* Discounts Tab */}
-        {activeTab === 'discounts' && (
-        <div className="tab-container">
-            <h2>Set Product Discounts</h2>
-            <p>Select products and apply a discount percentage.</p>
-            
-            <div className="discount-control">
-            <div>
-                <label htmlFor="discount-rate">Discount Rate (%):</label>
-                <input 
-                id="discount-rate"
-                type="number" 
-                min="1" 
-                max="90"
-                value={discountRate}
-                onChange={e => setDiscountRate(parseInt(e.target.value) || 0)}
-                className="discount-input"
-                />
-            </div>
-            <button 
-                onClick={handleApplyDiscount}
-                disabled={selectedProducts.length === 0 || discountRate <= 0}
-                className="apply-discount-btn"
-            >
-                Apply Discount to Selected Products
-            </button>
-            <div>
-                <span>{selectedProducts.length} products selected</span>
-            </div>
-            </div>
-            
-            <div className="grid-container">
-            {allProducts.map(product => (
-                <div 
-                className={`grid-item ${selectedProducts.includes(product.id) ? 'selected' : ''}`}
-                key={product.id}
-                >
-                <div className="item-actions">
-                    <button 
-                    className={`favorite-btn ${selectedProducts.includes(product.id) ? 'active' : ''}`}
-                    onClick={() => handleToggleProductSelection(product.id)}
-                    >
-                    {selectedProducts.includes(product.id) ? (
-                        <span className="heart-filled"><BsHeartFill /></span>
-                    ) : (
-                        <span className="heart-outline"><BsHeart /></span>
-                    )}
-                    </button>
-                </div>
-                <div className="grid-item-header">
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                </div>
-                <div className="grid-item-content">
-                    <img src={product.image} alt={product.name} />
-                    <div className="price-display">
-                    {product.originalPrice ? (
-                        <>
-                        <p className="original-price">${product.originalPrice.toFixed(2)}</p>
-                        <p className="discounted-price">
-                            ${product.price.toFixed(2)} ({product.discountRate}% OFF)
-                        </p>
-                        </>
-                    ) : (
-                        <p className="regular-price">${product.price.toFixed(2)}</p>
-                    )}
-                    <p>Cost: ${product.cost.toFixed(2)}</p>
-                    </div>
-                </div>
-                </div>
-            ))}
-            </div>
-        </div>
-        )}
+        // Sample report data
+        const reportSample = {
+          revenue: 190.89,
+          cost: 95.45,
+          profit: 95.44,
+          dailyData: [
+            { date: '2025-03-12', revenue: 37.97, cost: 18.99, profit: 18.98 },
+            { date: '2025-03-13', revenue: 42.98, cost: 21.49, profit: 21.49 },
+            { date: '2025-03-14', revenue: 24.99, cost: 12.50, profit: 12.49 },
+            { date: '2025-03-15', revenue: 54.97, cost: 27.48, profit: 27.49 },
+            { date: '2025-03-16', revenue: 29.98, cost: 14.99, profit: 14.99 }
+          ]
+        };
+        setReportData(reportSample);
         
-        {/* Invoices Tab */}
-        {activeTab === 'invoices' && (
-        <div className="tab-container">
-            <h2>Manage Invoices</h2>
-            <p>View and export invoices by date range.</p>
+        // Create chart
+        createChart(reportSample.dailyData);
+      }, 800);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+    }
+  };
+
+  const createChart = (data) => {
+    // Destroy previous chart if it exists
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
+    const ctx = document.getElementById('revenue-chart');
+    if (!ctx) return;
+    
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(day => day.date),
+        datasets: [
+          {
+            label: 'Revenue',
+            data: data.map(day => day.revenue),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+          },
+          {
+            label: 'Cost',
+            data: data.map(day => day.cost),
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.1
+          },
+          {
+            label: 'Profit',
+            data: data.map(day => day.profit),
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Amount ($)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          }
+        }
+      }
+    });
+    
+    setChartInstance(chart);
+  };
+
+  // API calls for refund requests
+  const fetchRefundRequests = async () => {
+    setRefundIsLoading(true);
+    try {
+      // Simulate API call
+      setTimeout(() => {
+        const sampleRefunds = [
+          { 
+            id: 301, 
+            orderId: "ORD-2023-010", 
+            customer: "Alice Johnson", 
+            product: "Fiction Novel", 
+            purchaseDate: "2025-03-05", 
+            purchasePrice: 12.99,
+            discounted: true,
+            originalPrice: 14.99,
+            reason: "Item arrived damaged",
+            status: "pending"
+          },
+          { 
+            id: 302, 
+            orderId: "ORD-2023-015", 
+            customer: "Michael Davis", 
+            product: "Sci-Fi Novel", 
+            purchaseDate: "2025-03-08", 
+            purchasePrice: 11.99,
+            discounted: false,
+            originalPrice: 11.99,
+            reason: "Wrong item received",
+            status: "pending"
+          },
+          { 
+            id: 303, 
+            orderId: "ORD-2023-018", 
+            customer: "Emma Wilson", 
+            product: "Fantasy Book", 
+            purchaseDate: "2025-03-10", 
+            purchasePrice: 15.29,
+            discounted: true,
+            originalPrice: 16.99,
+            reason: "Changed my mind",
+            status: "pending"
+          }
+        ];
+        setRefundRequests(sampleRefunds);
+        setRefundIsLoading(false);
+      }, 800);
+    } catch (error) {
+      console.error("Error fetching refund requests:", error);
+      setRefundIsLoading(false);
+    }
+  };
+
+  const handleRefundAction = async (refundId, action) => {
+    try {
+      // Simulate API call
+      console.log(`${action} refund request ${refundId}`);
+      
+      // Update local state
+      setRefundRequests(prevRequests => 
+        prevRequests.map(request => 
+          request.id === refundId 
+            ? {...request, status: action === 'approve' ? 'approved' : 'rejected'} 
+            : request
+        )
+      );
+      
+      if (action === 'approve') {
+        alert(`Refund #${refundId} approved. Stock has been updated and customer has been notified.`);
+      } else {
+        alert(`Refund #${refundId} rejected. Customer has been notified.`);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  // Load data when section changes
+  useEffect(() => {
+    switch(activeSection) {
+      case 'pricing':
+        fetchNewProducts();
+        break;
+      case 'discounts':
+        fetchAllProducts();
+        break;
+      case 'refunds':
+        fetchRefundRequests();
+        break;
+      default:
+        break;
+    }
+  }, [activeSection]);
+
+  // Handlers
+  const handlePriceInputChange = (e) => {
+    setNewPrice(e.target.value);
+  };
+
+  const handleCostInputChange = (e) => {
+    setNewCost(e.target.value);
+  };
+
+  const startEditPrice = (product) => {
+    setEditPriceId(product.id);
+    setNewPrice(product.price ? product.price.toString() : '');
+    setNewCost(product.cost ? product.cost.toString() : '');
+  };
+
+  const handlePriceUpdate = async (id) => {
+    if (newPrice === '' || isNaN(newPrice) || parseFloat(newPrice) <= 0) {
+      alert('Please enter a valid price (must be a positive number)');
+      return;
+    }
+    
+    // For cost, default to 50% of price if not specified
+    const finalCost = newCost === '' || isNaN(newCost) ? parseFloat(newPrice) * 0.5 : parseFloat(newCost);
+    
+    const result = await updatePrice(id, parseFloat(newPrice), finalCost);
+    
+    if (result.success) {
+      setEditPriceId(null);
+      setNewPrice('');
+      setNewCost('');
+      alert(`Price updated successfully for product #${id}`);
+    } else {
+      alert(`Error: ${result.error}`);
+    }
+  };
+
+  const cancelPriceEdit = () => {
+    setEditPriceId(null);
+    setNewPrice('');
+    setNewCost('');
+  };
+
+  const handleProductSelection = (productId) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    } else {
+      setSelectedProducts([...selectedProducts, productId]);
+    }
+  };
+
+  const handleDiscountSubmit = async (e) => {
+    e.preventDefault();
+    const result = await applyDiscount();
+    
+    if (!result.success && result.error) {
+      alert(`Error: ${result.error}`);
+    }
+  };
+
+  const handleSaveInvoicePDF = (invoiceId) => {
+    // In a real app, this would trigger a PDF download
+    alert(`Saving invoice ${invoiceId} as PDF...`);
+  };
+
+  const handlePrintInvoice = (invoiceId) => {
+    // In a real app, this would open a print dialog
+    alert(`Printing invoice ${invoiceId}...`);
+  };
+
+  return (
+    <div className="container sales-manager">
+      <h1 className="source-sans-bold sm-section-title">Sales Manager</h1>
+      
+      {/* Navigation Tabs */}
+      <div className="sm-section-tabs">
+        <button 
+          className={`sm-tab source-sans-semibold ${activeSection === 'pricing' ? 'active' : ''}`}
+          onClick={() => setActiveSection('pricing')}
+        >
+          Set Prices
+        </button>
+        <button 
+          className={`sm-tab source-sans-semibold ${activeSection === 'discounts' ? 'active' : ''}`}
+          onClick={() => setActiveSection('discounts')}
+        >
+          Manage Discounts
+        </button>
+        <button 
+          className={`sm-tab source-sans-semibold ${activeSection === 'reports' ? 'active' : ''}`}
+          onClick={() => setActiveSection('reports')}
+        >
+          Reports & Invoices
+        </button>
+        <button 
+          className={`sm-tab source-sans-semibold ${activeSection === 'refunds' ? 'active' : ''}`}
+          onClick={() => setActiveSection('refunds')}
+        >
+          Manage Refunds
+        </button>
+      </div>
+      
+      {/* Content Area */}
+      <div className="sm-section-content">
+        {/* Pricing Section */}
+        {activeSection === 'pricing' && (
+          <div className="pricing-section">
+            <h2 className="source-sans-semibold">Set Product Prices</h2>
+            <p>New products require pricing before they become available for purchase.</p>
             
-            <div className="date-range-selector">
-            <div>
-                <label htmlFor="start-date">Start Date:</label>
-                <input 
-                id="start-date"
-                type="date" 
-                value={invoiceRange.startDate}
-                onChange={e => setInvoiceRange({...invoiceRange, startDate: e.target.value})}
-                className="date-input"
-                />
-            </div>
-            <div>
-                <label htmlFor="end-date">End Date:</label>
-                <input 
-                id="end-date"
-                type="date" 
-                value={invoiceRange.endDate}
-                onChange={e => setInvoiceRange({...invoiceRange, endDate: e.target.value})}
-                className="date-input"
-                />
-            </div>
-            <button 
-                onClick={handleSearchInvoices}
-                disabled={!invoiceRange.startDate || !invoiceRange.endDate}
-                className="search-btn"
-            >
-                Search Invoices
-            </button>
-            </div>
-            
-            <div className="invoices-table">
-            <table>
-                <thead>
-                <tr>
-                    <th>Invoice #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th className="right-align">Total</th>
-                    <th className="center-align">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {invoices.map(invoice => (
-                    <tr key={invoice.id}>
-                    <td>{invoice.id}</td>
-                    <td>{invoice.date}</td>
-                    <td>{invoice.customer}</td>
-                    <td className="right-align">${invoice.total.toFixed(2)}</td>
-                    <td className="actions-cell">
-                        <button className="icon-btn" title="Print Invoice">
-                        <BsPrinter />
-                        </button>
-                        <button className="icon-btn" title="Download as PDF">
-                        <BsDownload />
-                        </button>
-                    </td>
+            {pricingIsLoading ? (
+              <div className="sm-loading">
+                <p>Loading products...</p>
+              </div>
+            ) : newProducts.length === 0 ? (
+              <div className="sm-no-products">
+                <p>No new products require pricing at this time.</p>
+              </div>
+            ) : (
+              <div className="sm-pricing-table-container">
+                <table className="sm-pricing-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Product Name</th>
+                      <th>Author</th>
+                      <th>Stock</th>
+                      <th className="price-column">Price ($)</th>
+                      <th className="cost-column">Cost ($)</th>
+                      <th>Actions</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
-            </div>
-        </div>
-        )}
-        
-        {/* Financials Tab */}
-        {activeTab === 'financials' && (
-        <div className="tab-container">
-            <h2>Financial Reports</h2>
-            <p>View revenue and profit/loss in a given date range.</p>
-            
-            <div className="date-range-selector">
-            <div>
-                <label htmlFor="financial-start-date">Start Date:</label>
-                <input 
-                id="financial-start-date"
-                type="date" 
-                value={financialRange.startDate}
-                onChange={e => setFinancialRange({...financialRange, startDate: e.target.value})}
-                className="date-input"
-                />
-            </div>
-            <div>
-                <label htmlFor="financial-end-date">End Date:</label>
-                <input 
-                id="financial-end-date"
-                type="date" 
-                value={financialRange.endDate}
-                onChange={e => setFinancialRange({...financialRange, endDate: e.target.value})}
-                className="date-input"
-                />
-            </div>
-            <button 
-                onClick={handleGenerateFinancialData}
-                disabled={!financialRange.startDate || !financialRange.endDate}
-                className="generate-btn"
-            >
-                Generate Report
-            </button>
-            </div>
-            
-            {financialData && (
-            <div className="financial-chart">
-                <Line 
-                data={financialData}
-                options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Revenue and Profit Analysis'
-                    }
-                    }
-                }}
-                />
-                
-                <div className="financial-summary">
-                <div className="summary-card">
-                    <h3>Total Revenue</h3>
-                    <p className="summary-value">$100,000.00</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Total Profit</h3>
-                    <p className="summary-value">$50,000.00</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Profit Margin</h3>
-                    <p className="summary-value">50%</p>
-                </div>
-                </div>
-            </div>
-            )}
-        </div>
-        )}
-        
-        {/* Refunds Tab */}
-        {activeTab === 'refunds' && (
-        <div className="tab-container">
-            <h2>Manage Refund Requests</h2>
-            <p>Evaluate and process customer refund requests.</p>
-            
-            <div className="refunds-table">
-            <table>
-                <thead>
-                <tr>
-                    <th>Request #</th>
-                    <th>Date</th>
-                    <th>Invoice #</th>
-                    <th>Customer</th>
-                    <th>Item</th>
-                    <th className="right-align">Amount</th>
-                    <th>Reason</th>
-                    <th className="center-align">Status</th>
-                    <th className="center-align">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {refundRequests.map(refund => (
-                    <tr key={refund.id}>
-                    <td>{refund.id}</td>
-                    <td>{refund.date}</td>
-                    <td>{refund.invoiceId}</td>
-                    <td>{refund.customer}</td>
-                    <td>{refund.item.name}</td>
-                    <td className="right-align">${refund.item.price.toFixed(2)}</td>
-                    <td>{refund.reason}</td>
-                    <td className="center-align">
-                        <span className={`status-badge ${refund.status}`}>
-                        {refund.status.charAt(0).toUpperCase() + refund.status.slice(1)}
-                        </span>
-                    </td>
-                    <td className="actions-cell">
-                        {refund.status === 'pending' && (
-                        <>
-                            <button 
-                            onClick={() => handleApproveRefund(refund.id)}
-                            className="approve-btn"
-                            >
-                            Approve
-                            </button>
-                            <button 
-                            onClick={() => handleRejectRefund(refund.id)}
-                            className="reject-btn"
-                            >
-                            Reject
-                            </button>
-                        </>
+                  </thead>
+                  <tbody>
+                    {newProducts.map(product => (
+                      <tr key={product.id}>
+                        <td>{product.id}</td>
+                        <td>{product.name}</td>
+                        <td>{product.author}</td>
+                        <td>{product.stock}</td>
+                        <td className="price-column">
+                          {editPriceId === product.id ? (
+                            <input
+                              type="number"
+                              className="sm-price-input"
+                              value={newPrice}
+                              onChange={handlePriceInputChange}
+                              min="0.01"
+                              step="0.01"
+                            />
+                          ) : product.price ? (
+                            `$${product.price}`
+                          ) : (
+                            <span style={{color: 'red'}}>Not set</span>
+                          )}
+                        </td>
+                        <td className="cost-column">
+                          {editPriceId === product.id ? (
+                            <input
+                              type="number"
+                              className="sm-cost-input"
+                              value={newCost}
+                              onChange={handleCostInputChange}
+                              min="0.01"
+                              step="0.01"
+                              placeholder="50% of price if empty"
+                            />
+                          ) : product.cost ? (
+                            `$${product.cost}`
+                          ) : (
+                            <span style={{color: 'gray'}}>Not set</span>
+                          )}
+                        </td>
+                        <td>
+                          {editPriceId === product.id ? (
+                            <div className="stock-edit-actions">
+                              <button 
+                                className="sm-btn-save"
+                                onClick={() => handlePriceUpdate(product.id)}
+                              >
+                                Save
+                              </button>
+                              <button 
+                                className="sm-btn-cancel"
+                                onClick={cancelPriceEdit}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (    <button 
+                            className="sm-btn-edit"
+                            onClick={() => startEditPrice(product)}
+                          >
+                            Set Price
+                          </button>
                         )}
-                    </td>
+                      </td>
                     </tr>
-                ))}
+                  ))}
                 </tbody>
-            </table>
+              </table>
             </div>
+          )}
         </div>
-        )}
+      )}
+      
+      {/* Discounts Section */}
+      {activeSection === 'discounts' && (
+        <div className="discounts-section">
+          <h2 className="source-sans-semibold">Manage Discounts</h2>
+          <p>Apply promotional discounts to selected products.</p>
+          
+          <form onSubmit={handleDiscountSubmit} className="sm-discount-form">
+            <div className="sm-form-row">
+              <div className="sm-form-group">
+                <label>Discount Rate (%)</label>
+                <input
+                  type="number"
+                  value={discountRate}
+                  onChange={(e) => setDiscountRate(e.target.value)}
+                  min="1"
+                  max="90"
+                  required
+                />
+              </div>
+              <div className="sm-form-group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  value={discountStartDate}
+                  onChange={(e) => setDiscountStartDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="sm-form-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  value={discountEndDate}
+                  onChange={(e) => setDiscountEndDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            
+            <button type="submit" className="sm-btn-apply-discount">Apply Discount</button>
+          </form>
+          
+          <div className="sm-product-selection">
+            <h3>Select Products for Discount</h3>
+            <div className="sm-product-grid">
+              {allProducts.map(product => (
+                <div 
+                  key={product.id} 
+                  className={`sm-product-card ${selectedProducts.includes(product.id) ? 'selected' : ''} ${product.discounted ? 'discounted' : ''}`}
+                  onClick={() => !product.discounted && handleProductSelection(product.id)}
+                >
+                  <h4>{product.name}</h4>
+                  <p>By {product.author}</p>
+                  <p className="sm-product-price">${product.price}</p>
+                  {product.discounted && (
+                    <span className="sm-discount-badge">On Sale</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Reports Section */}
+      {activeSection === 'reports' && (
+        <div className="reports-section">
+          <h2 className="source-sans-semibold">Sales Reports & Invoices</h2>
+          
+          <div className="sm-date-selector">
+            <div className="sm-form-group">
+              <label>Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="sm-form-group">
+              <label>End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <button onClick={fetchInvoices} className="sm-btn-generate">Generate Report</button>
+          </div>
+          
+          {reportData && (
+            <div className="sm-report-data">
+              <div className="sm-summary-cards">
+                <div className="sm-summary-card">
+                  <h3>Revenue</h3>
+                  <p className="sm-amount">${reportData.revenue.toFixed(2)}</p>
+                </div>
+                <div className="sm-summary-card">
+                  <h3>Cost</h3>
+                  <p className="sm-amount">${reportData.cost.toFixed(2)}</p>
+                </div>
+                <div className="sm-summary-card">
+                  <h3>Profit</h3>
+                  <p className="sm-amount">${reportData.profit.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div className="sm-chart-container">
+                <canvas id="revenue-chart"></canvas>
+              </div>
+              
+              <h3>Invoice List</h3>
+              <div className="sm-invoice-table-container">
+                <table className="sm-invoice-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Date</th>
+                      <th>Customer</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoices.map(invoice => (
+                      <tr key={invoice.id}>
+                        <td>{invoice.id}</td>
+                        <td>{invoice.date}</td>
+                        <td>{invoice.customer}</td>
+                        <td>{invoice.items}</td>
+                        <td>${invoice.total.toFixed(2)}</td>
+                        <td>
+                          <div className="sm-invoice-actions">
+                            <button
+                              className="sm-btn-view"
+                              onClick={() => handleSaveInvoicePDF(invoice.id)}
+                            >
+                              Save PDF
+                            </button>
+                            <button
+                              className="sm-btn-print"
+                              onClick={() => handlePrintInvoice(invoice.id)}
+                            >
+                              Print
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Refunds Section */}
+      {activeSection === 'refunds' && (
+        <div className="refunds-section">
+          <h2 className="source-sans-semibold">Manage Refund Requests</h2>
+          
+          {refundIsLoading ? (
+            <div className="sm-loading">
+              <p>Loading refund requests...</p>
+            </div>
+          ) : refundRequests.length === 0 ? (
+            <div className="sm-no-refunds">
+              <p>No pending refund requests at this time.</p>
+            </div>
+          ) : (
+            <div className="sm-refund-table-container">
+              <table className="sm-refund-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Purchase Date</th>
+                    <th>Price</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {refundRequests.map(request => (
+                    <tr key={request.id} className={`status-${request.status}`}>
+                      <td>{request.id}</td>
+                      <td>{request.orderId}</td>
+                      <td>{request.customer}</td>
+                      <td>{request.product}</td>
+                      <td>{request.purchaseDate}</td>
+                      <td>
+                        ${request.purchasePrice.toFixed(2)}
+                        {request.discounted && (
+                          <span className="discounted-price">
+                            (was ${request.originalPrice.toFixed(2)})
+                          </span>
+                        )}
+                      </td>
+                      <td>{request.reason}</td>
+                      <td>{request.status}</td>
+                      <td>
+                        {request.status === 'pending' && (
+                          <div className="sm-refund-actions">
+                            <button
+                              className="sm-btn-approve"
+                              onClick={() => handleRefundAction(request.id, 'approve')}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="sm-btn-reject"
+                              onClick={() => handleRefundAction(request.id, 'reject')}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
-    </div>
-</div>
+  </div>
 );
 };
 
-export default SalesManagerDashboard;
+export default SalesManager;

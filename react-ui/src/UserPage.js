@@ -83,7 +83,7 @@ const mockPaymentMethods = [
     }
   ];
 
-const UserAccountPage = () => {
+  const UserAccountPage = () => {
 
     const location = useLocation();
     const navigate = useNavigate(); // Initialize useNavigate
@@ -98,6 +98,7 @@ const UserAccountPage = () => {
     const [orderTab, setOrderTab] = useState('all');
     const [wishlistBooks, setWishlistBooks] = useState(mockWishlistBooks);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
+    const [orderHistory, setOrderHistory] = useState([]); // Added state for order history
 
 
     //CHECKS FOR THE TOKEN
@@ -109,9 +110,22 @@ const UserAccountPage = () => {
             getUserInfo(token, navigate)
         } 
         else{
+            // Get user info and update state
             getUserInfo(token, navigate)
+                .then(userData => {
+                    if (userData) {
+                        setUserData(userData);
+                    }
+                });
+            
             //to test other api requests
-            fetchOrderHistory(token);
+            fetchOrderHistory(token)
+                .then(orderData => {
+                    if (orderData && !orderData.error) {
+                        setOrderHistory(orderData); // Update order history state
+                    }
+                });
+            
             fetchWishlist(token);
         }
     }, [token, navigate]);
@@ -237,10 +251,6 @@ const UserAccountPage = () => {
             return { error: "An error occurred while fetching the order history" };
         }
     };
-
-    // view payment methods - does not exist 
-
-
 
     // Payment methods state
     const [paymentMethods, setPaymentMethods] = useState(mockPaymentMethods);
@@ -375,22 +385,34 @@ const UserAccountPage = () => {
             return;
         }
         
-        // Update the userData state with the new profile information
-        setUserData({
-            ...userData,
-            name: formData.name,
-            email: formData.email,
-            // Update the single address field for backward compatibility
-            address: formData.addresses[0],
-            // Update the addresses array
-            addresses: formData.addresses
-        });
-        
-        // Exit edit mode
-        setEditingProfile(false);
-        
-        // Show a success notification
-        alert('Profile updated successfully!');
+        // Call API to update address
+        if (formData.addresses && formData.addresses.length > 0) {
+            const primaryAddress = formData.addresses[0]; // Assuming first address is primary
+            editHomeAddress(token, primaryAddress)
+                .then(result => {
+                    if (result.error) {
+                        alert(result.error);
+                        return;
+                    }
+                    
+                    // Update the userData state with the new profile information
+                    setUserData({
+                        ...userData,
+                        name: formData.name,
+                        email: formData.email,
+                        // Update the single address field for backward compatibility
+                        address: formData.addresses[0],
+                        // Update the addresses array
+                        addresses: formData.addresses
+                    });
+                    
+                    // Exit edit mode
+                    setEditingProfile(false);
+                    
+                    // Show a success notification
+                    alert('Profile updated successfully!');
+                });
+        }
     };
     
     // Change selected address for display when not in edit mode
@@ -410,19 +432,28 @@ const UserAccountPage = () => {
             return;
         }
         
-        // Here you would typically make an API call to update the password
-        setPasswordMessage('Password updated successfully!');
-        setNewPassword('');
-        setConfirmPassword('');
-        
-        // Clear message after 3 seconds
-        setTimeout(() => {
-            setPasswordMessage('');
-        }, 3000);
+        // Make API call to update the password
+        updatePassword(token, newPassword)
+            .then(result => {
+                if (result.error) {
+                    setPasswordMessage(result.error);
+                    return;
+                }
+                
+                setPasswordMessage('Password updated successfully!');
+                setNewPassword('');
+                setConfirmPassword('');
+                
+                // Clear message after 3 seconds
+                setTimeout(() => {
+                    setPasswordMessage('');
+                }, 3000);
+            });
     };
     
     // Handle remove from wishlist
     const removeFromWishlist = (bookId) => {
+        // In a real implementation, you would make an API call here
         setWishlistBooks(wishlistBooks.filter(book => book.id !== bookId));
     };
     
@@ -437,11 +468,14 @@ const UserAccountPage = () => {
     
     // Filter orders based on the selected tab
     const getFilteredOrders = () => {
-        if (orderTab === 'all') return mockOrders;
-        if (orderTab === 'ongoing') return mockOrders.filter(order => order.status === 'ongoing');
-        if (orderTab === 'returns') return mockOrders.filter(order => order.status === 'returned');
-        if (orderTab === 'cancellations') return mockOrders.filter(order => order.status === 'cancelled');
-        return mockOrders;
+        // Use the real order history if available, otherwise fall back to mock data
+        const orders = orderHistory.length > 0 ? orderHistory : mockOrders;
+        
+        if (orderTab === 'all') return orders;
+        if (orderTab === 'ongoing') return orders.filter(order => order.status === 'ongoing');
+        if (orderTab === 'returns') return orders.filter(order => order.status === 'returned');
+        if (orderTab === 'cancellations') return orders.filter(order => order.status === 'cancelled');
+        return orders;
     };
 
     // Payment methods functions
@@ -1408,5 +1442,5 @@ const UserAccountPage = () => {
         </div>
     );
 };
-  
+
 export default UserAccountPage;
