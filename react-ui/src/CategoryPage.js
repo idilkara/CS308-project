@@ -366,7 +366,12 @@ const CategoryPage = () => {
           <div className="content-wrapper">
             <div className="grid-container">
               {filteredProducts.map((book, index) => (
-                <div className="grid-item" key={index}>
+                <div className="grid-item" key={index}
+                                  
+                onClick={() => navigate('/product', { state: { product_id: book.product_id } })}
+                style={{ cursor: 'pointer' }}
+                >
+
                   <div className="item-actions">
                     {/* <button className={`favorite-btn ${favorites[index] ? 'active' : ''}`} onClick={() => toggleFavorite(index)}>
                       {favorites[index] ? <span className="heart-filled">♥</span> : <span className="heart-outline">♡</span>}
@@ -408,23 +413,25 @@ const CategoryPage = () => {
                     <button className="cart-btn">
                       <span>🛒</span>
                     </button>
-
-                    <button
-                        className="view-item-btn"
-                        onClick={() => navigate('/product', { state: { product_id: book.product_id } })}
-                      >
-                        VIEW ITEM
-                      </button>
                   </div>
                   <div className="grid-item-content">
-                    <img src={book.imageUrl || bookCover} alt="Book Cover" />
-                  </div>
-                  <hr />
-                  <div className="grid-item-header">
-                    <h3 className="source-sans-semibold">{getBookName(book)}</h3>
-                    <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
-                    <span className="source-sans-bold">${book.price || "0.00"}</span>
-                  </div>
+                  <img
+                    src={`assets/covers/${book.name.replace(/\s+/g, '').toLowerCase()}.png`}
+                    alt="Book Cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; // prevents infinite loop if default also fails
+                      e.currentTarget.src = bookCover;
+                    }}
+                  />
+                </div>
+                <hr />
+                <div className="grid-item-header">
+                  <h3 className="source-sans-semibold">
+                    {getBookName(book).length > 27 ? getBookName(book).slice(0, 27) + '...' : getBookName(book)}
+                  </h3>
+                  <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
+                  <span className="source-sans-bold">${book.price || "0.00"}</span>
+                </div>
                 </div>
               ))}
             </div>

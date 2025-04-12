@@ -149,7 +149,7 @@ body, html {
     border: 1px solid var(--secondary-text-color);
     border-radius: 0;
     overflow: hidden;
-    height: 350px;
+    height: 380px;
     text-align: left;
     width: 200px;
     flex-shrink: 0;
@@ -200,14 +200,12 @@ body, html {
 }
 
 .grid-item hr {
-    width: 80%;
-    margin: 10px auto;
+    width: 90%;
+    margin: 5px auto; /* moved line up by reducing top margin */
     border: 0;
     border-top: 1px solid var(--secondary-text-color);
     background-color: var(--secondary-text-color);
 }
-
-
 
                                                                 /* FAVORITES & CART ON GRID ITEMS */
 .item-actions {
