@@ -1,10 +1,13 @@
 @import './styles/root.css';
-
+/*
 body {
     overflow-y: hidden !important;
     
 }
-
+*/
+body, html {
+    overflow: hidden;
+}
 
 * {
     margin: 0;
