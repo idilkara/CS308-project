@@ -284,8 +284,8 @@ body {
     position: fixed;
     top: 80px;
     right: 20px;
-    background-color: #4CAF50;
-    color: white;
+    background-color: var(--warm-green-light);
+    color: black;
     padding: 15px 20px;
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);

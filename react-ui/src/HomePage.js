@@ -6,55 +6,379 @@ import './styles/root.css';
 import banner1 from "./img/HomePageBanner1.png";
 import banner2 from "./img/HomePageBanner2.png";
 import banner3 from "./img/HomePageBanner3.png";
+import bookCover from './img/BookCover.png';
 
 import Navbar from "./components/Navbar.jsx";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { BsBook, BsThreeDots } from "react-icons/bs";
-import { FaRegNewspaper, FaUserSecret, FaTheaterMasks, FaRocket } from "react-icons/fa";
+import { useAuth } from "./context/AuthContext";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const { token } = useAuth();
+  console.log("Token from HomePage:", token);
+  
   const banners = [
-    { id: 1, text: "Banner 1", image: banner3   },
+    { id: 1, text: "Banner 1", image: banner3 },
     { id: 2, text: "Banner 2", image: banner2 },
     { id: 3, text: "Banner 3", image: banner1 }
   ];
-  const [products, setProducts] = useState([]); // State to hold products
+  
+  // State for data
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [favorites, setFavorites] = useState({});
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false
+  });
 
-  // Fetch products from an API
+  // Banner state
+  const [bannerIndex, setBannerIndex] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Pagination state
+  const [newArrivalsPage, setNewArrivalsPage] = useState(0);
+  const [bestSellersPage, setBestSellersPage] = useState(0);
+  const productsPerPage = 5;
+  
+  const extendedBanners = [banners[banners.length - 1], ...banners, banners[0]];
+  
+  // Fetch new arrivals (last 20 products)
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchNewArrivals = async () => {
       try {
-        const response = await fetch("http://localhost/api/products/products"); // Replace with your API URL
-        const data = await response.json();
-        console.log("Fetched products:", data);
-        const formattedData = data.map((product) => ({
-          ...product,
-          image: "https://m.media-amazon.com/images/I/61tqFlvlU3L.jpg", // Add the image field
-        }));
-        setProducts(formattedData);
+        const res = await fetch("http://localhost/api/products/viewall");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        // Get the last 20 items
+        const lastTwenty = data.slice(Math.max(data.length - 20, 0));
+        setNewArrivals(lastTwenty);
+        
+        // Initialize favorites state based on wishlist if token exists
+        if (token) {
+          fetchWishlist(token).then(wishlistData => {
+            if (wishlistData && Array.isArray(wishlistData)) {
+              const wishlistMap = {};
+              lastTwenty.forEach((product, index) => {
+                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
+                if (isInWishlist) {
+                  wishlistMap[`new-${index}`] = true;
+                }
+              });
+              setFavorites(wishlistMap);
+            }
+          });
+        }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Failed to fetch new arrivals", error);
       }
     };
-
-    fetchProducts();
-  }, []);
-
-
-  const [bannerIndex, setBannerIndex] = useState(1);          //tracks which banner ad is shown
-  const [isTransitioning, setIsTransitioning] = useState(false);  //prevents rapid clicking
-  const [favorites, setFavorites] = useState({});
-
-  const [Page, setPage] = useState(0);
-  const productsPerPage = 5;
-  const totalPages = Math.ceil(products.length / productsPerPage);
-
- 
-  const extendedBanners = [banners[banners.length - 1], ...banners, banners[0]]; 
+    fetchNewArrivals();
+  }, [token]);
   
-  const navigate = useNavigate(); // Initialize navigation function
+  // Fetch best sellers (first 20 products)
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const res = await fetch("http://localhost/api/products/viewall");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        // Get the first 20 items
+        const firstTwenty = data.slice(0, 20);
+        setBestSellers(firstTwenty);
+        
+        // Initialize favorites state based on wishlist if token exists
+        if (token) {
+          fetchWishlist(token).then(wishlistData => {
+            if (wishlistData && Array.isArray(wishlistData)) {
+              const wishlistMap = {...favorites};
+              firstTwenty.forEach((product, index) => {
+                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
+                if (isInWishlist) {
+                  wishlistMap[`best-${index}`] = true;
+                }
+              });
+              setFavorites(wishlistMap);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch best sellers", error);
+      }
+    };
+    fetchBestSellers();
+  }, [token]);
+  
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost/api/categories/categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+  
+  // Fetch wishlist data
+  const fetchWishlist = async (token) => {
+    try {
+      const response = await fetch("http://localhost/api/wishlist/view", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (response.ok) {
+        const wishlistData = await response.json();
+        return wishlistData;
+      } else {
+        console.error("Failed to fetch wishlist");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      return null;
+    }
+  };
+  
+  // Add to wishlist function
+  const addToWishlist = async (productId) => {
+    if (!token) {
+      setNotification({
+        message: "Please log in to add items to wishlist",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+      return { error: "Authentication required" };
+    }
 
-  //banner
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const data = {
+      product_id: productId
+    };
+
+    try {
+      const response = await fetch("http://localhost/api/wishlist/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setNotification({
+          message: "Added to wishlist!",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return result;
+      } else {
+        const errorData = await response.json();
+        setNotification({
+          message: errorData.message || "Failed to add to wishlist",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return {
+          error: errorData.message || "Failed to add to wishlist"
+        };
+      }
+    } catch (error) {
+      setNotification({
+        message: "An unexpected error occurred",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  // Remove from wishlist function
+  const removeFromWishlist = async (productId) => {
+    if (!token) {
+      return { error: "Authentication required" };
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const data = {
+      product_id: productId
+    };
+
+    try {
+      const response = await fetch("http://localhost/api/wishlist/remove", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setNotification({
+          message: "Removed from wishlist!",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return result;
+      } else {
+        const errorData = await response.json();
+        setNotification({
+          message: errorData.message || "Failed to remove from wishlist",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return {
+          error: errorData.message || "Failed to remove from wishlist"
+        };
+      }
+    } catch (error) {
+      setNotification({
+        message: "An unexpected error occurred",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+  
+  // Add to cart function
+  const addToCart = async (event, book) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    try {
+      if (token) {
+        // User is logged in, add to their cart in the database
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        };
+        const data = { product_id: book.product_id, quantity: 1 };
+      
+        const response = await fetch("http://localhost/api/shopping/add", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(data),
+        });
+      
+        if (response.ok) {
+          const result = await response.json();
+          setNotification({
+            message: "Added to cart successfully!",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+          return result;
+        } else {
+          const errorData = await response.json();
+          setNotification({
+            message: errorData.error || "Failed to add to cart",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+          return {
+            error: errorData.error || "Failed to add to cart"
+          };
+        }
+      } else {
+        // User is not logged in, store the item in local storage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
+        
+        if (existingItemIndex >= 0) {
+          // Item already exists, increase quantity
+          tempCart[existingItemIndex].quantity += 1;
+        } else {
+          // New item, add to cart
+          tempCart.push({
+            id: book.product_id,
+            name: getBookName(book),
+            price: parseFloat(book.price) || 0,
+            quantity: 1,
+            author: book.author || "Unknown Author",
+            publisher: book.distributor_information || "Unknown Publisher",
+            image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
+          });
+        }
+        
+        localStorage.setItem('tempCart', JSON.stringify(tempCart));
+        setNotification({
+          message: "Product added to temporary cart!",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return { success: true };
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setNotification({
+        message: "An unexpected error occurred",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+  
+  // Toggle favorite status
+  const toggleFavorite = (index, productId, section) => {
+    const key = `${section}-${index}`;
+    if (favorites[key]) {
+      removeFromWishlist(productId).then((result) => {
+        if (!result.error) {
+          setFavorites({ ...favorites, [key]: false });
+        }
+      });
+    } else {
+      addToWishlist(productId).then((result) => {
+        if (!result.error) {
+          setFavorites({ ...favorites, [key]: true });
+        }
+      });
+    }
+  };
+  
+  // Banner navigation functions
   const nextBanner = () => {
     if (!isTransitioning) {
       setIsTransitioning(true);
@@ -68,56 +392,38 @@ const HomePage = () => {
       setBannerIndex((prevIndex) => prevIndex - 1);
     }
   };
-
-  const toggleFavorite = (index) => {
-    setFavorites({
-      ...favorites,
-      [index]: !favorites[index]
-    });
+  
+  // Products pagination functions
+  const nextNewArrivalsPage = () => {
+    const totalPages = Math.ceil(newArrivals.length / productsPerPage);
+    setNewArrivalsPage((prev) => (prev + 1) % totalPages);
   };
 
-  //products
-  const nextPage = () => {
-    setPage((prev) => (prev + 1) % totalPages);
+  const prevNewArrivalsPage = () => {
+    const totalPages = Math.ceil(newArrivals.length / productsPerPage);
+    setNewArrivalsPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+  
+  const nextBestSellersPage = () => {
+    const totalPages = Math.ceil(bestSellers.length / productsPerPage);
+    setBestSellersPage((prev) => (prev + 1) % totalPages);
   };
 
-  const prevPage = () => {
-    setPage((prev) => (prev - 1 + totalPages) % totalPages);
+  const prevBestSellersPage = () => {
+    const totalPages = Math.ceil(bestSellers.length / productsPerPage);
+    setBestSellersPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
-
-
-
-  const [categories, setCategories] = useState([]); // State to hold categories
- 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("http://localhost/api/categories/categories"); // Replace with your API URL
-        const data = await response.json();
-        setCategories(data); // Update the products state with fetched data
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-
-  const publishers = [
-    { name: "Macmillan", image: "https://macmillan.com/img/macmillan-publishers.jpg" },
-    { name: "Harper Collins", image: "https://s21618.pcdn.co/wp-content/uploads/2016/12/FireandWaterLogo-768x831.jpg"},
-    { name: "Penguin Random House", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo89m1QPG0ORTGNVAEWipEGwcy4MXz9QM2t0YYtZVnniE1rpcNqexPZLgvAh02IjbPwHk&usqp=CAU"},
-    { name: "Scholastic", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw-X2wQtzllLppE2x9W-hKc5JvhnM165kINFk9jAEh7UpHm1NM34o5Rhdaholihd4eFhE&usqp=CAU"},
-    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
-    { name: "Yapi Kredi Kultur", image: "https://img.kitapyurdu.com/v1/getImage/fn:11263722/wi:200/wh:416d9f42c"},
-    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
-    { name: "Yapi Kredi Kultur", image: "https://img.kitapyurdu.com/v1/getImage/fn:11263722/wi:200/wh:416d9f42c"},
-    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
-   
-    
-  ];
-
+  
+  // Helper function to get book name
+  const getBookName = (book) => {
+    if (book.title) return book.title;
+    if (book.name) return book.name;
+    if (book.productName) return book.productName;
+    if (book.book_title) return book.book_title;
+    return "Unknown Title";
+  };
+  
+  // Banner transition effect
   useEffect(() => {
     if (bannerIndex === extendedBanners.length - 1) {
       setTimeout(() => {
@@ -133,203 +439,262 @@ const HomePage = () => {
       setTimeout(() => setIsTransitioning(false), 500);
     }
   }, [bannerIndex, extendedBanners.length, banners.length]);
+  
+  // Publishers array
+  const publishers = [
+    { name: "Macmillan", image: "https://macmillan.com/img/macmillan-publishers.jpg" },
+    { name: "Harper Collins", image: "https://s21618.pcdn.co/wp-content/uploads/2016/12/FireandWaterLogo-768x831.jpg"},
+    { name: "Penguin Random House", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo89m1QPG0ORTGNVAEWipEGwcy4MXz9QM2t0YYtZVnniE1rpcNqexPZLgvAh02IjbPwHk&usqp=CAU"},
+    { name: "Scholastic", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw-X2wQtzllLppE2x9W-hKc5JvhnM165kINFk9jAEh7UpHm1NM34o5Rhdaholihd4eFhE&usqp=CAU"},
+    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
+    { name: "Yapi Kredi Kultur", image: "https://img.kitapyurdu.com/v1/getImage/fn:11263722/wi:200/wh:416d9f42c"},
+    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
+    { name: "Yapi Kredi Kultur", image: "https://img.kitapyurdu.com/v1/getImage/fn:11263722/wi:200/wh:416d9f42c"},
+    { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
+  ];
 
   return (
     <div>
-    <Navbar /> 
-    
-    <div>
-      <div className="banner-container">
-        <div
-          className="banner-wrapper"
-          style={{
-            transform: `translateX(-${bannerIndex * 100}%)`,
-            transition: isTransitioning ? "transform 0.5s ease-in-out" : "none",
-          }}
-        >
-          {extendedBanners.map((banner, i) => (
-            <img key={i} src={banner.image} alt={banner.text} className="banner-image" />
-          ))}
-        </div>
-        <button className="prev-button" onClick={prevBanner}>
-          <FiChevronLeft size={40} color="black" />
-        </button>
-        <button className="next-button" onClick={nextBanner}>
-          <FiChevronRight size={40} color="black" />
-        </button>
-      </div>
-      <hr />
-      {/* SLIDING PRODUCTS */}
-      <div className="products-container">
-      <h2 className="source-sans-bold">New Arrivals</h2>
-      <div className="products-slider">
-        <div 
-          className="products-wrapper" 
-          style={{
-            transform: `translateX(-${Page * 100}%)`,
-            transition: "transform 0.5s ease-in-out",
-          }}
-        >
-          {Array.from({ length: totalPages }).map((_, pageIndex) => (
-            <div key={pageIndex} className="product-page">
-              {products
-                .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
-                .map((product, index) => {
-                  const productIndex = pageIndex * productsPerPage + index;
-                  return (
-                    <div key={productIndex} className="grid-item">
-                      <div className="item-actions">
-                        <button 
-                          className={`favorite-btn ${favorites[productIndex] ? 'active' : ''}`}
-                          onClick={() => toggleFavorite(productIndex)}
-                        >
-                          {favorites[productIndex] ? 
-                            <span className="heart-filled">♥</span> : 
-                            <span className="heart-outline">♡</span>
-                          }
-                        </button>
-                        <button className="cart-btn">
-                          <span>🛒</span>
-                        </button>
-                      </div>
-                      
-                      <div className="grid-item-content">
-                        <img src={product.image} alt={product.name} />
-                      </div>
-                      <hr />
-                      <div className="grid-item-header">
-                        <h3 style={{ fontFamily: 'SourceSans3-Bold, sans-serif', fontSize: '20px' }}>
-                          Klara and the Sun
-                        </h3>
-                        <p style={{ fontFamily: 'SourceSans3-Regular, sans-serif', fontSize: '16px' }}>
-                          Kazuo Ishiguro
-                        </p>
-                        <span style={{ fontFamily: 'SourceSans3-Regular, sans-serif', fontSize: '16px' }}>
-                          $19.99
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ))}
-        </div>
-        <button className="prev-button" onClick={prevPage}>
-          <FiChevronLeft size={30} color="black" />
-        </button>
-        <button className="next-button" onClick={nextPage}>
-          <FiChevronRight size={30} color="black" />
-        </button>
-      </div>
-    </div>
-
-            <hr />
-      {/* CATERGORIES */}
-      <div className="category-container">
-      <h2 className="source-sans-bold">Discover Categories</h2>
-      <div className="category-slider">
-        <div className="category-wrapper">
-        {categories.map((category, index) => (
+      <Navbar /> 
+      
+      <div>
+        {/* Banner Section */}
+        <div className="banner-container">
           <div
-            key={index}
-            className="category-item source-sans-regular"
-            onClick={category.onClick} // Add click event for More...
-            style={{ cursor: category.onClick ? "pointer" : "default" }}
+            className="banner-wrapper"
+            style={{
+              transform: `translateX(-${bannerIndex * 100}%)`,
+              transition: isTransitioning ? "transform 0.5s ease-in-out" : "none",
+            }}
           >
-            {category.icon}
-            <span style={{ marginLeft: "8px" }}>{category.name}</span>
-          </div>
-        ))}
-        </div>
-      </div>
-    </div>
-          <hr />
-    {/* BEST SELLERS */}
-    <div className="products-container">
-      <h2 className="source-sans-bold">Best Sellers</h2>
-      <div className="products-slider">
-        <div 
-          className="products-wrapper" 
-          style={{
-            transform: `translateX(-${Page * 100}%)`,
-            transition: "transform 0.5s ease-in-out",
-          }}
-        >
-          {Array.from({ length: totalPages }).map((_, pageIndex) => (
-            <div key={pageIndex} className="product-page">
-              {products
-                .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
-                .map((product, index) => {
-                  const productIndex = pageIndex * productsPerPage + index;
-                  return (
-                    <div key={productIndex} className="grid-item">
-                      <div className="item-actions">
-                        <button 
-                          className={`favorite-btn ${favorites[productIndex] ? 'active' : ''}`}
-                          onClick={() => toggleFavorite(productIndex)}
-                        >
-                          {favorites[productIndex] ? 
-                            <span className="heart-filled">♥</span> : 
-                            <span className="heart-outline">♡</span>
-                          }
-                        </button>
-                        <button className="cart-btn">
-                          <span>🛒</span>
-                        </button>
-                      </div>
-                      
-                      <div className="grid-item-content">
-                        <img src={product.image} alt={product.name} />
-                      </div>
-                      <hr />
-                      <div className="grid-item-header">
-                        <h3 style={{ fontFamily: 'SourceSans3-Bold, sans-serif', fontSize: '20px' }}>
-                          Klara and the Sun
-                        </h3>
-                        <p style={{ fontFamily: 'SourceSans3-Regular, sans-serif', fontSize: '16px' }}>
-                          Kazuo Ishiguro
-                        </p>
-                        <span style={{ fontFamily: 'SourceSans3-Regular, sans-serif', fontSize: '16px' }}>
-                          $19.99
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ))}
-        </div>
-        <button className="prev-button" onClick={prevPage}>
-          <FiChevronLeft size={30} color="black" />
-        </button>
-        <button className="next-button" onClick={nextPage}>
-          <FiChevronRight size={30} color="black" />
-        </button>
-      </div>
-    </div>
-            <hr />
-      {/* PUBLISHERS */}
-      <div className="category-container">
-        <h2 className="source-sans-bold">Our Publishers</h2>
-        <div className="category-slider">
-          <div className="category-wrapper">
-            {publishers.map((publisher, index) => (
-              <div
-                key={index}
-                className="publisher-item"
-                style={{
-                  backgroundImage: `url(${publisher.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              >
-                <span className="publisher-name">{publisher.name}</span>
-              </div>
+            {extendedBanners.map((banner, i) => (
+              <img key={i} src={banner.image} alt={banner.text} className="banner-image" />
             ))}
           </div>
+          <button className="prev-button" onClick={prevBanner}>
+            <FiChevronLeft size={40} color="black" />
+          </button>
+          <button className="next-button" onClick={nextBanner}>
+            <FiChevronRight size={40} color="black" />
+          </button>
         </div>
+        <hr />
+        
+        {/* New Arrivals Section */}
+        <div className="products-container">
+          <h2 className="source-sans-bold">New Arrivals</h2>
+          <div className="products-slider">
+            <div 
+              className="products-wrapper" 
+              style={{
+                transform: `translateX(-${newArrivalsPage * 100}%)`,
+                transition: "transform 0.5s ease-in-out",
+              }}
+            >
+              {Array.from({ length: Math.ceil(newArrivals.length / productsPerPage) }).map((_, pageIndex) => (
+                <div key={pageIndex} className="product-page">
+                  {newArrivals
+                    .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
+                    .map((product, index) => {
+                      const productIndex = pageIndex * productsPerPage + index;
+                      const favoriteKey = `new-${productIndex}`;
+                      return (
+                        <div 
+                          key={productIndex} 
+                          className="grid-item"
+                          onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="item-actions" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              className={`favorite-btn ${favorites[favoriteKey] ? 'active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(productIndex, product.product_id, 'new');
+                              }}
+                            >
+                              {favorites[favoriteKey] ? 
+                                <span className="heart-filled">♥</span> : 
+                                <span className="heart-outline">♡</span>
+                              }
+                            </button>
+                            <button 
+                              className="cart-btn"
+                              onClick={(e) => addToCart(e, product)}
+                            >
+                              <span>🛒</span>
+                            </button>
+                          </div>
+                          
+                          <div className="grid-item-content">
+                            <img
+                              src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                              alt={getBookName(product)}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = bookCover;
+                              }}
+                            />
+                          </div>
+                          <hr />
+                          <div className="grid-item-header">
+                            <h3 className="source-sans-semibold">
+                              {getBookName(product).length > 27
+                                ? getBookName(product).slice(0, 27) + '...'
+                                : getBookName(product)
+                              }
+                            </h3>
+                            <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
+                            <span className="source-sans-bold">${product.price || "0.00"}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+            <button className="prev-button" onClick={prevNewArrivalsPage}>
+              <FiChevronLeft size={30} color="black" />
+            </button>
+            <button className="next-button" onClick={nextNewArrivalsPage}>
+              <FiChevronRight size={30} color="black" />
+            </button>
+          </div>
+        </div>
+        <hr />
+        
+        {/* Categories Section */}
+        <div className="category-container">
+          <h2 className="source-sans-bold">Discover Categories</h2>
+          <div className="category-slider">
+            <div className="category-wrapper">
+              {categories.map((category, index) => (
+                <div
+                  key={index}
+                  className="category-item source-sans-regular"
+                  onClick={() => navigate('/category')}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span style={{ marginLeft: "8px" }}>{category.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <hr />
+        
+        {/* Best Sellers Section */}
+        <div className="products-container">
+          <h2 className="source-sans-bold">Best Sellers</h2>
+          <div className="products-slider">
+            <div 
+              className="products-wrapper" 
+              style={{
+                transform: `translateX(-${bestSellersPage * 100}%)`,
+                transition: "transform 0.5s ease-in-out",
+              }}
+            >
+              {Array.from({ length: Math.ceil(bestSellers.length / productsPerPage) }).map((_, pageIndex) => (
+                <div key={pageIndex} className="product-page">
+                  {bestSellers
+                    .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
+                    .map((product, index) => {
+                      const productIndex = pageIndex * productsPerPage + index;
+                      const favoriteKey = `best-${productIndex}`;
+                      return (
+                        <div 
+                          key={productIndex} 
+                          className="grid-item"
+                          onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="item-actions" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              className={`favorite-btn ${favorites[favoriteKey] ? 'active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(productIndex, product.product_id, 'best');
+                              }}
+                            >
+                              {favorites[favoriteKey] ? 
+                                <span className="heart-filled">♥</span> : 
+                                <span className="heart-outline">♡</span>
+                              }
+                            </button>
+                            <button 
+                              className="cart-btn"
+                              onClick={(e) => addToCart(e, product)}
+                            >
+                              <span>🛒</span>
+                            </button>
+                          </div>
+                          
+                          <div className="grid-item-content">
+                            <img
+                              src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                              alt={getBookName(product)}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = bookCover;
+                              }}
+                            />
+                          </div>
+                          <hr />
+                          <div className="grid-item-header">
+                            <h3 className="source-sans-semibold">
+                              {getBookName(product).length > 27
+                                ? getBookName(product).slice(0, 27) + '...'
+                                : getBookName(product)
+                              }
+                            </h3>
+                            <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
+                            <span className="source-sans-bold">${product.price || "0.00"}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+            <button className="prev-button" onClick={prevBestSellersPage}>
+              <FiChevronLeft size={30} color="black" />
+            </button>
+            <button className="next-button" onClick={nextBestSellersPage}>
+              <FiChevronRight size={30} color="black" />
+            </button>
+          </div>
+        </div>
+        <hr />
+        
+        {/* Publishers Section */}
+        <div className="category-container">
+          <h2 className="source-sans-bold">Our Publishers</h2>
+          <div className="category-slider">
+            <div className="category-wrapper">
+              {publishers.map((publisher, index) => (
+                <div
+                  key={index}
+                  className="publisher-item"
+                  style={{
+                    backgroundImage: `url(${publisher.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  <span className="publisher-name">{publisher.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Notification */}
+        {notification.visible && (
+          <div className="cart-notification">
+            {notification.message}
+          </div>
+        )}
       </div>
-    </div>
     </div>
   );
 };

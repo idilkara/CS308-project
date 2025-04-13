@@ -10,6 +10,8 @@ import { useAuth } from "./context/AuthContext";
 const CategoryPage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
+  
+  console.log("Token from AuthContext:", token);
 
   // State for filter dropdowns
   const [dropdowns, setDropdowns] = useState({

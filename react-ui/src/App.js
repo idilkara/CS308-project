@@ -35,7 +35,6 @@ function App() {
         <Route path="/authors" element={<Authors />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/productmanager" element={<ProductManager />} />
-
         <Route path="/" element={<HomePage />} /> {/* Default route */}
       </Routes>
     </Router>

@@ -104,6 +104,7 @@ const mockPaymentMethods = [
     //CHECKS FOR THE TOKEN
     // useEffect to handle token validation and user info fetching
     useEffect(() => {
+     //   const { token } = useAuth(); // Access the token from AuthContext
         if (!token) {
             console.error("Token is missing or invalid. Redirecting to login page.");
             navigate("/login"); // Redirect to userLogin page
@@ -128,7 +129,7 @@ const mockPaymentMethods = [
             
             fetchWishlist(token);
         }
-    }, [token, navigate]);
+    }, [token]);
     
     const getUserInfo = async (token, navigate) => {
         try {

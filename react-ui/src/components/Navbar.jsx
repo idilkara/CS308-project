@@ -37,7 +37,7 @@ const Navbar = () => {
 
     return (
         <header className="navbar">
-            <a href="/" className="brand">Odyssey</a>
+            <Link to="/home" className="brand">Odyssey</Link>
 
             <nav className="menu">
             <Link to="/category">Shop</Link>
