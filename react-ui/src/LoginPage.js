@@ -4,21 +4,17 @@ import "./LoginRegister.css";
 
 import { useAuth } from "./context/AuthContext"; // Import AuthContext if using Context API
 
-
 const Login = () => {
-    const [email, setEmail] = useState("");  // State for email input
-    const [password, setPassword] = useState(""); // State for password input
-    const [errorMessage, setErrorMessage] = useState(""); // State for error messages
-    const [userToken, setUserToken ]= useState(""); // State for user token
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const { setToken } = useAuth(); // Access the setToken function from AuthContext
-    const navigate = useNavigate(); // Initialize useNavigate
-
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault(); // Prevent page reload
     
         try {
-            // TODO: Replace with actual API URL when backend is ready
             const response = await fetch("http://localhost/api/auth/login", {
                 method: "POST",
                 headers: {
@@ -28,19 +24,17 @@ const Login = () => {
             });
     
             const data = await response.json();
-            setUserToken(data.token); // Store the token in state
     
             if (response.ok) {
                 console.log("Login successful:", data);
                 const accessToken = data.access_token;
                 setToken(accessToken); // Save the token in AuthContext
-                localStorage.setItem("token", accessToken); // Option
+                localStorage.setItem("token", accessToken);
                 
-                // Transfer temporary cart items after successful login
-                await transferTempCartItems(accessToken);
+                // Transfer any items in localStorage cart to the user's backend cart
+                await transferTempCartToUser(accessToken);
                 
                 navigate("/user", { state: { token: accessToken } });
-                // TODO: Redirect user to dashboard or homepage
             } else {
                 setErrorMessage(data.message || "Invalid email or password.");
             }
@@ -50,41 +44,39 @@ const Login = () => {
         }
     };
     
-    // Add this function to transfer temporary cart items
-    const transferTempCartItems = async (token) => {
-        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-        console.log("Transferring temporary cart items:", tempCart);
-        
-        if (tempCart.length > 0) {
-            for (const item of tempCart) {
-                try {
-                    const response = await fetch("http://localhost/api/shopping/add", {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ 
-                            product_id: item.product_id, 
-                            quantity: item.quantity 
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log(`Item ${item.product_id} added to cart successfully`);
-                    } else {
-                        console.error(`Failed to add item ${item.product_id} to cart`);
-                    }
-                } catch (error) {
-                    console.error(`Error adding item ${item.product_id} to cart:`, error);
-                }
+    // Function to transfer temporary cart items to user's backend cart
+    const transferTempCartToUser = async (userToken) => {
+        try {
+            // Get items from temporary cart
+            const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+            
+            if (tempCart.length === 0) {
+                console.log("No items in temporary cart to transfer");
+                return;
             }
-            // Clear temporary cart after transferring items
-            localStorage.removeItem('tempCart');
+        
+            // Add each item to the user's cart
+            for (const item of tempCart) {
+                await fetch("http://localhost/api/shopping/add", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${userToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        product_id: item.id,
+                        quantity: item.quantity
+                    })
+                });
+            }
+            
+            // Clear the temporary cart after successful transfer
+            localStorage.setItem('tempCart', JSON.stringify([]));
+            console.log("Transferred temporary cart items to user account");
+        } catch (error) {
+            console.error("Error transferring temp cart to user account:", error);
         }
     };
-
-    
 
     return (
         <div className="auth-page">
@@ -111,7 +103,6 @@ const Login = () => {
                         <button type="submit" className="auth-button">Login</button>
                     </form>
 
-                    {/* Show error message if login fails */}
                     {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
                     <Link to="/register" className="auth-toggle">

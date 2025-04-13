@@ -80,336 +80,167 @@ const ShoppingCart = () => {
   };
 
   // Function to update quantity of an item
-  const updateQuantity = (itemId, newQuantity) => {
+  const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return; // Don't allow quantities less than 1
     
-    if (token) {
-      // TODO: Implement API call to update quantity in backend
-      // For now, update it locally
-      const updatedItems = cartItems.map(item => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      );
-      setCartItems(updatedItems);
-    } else {
-      // Update in localStorage
-      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      const updatedCart = tempCart.map(item => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      );
-      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
-      setCartItems(updatedCart);
+    try {
+      if (token) {
+        // Get current quantity
+        const currentItem = cartItems.find(item => item.id === itemId);
+        if (!currentItem) return;
+        
+        const currentQty = currentItem.quantity;
+        const difference = newQuantity - currentQty;
+        
+        // If increasing quantity, use "add" endpoint
+        if (difference > 0) {
+          await fetch("http://localhost/api/shopping/add", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              product_id: itemId,
+              quantity: difference
+            })
+          });
+        } 
+        // If decreasing quantity, use "remove" endpoint
+        else if (difference < 0) {
+          await fetch("http://localhost/api/shopping/remove", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              product_id: itemId,
+              quantity: Math.abs(difference)
+            })
+          });
+        }
+        
+        // Update local state to reflect the change immediately
+        const updatedItems = cartItems.map(item => 
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        );
+        setCartItems(updatedItems);
+      } else {
+        // Update in localStorage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const updatedCart = tempCart.map(item => 
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        );
+        localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+        setCartItems(updatedCart);
+      }
+    } catch (error) {
+      console.error("Error updating item quantity:", error);
     }
   };
 
   // Function to remove an item from the cart
-  const removeItem = (itemId) => {
-    if (token) {
-      // TODO: Implement API call to remove item from backend
-      // For now, remove it locally
-      const updatedItems = cartItems.filter(item => item.id !== itemId);
-      setCartItems(updatedItems);
-    } else {
-      // Remove from localStorage
-      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      const updatedCart = tempCart.filter(item => item.id !== itemId);
-      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
-      setCartItems(updatedCart);
+  const removeItem = async (itemId) => {
+    try {
+      if (token) {
+        // Make API call to remove item from backend
+        const response = await fetch("http://localhost/api/shopping/remove", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            product_id: itemId,
+            quantity: 1000 // Set a large quantity to remove the entire item
+          })
+        });
+        
+        if (response.ok) {
+          // If successful, update the local state
+          const updatedItems = cartItems.filter(item => item.id !== itemId);
+          setCartItems(updatedItems);
+          console.log("Item removed from cart successfully");
+        } else {
+          console.error("Failed to remove item from cart:", await response.json());
+        }
+      } else {
+        // Remove from localStorage for non-logged in users
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const updatedCart = tempCart.filter(item => item.id !== itemId);
+        localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+        setCartItems(updatedCart);
+      }
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
     }
   };
 
   // Function to empty the entire cart
-  const emptyCart = () => {
-    if (token) {
-      // TODO: Implement API call to clear cart in backend
-      // For now, clear it locally
-      setCartItems([]);
-    } else {
-      // Clear localStorage
-      localStorage.setItem('tempCart', JSON.stringify([]));
-      setCartItems([]);
-    }
-  };
- 
-
-/*
-    const fetchCart = async (token) => {
-      try {
-          console.log("Fetching cart with token:", token);
-          const response = await fetch("http://localhost/api/shopping/view", {
-              method: "GET",
-              headers: {
-                  "Authorization": `Bearer ${token}`,
-                  "Content-Type": "application/json"
-              }
-          });
-
-          if (response.ok) {
-              const cartData = await response.json();
-              console.log("Cart fetched successfully:", cartData);
-              return Array.isArray(cartData) ? cartData : []; // Ensure the response is an array
-          } else {
-              const errorData = await response.json();
-              console.error("Failed to fetch cart:", errorData.message || "Unknown error");
-              return []; // Return an empty array on error
-          }
-      } catch (error) {
-          console.error("Error fetching cart:", error);
-          return []; // Return an empty array on error
-      }
-  };
-
-
-
-
-    // Fetch cart data when the component mounts
-    useEffect(() => {
-      const loadCart = async () => {
-        if (token) {
-          // Check if there are items in the temporary cart
-          const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-          
-          // If there are temporary items, add them to the user's cart
-          if (tempCart.length > 0) {
-            for (const item of tempCart) {
-              await addToCart(token, item.product_id, item.quantity);
-            }
-            // Clear temporary cart after transferring items
-            localStorage.removeItem('tempCart');
-          }
-          
-          // Fetch the user's cart (now including any transferred items)
-          const cartData = await fetchCart(token);
-          setCartItems(cartData);
-        } else {
-          // User is not logged in, use the temporary cart
-          const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-          setCartItems(tempCart);
-        }
-      };
-    
-      loadCart();
-    }, [token]);
-
-
-  // REMOVE FROM CART 
-  // Clear the entire cart
-const clearCart = async (token) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-
-  try {
-    const response = await fetch("http://localhost/api/shopping/clear", {
-      method: "DELETE",
-      headers,
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log("Cart cleared successfully:", result);
-      alert("Cart cleared successfully!");
-      return result;
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to clear cart:", errorData.message || "Unknown error");
-      alert(errorData.message || "Failed to clear cart");
-      return { error: errorData.message || "Failed to clear cart" };
-    }
-  } catch (error) {
-    console.error("Error clearing cart:", error);
-    alert("An error occurred while clearing the cart.");
-    return { error: "An unexpected error occurred" };
-  }
-};
-
-// to increase the quentity of the item
-const addToCart = async (token, productId, quantity) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-  const data = { product_id: productId, quantity };
-
-  try {
-    const response = await fetch("http://localhost/api/shopping/add", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log("Added to cart:", result);
-      return result;
-    } else {
-      return {
-        error: "Failed to add to cart",
-        status_code: response.status,
-      };
-    }
-  } catch (error) {
-    console.error("Error adding to cart:", error);
-    return { error: "An unexpected error occurred" };
-  }
-};
-
-// Remove a specific item from the cart
-const removeFromCart = async (token, productId, quantity) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-
-  const data = {
-    product_id: productId,
-    quantity,
-  };
-
-  try {
-    const response = await fetch("http://localhost/api/shopping/remove", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log("Removed from cart successfully:", result);
-      alert("Product removed from cart successfully!");
-      return result;
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to remove product from cart:", errorData.message || "Unknown error");
-      alert(errorData.message || "Failed to remove product from cart");
-      return { error: errorData.message || "Failed to remove product from cart" };
-    }
-  } catch (error) {
-    console.error("Error removing product from cart:", error);
-    alert("An error occurred while removing the product from the cart.");
-    return { error: "An unexpected error occurred" };
-  }
-};
-
-
-
-
-  // Calculate total
-  //const cartTotal = 10.0; //cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const cartTotal = cartItems.reduce((total, item) => {
-    const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity) || 0;
-    return total + (price * quantity);
-  }, 0);
-
-  // Handle quantity change
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    // setCartItems(cartItems.map(item => 
-    //   item.id === id ? { ...item, quantity: newQuantity } : item
-    // ));
-  };
-
-  // Remove item from cart
-  const removeItem = (id) => {
-    if (token) {
-      // Find the item to be removed to get correct productId and quantity
-      const itemToRemove = cartItems.find(item => item.id === id || item.product_id === id);
-      
-      if (!itemToRemove) {
-        console.error("Item not found in cart:", id);
-        return;
-      }
-      
-      // Log for debugging
-      console.log("Removing item:", itemToRemove);
-      console.log("Using product_id:", itemToRemove.product_id || itemToRemove.id);
-      console.log("Using quantity:", itemToRemove.quantity);
-      
-      // Use proper ID (either product_id or id, depending on your API)
-      const productId = itemToRemove.product_id || itemToRemove.id;
-      
-      // Call API to remove item
-      removeFromCart(token, productId, itemToRemove.quantity)
-        .then(result => {
-          if (!result.error) {
-            // Only update the state if the API call was successful
-            setCartItems(cartItems.filter(item => (item.id !== id && item.product_id !== id)));
-          } else {
-            console.error("API returned error:", result.error);
+  const emptyCart = async () => {
+    try {
+      if (token) {
+        // Make API call to clear cart in backend
+        const response = await fetch("http://localhost/api/shopping/clear", {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
           }
         });
-    } else {
-      // For non-logged in users with local storage cart
+        
+        if (response.ok) {
+          setCartItems([]);
+          console.log("Cart cleared successfully");
+        } else {
+          console.error("Failed to clear cart:", await response.json());
+        }
+      } else {
+        // Clear localStorage
+        localStorage.setItem('tempCart', JSON.stringify([]));
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
+  };
+
+  const transferTempCartToUser = async (userToken) => {
+    try {
+      // Get items from temporary cart
       const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
       
-      // Log for debugging
-      console.log("Current temp cart:", tempCart);
-      console.log("Attempting to remove item with ID:", id);
-      
-      // Check what property is being used to identify items in tempCart
-      // It might be product_id instead of id
-      const updatedCart = tempCart.filter(item => 
-        (item.id !== id && item.product_id !== id)
-      );
-      
-      console.log("Updated temp cart:", updatedCart);
-      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
-      setCartItems(updatedCart);
-    }
-  }; 
-
-  // Empty the cart
-  const emptyCart = () => {
-    if (token) {
-      clearCart(token)
-        .then(result => {
-          if (!result.error) {
-            setCartItems([]);
-          }
+      if (tempCart.length === 0) {
+        console.log("No items in temporary cart to transfer");
+        return;
+      }
+  
+      // Add each item to the user's cart
+      for (const item of tempCart) {
+        await fetch("http://localhost/api/shopping/add", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${userToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            product_id: item.id,
+            quantity: item.quantity
+          })
         });
-    } else {
-      // For non-logged in users
-      localStorage.removeItem('tempCart');
-      setCartItems([]);
+      }
+      
+      // Clear the temporary cart after successful transfer
+      localStorage.setItem('tempCart', JSON.stringify([]));
+      console.log("Transferred temporary cart items to user account");
+      
+      // Fetch the updated cart
+      fetchCart();
+    } catch (error) {
+      console.error("Error transferring temp cart to user account:", error);
     }
   };
-  */
-
-
-    // Create an order CHECKOUT
-    /*
-const createOrder = async (token) => {
-  console.log("Creating order...");
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-
-  try {
-    const response = await fetch("http://localhost/api/payment/create_order", {
-      method: "POST",
-      headers,
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log("Order created successfully:", result);
-      alert("Order created successfully!");
-      return result;
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to create order:", errorData.message || "Unknown error");
-      alert(errorData.message || "Failed to create order");
-      return { error: errorData.message || "Failed to create order", status_code: response.status };
-    }
-  } catch (error) {
-    console.error("Error creating order:", error);
-    alert("An error occurred while creating the order.");
-    return { error: "An unexpected error occurred" };
-  }
-}; */
 
 
 return (
