@@ -1,4 +1,3 @@
-
 import './ShoppingCart.css';
 import Navbar from "./components/Navbar.jsx";
 import { FaTrash } from "react-icons/fa";
@@ -236,29 +235,53 @@ const createOrder = async (token) => {
   };
 
   // Remove item from cart
-  // Update the removeItem function to call your API
-// Update the removeItem function to call your API
-const removeItem = (id) => {
-  if (token) {
-    // Get the quantity of the item to be removed
-    const itemToRemove = cartItems.find(item => item.id === id);
-    if (itemToRemove) {
-      removeFromCart(token, id, itemToRemove.quantity)
+  const removeItem = (id) => {
+    if (token) {
+      // Find the item to be removed to get correct productId and quantity
+      const itemToRemove = cartItems.find(item => item.id === id || item.product_id === id);
+      
+      if (!itemToRemove) {
+        console.error("Item not found in cart:", id);
+        return;
+      }
+      
+      // Log for debugging
+      console.log("Removing item:", itemToRemove);
+      console.log("Using product_id:", itemToRemove.product_id || itemToRemove.id);
+      console.log("Using quantity:", itemToRemove.quantity);
+      
+      // Use proper ID (either product_id or id, depending on your API)
+      const productId = itemToRemove.product_id || itemToRemove.id;
+      
+      // Call API to remove item
+      removeFromCart(token, productId, itemToRemove.quantity)
         .then(result => {
           if (!result.error) {
             // Only update the state if the API call was successful
-            setCartItems(cartItems.filter(item => item.id !== id));
+            setCartItems(cartItems.filter(item => (item.id !== id && item.product_id !== id)));
+          } else {
+            console.error("API returned error:", result.error);
           }
         });
+    } else {
+      // For non-logged in users with local storage cart
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      
+      // Log for debugging
+      console.log("Current temp cart:", tempCart);
+      console.log("Attempting to remove item with ID:", id);
+      
+      // Check what property is being used to identify items in tempCart
+      // It might be product_id instead of id
+      const updatedCart = tempCart.filter(item => 
+        (item.id !== id && item.product_id !== id)
+      );
+      
+      console.log("Updated temp cart:", updatedCart);
+      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+      setCartItems(updatedCart);
     }
-  } else {
-    // For non-logged in users with local storage cart
-    const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-    const updatedCart = tempCart.filter(item => item.id !== id);
-    localStorage.setItem('tempCart', JSON.stringify(updatedCart));
-    setCartItems(updatedCart);
-  }
-};
+  };
 
   // Empty the cart
   const emptyCart = () => {

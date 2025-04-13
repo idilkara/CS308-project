@@ -39,6 +39,11 @@ const CategoryPage = () => {
   });
   const [sortMethod, setSortMethod] = useState("alpha-ascend");
   const [categories, setCategories] = useState([]);
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false
+  });
+  
 
   // Price range state
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
@@ -129,45 +134,88 @@ const CategoryPage = () => {
     }
   };
 
-  // Add item to cart
-  const addToCart = async (productId, quantity = 1) => {
-    if (!token) {
-      alert("Please log in to add items to cart");
-      return;
-    }
 
+  //handle cart button click
+  const handleAddToCart = (event, book) => {
+    event.stopPropagation(); // Stop the event from propagating to the parent div
+    
+    if (token) {
+      // User is logged in, add to their cart in the database
+      addToCart(token, book.product_id, 1).then((result) => {
+        if (result.error) {
+          setNotification({
+            message: result.error,
+            visible: true
+          });
+        } else {
+          // Show success message
+          setNotification({
+            message: "Added to cart successfully!",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+        }
+      });
+    } else {
+      // User is not logged in, store the item in local storage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const existingItemIndex = tempCart.findIndex(item => item.product_id === book.product_id);
+      
+      if (existingItemIndex >= 0) {
+        // Item already exists, increase quantity
+        tempCart[existingItemIndex].quantity += 1;
+      } else {
+        // New item, add to cart
+        tempCart.push({
+          product_id: book.product_id,
+          name: getBookName(book),
+          price: book.price || 0,
+          quantity: 1,
+          author: book.author || "Unknown Author",
+          image: `assets/covers/${book.name.replace(/\s+/g, '').toLowerCase()}.png`
+        });
+      }
+      
+      localStorage.setItem('tempCart', JSON.stringify(tempCart));
+      setNotification({
+        message: "Product added to temporary cart!",
+        visible: true
+      });
+      setTimeout(() => {
+        setNotification({ message: '', visible: false });
+      }, 3000);
+    }
+  };
+
+
+  const addToCart = async (token, productId, quantity) => {
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
-
-    const data = {
-      product_id: productId,
-      quantity
-    };
-
+    const data = { product_id: productId, quantity };
+  
     try {
       const response = await fetch("http://localhost/api/shopping/add", {
         method: "POST",
         headers,
         body: JSON.stringify(data),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
-        alert("Added to cart successfully!");
+        console.log("Added to cart:", result);
         return result;
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to add to cart");
         return {
-          error: errorData.message || "Failed to add to cart",
+          error: "Failed to add to cart",
           status_code: response.status,
         };
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("An unexpected error occurred");
       return { error: "An unexpected error occurred" };
     }
   };
@@ -577,13 +625,10 @@ const CategoryPage = () => {
                           <span className="heart-outline">♡</span>
                         )}
                       </button>
-                      <button
-                        className="cart-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(book.product_id, 1);
-                        }}
-                      >
+                      <button 
+                    className="cart-btn" 
+                    onClick={(e) => handleAddToCart(e, book)}
+                  >
                         <span>🛒</span>
                       </button>
                     </div>
