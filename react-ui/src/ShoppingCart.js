@@ -6,25 +6,132 @@ import React, { useState, useEffect } from "react";
 
 
 const ShoppingCart = () => {
+  const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuth(); // Use the auth context to check if user is logged in
 
-  const { token } = useAuth();
 
-  console.log("Token from context:", token); // Log the token to check if it's being passed correctly
-  // Initial cart state
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Klara and the Sun",
-      publisher: "Yapi Kredi Yayinlari",
-      author: "Kazuo Ishiguro",
-      price: 19.99,
-      originalPrice: 19.99, // No discount
-      quantity: 1,
-      image: "https://m.media-amazon.com/images/I/61tqFlvlU3L._AC_UF1000,1000_QL80_.jpg"
+  useEffect(() => {
+    fetchCart();
+  }, [token]);
+
+  // Calculate total whenever cart items change
+  useEffect(() => {
+    calculateTotal();
+  }, [cartItems]);
+
+  // Function to fetch cart items from backend or local storage
+  const fetchCart = async () => {
+    setLoading(true);
+    
+    try {
+      if (token) {
+        // User is logged in, fetch from API
+        const response = await fetch("http://localhost/api/shopping/view", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Transform the API response to match our cart item structure
+          if (Array.isArray(data)) {
+            const formattedItems = data.map(item => ({
+              id: item.product_id,
+              name: item.name,
+              author: item.author || "Unknown Author",
+              publisher: item.distributor_information || "Unknown Publisher",
+              price: parseFloat(item.price) || 0,
+              quantity: item.quantity,
+              image: `assets/covers/${item.name.replace(/\s+/g, '').toLowerCase()}.png`
+            }));
+            setCartItems(formattedItems);
+          } else {
+            // Empty cart or message received
+            setCartItems([]);
+          }
+        } else {
+          console.error("Failed to fetch cart:", await response.json());
+          setCartItems([]);
+        }
+      } else {
+        // User is not logged in, get from localStorage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        setCartItems(tempCart);
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      setCartItems([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
+  // Function to calculate the total price of items in cart
+  const calculateTotal = () => {
+    const total = cartItems.reduce((sum, item) => {
+      return sum + (parseFloat(item.price) || 0) * item.quantity;
+    }, 0);
+    setCartTotal(total);
+  };
 
+  // Function to update quantity of an item
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return; // Don't allow quantities less than 1
+    
+    if (token) {
+      // TODO: Implement API call to update quantity in backend
+      // For now, update it locally
+      const updatedItems = cartItems.map(item => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(updatedItems);
+    } else {
+      // Update in localStorage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const updatedCart = tempCart.map(item => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+      setCartItems(updatedCart);
+    }
+  };
+
+  // Function to remove an item from the cart
+  const removeItem = (itemId) => {
+    if (token) {
+      // TODO: Implement API call to remove item from backend
+      // For now, remove it locally
+      const updatedItems = cartItems.filter(item => item.id !== itemId);
+      setCartItems(updatedItems);
+    } else {
+      // Remove from localStorage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const updatedCart = tempCart.filter(item => item.id !== itemId);
+      localStorage.setItem('tempCart', JSON.stringify(updatedCart));
+      setCartItems(updatedCart);
+    }
+  };
+
+  // Function to empty the entire cart
+  const emptyCart = () => {
+    if (token) {
+      // TODO: Implement API call to clear cart in backend
+      // For now, clear it locally
+      setCartItems([]);
+    } else {
+      // Clear localStorage
+      localStorage.setItem('tempCart', JSON.stringify([]));
+      setCartItems([]);
+    }
+  };
+ 
+
+/*
     const fetchCart = async (token) => {
       try {
           console.log("Fetching cart with token:", token);
@@ -184,37 +291,7 @@ const removeFromCart = async (token, productId, quantity) => {
   }
 };
 
-// Create an order CHECKOUT
-const createOrder = async (token) => {
-  console.log("Creating order...");
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
 
-  try {
-    const response = await fetch("http://localhost/api/payment/create_order", {
-      method: "POST",
-      headers,
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log("Order created successfully:", result);
-      alert("Order created successfully!");
-      return result;
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to create order:", errorData.message || "Unknown error");
-      alert(errorData.message || "Failed to create order");
-      return { error: errorData.message || "Failed to create order", status_code: response.status };
-    }
-  } catch (error) {
-    console.error("Error creating order:", error);
-    alert("An error occurred while creating the order.");
-    return { error: "An unexpected error occurred" };
-  }
-};
 
 
   // Calculate total
@@ -281,7 +358,7 @@ const createOrder = async (token) => {
       localStorage.setItem('tempCart', JSON.stringify(updatedCart));
       setCartItems(updatedCart);
     }
-  };
+  }; 
 
   // Empty the cart
   const emptyCart = () => {
@@ -298,97 +375,133 @@ const createOrder = async (token) => {
       setCartItems([]);
     }
   };
+  */
 
-  return (
-    <div>
-      <Navbar /> 
-      <div className="shopping-cart-container">
-        <div className="cart-header">
-          <h2 className="cart-title source-sans-bold">
-            <i className="cart-icon">🛒</i> My Cart
-          </h2>
-        </div>
-  
-        <div className="cart-content">
-          {cartItems.length > 0 ? (
-              cartItems.map(item => (
-                  <div className="cart-item" key={item.id}>
-                      <div className="item-image">
-                          <img src={item.image} alt={item.name} />
-                      </div>
-                      <div className="item-details">
-                          <h3 className="item-name source-sans-semibold">{item.name}</h3>
-                          <p className="item-publisher source-sans-regular">{item.publisher}</p>
-                          <p className="item-author source-sans-regular">{item.author}</p>
-                      </div>
-                      <div className="item-quantity">
-                          <span className="quantity-label source-sans-semibold">Quantity</span>
-                          <div className="quantity-controls">
-                              <button 
-                                  className="quantity-btn source-sans-semibold" 
-                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              >
-                                  −
-                              </button>
-                              <span className="quantity-value source-sans-regular">{item.quantity}</span>
-                              <button 
-                                  className="quantity-btn source-sans-semibold" 
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              >
-                                  +
-                              </button>
-                          </div>
-                      </div>
-                      <div className="item-price">
-                          <span className="price-label source-sans-semibold">Price</span>
-                          <p className="current-price source-sans-semibold">
-                            ${(parseFloat(item.price) || 0).toFixed(2)}
-                          </p>
 
-                      </div>
-                      <div className="item-actions">
-                          <button className="remove-item source-sans-regular" onClick={() => removeItem(item.id)}>
-                              <FaTrash />
-                          </button>
-                      </div>
-                  </div>
-              ))
-          ) : (
-              <p>Your cart is empty.</p> // Fallback message
-          )}
+    // Create an order CHECKOUT
+    /*
+const createOrder = async (token) => {
+  console.log("Creating order...");
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await fetch("http://localhost/api/payment/create_order", {
+      method: "POST",
+      headers,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Order created successfully:", result);
+      alert("Order created successfully!");
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to create order:", errorData.message || "Unknown error");
+      alert(errorData.message || "Failed to create order");
+      return { error: errorData.message || "Failed to create order", status_code: response.status };
+    }
+  } catch (error) {
+    console.error("Error creating order:", error);
+    alert("An error occurred while creating the order.");
+    return { error: "An unexpected error occurred" };
+  }
+}; */
+
+
+return (
+  <div>
+    <Navbar /> 
+    <div className="shopping-cart-container">
+      <div className="cart-header">
+        <h2 className="cart-title source-sans-bold">
+          <i className="cart-icon">🛒</i> My Cart
+        </h2>
       </div>
 
+      <div className="cart-content">
+        {loading ? (
+          <p>Loading your cart...</p>
+        ) : cartItems.length > 0 ? (
+            cartItems.map(item => (
+                <div className="cart-item" key={item.id}>
+                    <div className="item-image">
+                        <img src={item.image} alt={item.name} onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "assets/covers/default.png";
+                        }} />
+                    </div>
+                    <div className="item-details">
+                        <h3 className="item-name source-sans-semibold">{item.name}</h3>
+                        <p className="item-publisher source-sans-regular">{item.publisher}</p>
+                        <p className="item-author source-sans-regular">{item.author}</p>
+                    </div>
+                    <div className="item-quantity">
+                        <span className="quantity-label source-sans-semibold">Quantity</span>
+                        <div className="quantity-controls">
+                            <button 
+                                className="quantity-btn source-sans-semibold" 
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            >
+                                −
+                            </button>
+                            <span className="quantity-value source-sans-regular">{item.quantity}</span>
+                            <button 
+                                className="quantity-btn source-sans-semibold" 
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div className="item-price">
+                        <span className="price-label source-sans-semibold">Price</span>
+                        <p className="current-price source-sans-semibold">
+                          ${(parseFloat(item.price) || 0).toFixed(2)}
+                        </p>
+                    </div>
+                    <div className="item-actions">
+                        <button className="remove-item source-sans-regular" onClick={() => removeItem(item.id)}>
+                            <FaTrash />
+                        </button>
+                    </div>
+                </div>
+            ))
+        ) : (
+            <p>Your cart is empty.</p>
+        )}
+      </div>
 
-
-
-  
-        <div className="cart-footer">
-          <div className="cart-actions">
-            <button className="clear-cart source-sans-regular" onClick={emptyCart}>
-              <FaTrash /> Clear Cart
-            </button>
+      <div className="cart-footer">
+        <div className="cart-actions">
+          <button className="clear-cart source-sans-regular" onClick={emptyCart}>
+            <FaTrash /> Clear Cart
+          </button>
+        </div>
+        
+        <div className="cart-summary">
+          <div className="coupon-section">
+            <input type="text" placeholder="Coupon/Gift Card Code" className="coupon-input source-sans-regular" />
+            <button className="apply-coupon source-sans-semibold">Apply</button>
           </div>
           
-          <div className="cart-summary">
-            <div className="coupon-section">
-              <input type="text" placeholder="Coupon/Gift Card Code" className="coupon-input source-sans-regular" />
-              <button className="apply-coupon source-sans-semibold">Apply</button>
+          <div className="total-section">
+            <div className="total-row grand-total">
+              <span className="total-label source-sans-bold">Total:</span>
+              <span className="total-value source-sans-bold">${cartTotal.toFixed(2)}</span>
             </div>
-            
-            <div className="total-section">
-              <div className="total-row grand-total">
-                <span className="total-label source-sans-bold">Total:</span>
-                <span className="total-value source-sans-bold">${cartTotal.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <button className="checkout-button source-sans-bold">CHECKOUT</button>
-            <button className="continue-shopping source-sans-semibold">Continue Shopping</button>
           </div>
+          
+          <button className="checkout-button source-sans-bold">CHECKOUT</button>
+          <button className="continue-shopping source-sans-semibold">Continue Shopping</button>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ShoppingCart;

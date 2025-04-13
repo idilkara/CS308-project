@@ -134,34 +134,58 @@ const CategoryPage = () => {
     }
   };
 
-
-  //handle cart button click
-  const handleAddToCart = (event, book) => {
+// Consolidated addToCart function for CategoryPage
+const addToCart = async (event, book) => {
+  if (event) {
     event.stopPropagation(); // Stop the event from propagating to the parent div
-    
+  }
+  
+  try {
     if (token) {
       // User is logged in, add to their cart in the database
-      addToCart(token, book.product_id, 1).then((result) => {
-        if (result.error) {
-          setNotification({
-            message: result.error,
-            visible: true
-          });
-        } else {
-          // Show success message
-          setNotification({
-            message: "Added to cart successfully!",
-            visible: true
-          });
-          setTimeout(() => {
-            setNotification({ message: '', visible: false });
-          }, 3000);
-        }
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      const data = { product_id: book.product_id, quantity: 1 };
+    
+      const response = await fetch("http://localhost/api/shopping/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
       });
+    
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Added to cart:", result);
+        // Show success message
+        setNotification({
+          message: "Added to cart successfully!",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to add to cart:", errorData);
+        setNotification({
+          message: errorData.error || "Failed to add to cart",
+          visible: true
+        });
+        setTimeout(() => {
+          setNotification({ message: '', visible: false });
+        }, 3000);
+        return {
+          error: errorData.error || "Failed to add to cart",
+          status_code: response.status,
+        };
+      }
     } else {
       // User is not logged in, store the item in local storage
       const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      const existingItemIndex = tempCart.findIndex(item => item.product_id === book.product_id);
+      const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
       
       if (existingItemIndex >= 0) {
         // Item already exists, increase quantity
@@ -169,12 +193,13 @@ const CategoryPage = () => {
       } else {
         // New item, add to cart
         tempCart.push({
-          product_id: book.product_id,
+          id: book.product_id,
           name: getBookName(book),
-          price: book.price || 0,
+          price: parseFloat(book.price) || 0,
           quantity: 1,
           author: book.author || "Unknown Author",
-          image: `assets/covers/${book.name.replace(/\s+/g, '').toLowerCase()}.png`
+          publisher: book.distributor_information || "Unknown Publisher",
+          image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
         });
       }
       
@@ -186,39 +211,20 @@ const CategoryPage = () => {
       setTimeout(() => {
         setNotification({ message: '', visible: false });
       }, 3000);
+      return { success: true };
     }
-  };
-
-
-  const addToCart = async (token, productId, quantity) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-    const data = { product_id: productId, quantity };
-  
-    try {
-      const response = await fetch("http://localhost/api/shopping/add", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(data),
-      });
-  
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Added to cart:", result);
-        return result;
-      } else {
-        return {
-          error: "Failed to add to cart",
-          status_code: response.status,
-        };
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    setNotification({
+      message: "An unexpected error occurred",
+      visible: true
+    });
+    setTimeout(() => {
+      setNotification({ message: '', visible: false });
+    }, 3000);
+    return { error: "An unexpected error occurred" };
+  }
+};
 
   // Add item to wishlist
   const addToWishlist = async (productId) => {
@@ -627,7 +633,7 @@ const CategoryPage = () => {
                       </button>
                       <button 
                     className="cart-btn" 
-                    onClick={(e) => handleAddToCart(e, book)}
+                    onClick={(e) => addToCart(e, book)}
                   >
                         <span>🛒</span>
                       </button>
