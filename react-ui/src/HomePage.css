@@ -51,11 +51,11 @@
 }
 
 .prev-button {
-  left: 30px;
+  left: 5px;
 }
 
 .next-button {
-  right: 30px;
+  right: 5px;
 }
 
 /* Products Container */
@@ -64,27 +64,32 @@
   position: relative;
   width: 100%;
   background-color: var(--warm-green-lighterer);
+  justify-self: center;
 }
+
+
+
 
 .products-slider {
   position: relative;
-  overflow: hidden;
-  padding-left: 20px;
-  padding-right: 20px;
+  overflow: hidden; /* Keep as hidden to prevent seeing items outside the view */
+  margin: 0 60px; /* Add margin instead of padding to make space for arrows */
+  padding: 0; /* Reset padding */
 }
 
 .products-wrapper {
   display: flex;
+  width: 100%;
   transition: transform 0.5s ease-in-out;
 }
 
 .product-page {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
+  gap: 30px; /* Increase gap between items */
   width: 100%;
   flex-shrink: 0;
-  padding: 30px 0;
+  padding: 20px 0; /* Add vertical padding only */
 }
 
 /* Products Container */
@@ -212,4 +217,79 @@
 
 .category-next {
   right: 10px;
+}
+
+
+.grid-item-hp {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%; /* Ensure it doesn't overflow its grid cell */
+  width: 100%; /* Take full width of grid cell */
+  margin: 0 auto; /* Center in grid cell */
+
+  
+   
+    background-color: var(--background-color);
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 8px;
+    overflow: hidden;
+    height: 380px;
+    text-align: left;
+    width: 200px;
+    flex-shrink: 0;
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--main-text-color);
+    box-shadow: 1px 1px 10px lightgray;
+    position: relative;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.grid-item-hp:hover {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* Slight grey glow on hover */
+}
+.grid-container-hp {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+  padding-left: 80px;
+  padding-bottom: 60px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.grid-item-header-hp {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: left;
+  padding-left: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--secondary-text-color);
+  gap: 2px;
+  background-color: var(--background-color); /* Changed to use background-color */
+}
+
+.grid-item-content-hp {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  text-align: left;
+  background-color: var(--background-color); /* Changed to use background-color */
+}
+
+.grid-item-content-hp img {
+  max-width: 140px;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.grid-item-hp hr {
+  width: 90%;
+  margin: 5px auto; /* moved line up by reducing top margin */
+  border: 0;
+  border-top: 1px solid var(--secondary-text-color);
+  background-color: var(--secondary-text-color);
 }

@@ -492,7 +492,7 @@ const HomePage = () => {
               }}
             >
               {Array.from({ length: Math.ceil(newArrivals.length / productsPerPage) }).map((_, pageIndex) => (
-                <div key={pageIndex} className="product-page">
+                <div key={pageIndex} className="product-page" style={{ width: '100%' }}>
                   {newArrivals
                     .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
                     .map((product, index) => {
@@ -501,7 +501,7 @@ const HomePage = () => {
                       return (
                         <div 
                           key={productIndex} 
-                          className="grid-item"
+                          className="grid-item-hp"
                           onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
                           style={{ cursor: 'pointer' }}
                         >
@@ -526,7 +526,7 @@ const HomePage = () => {
                             </button>
                           </div>
                           
-                          <div className="grid-item-content">
+                          <div className="grid-item-content-hp">
                             <img
                               src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
                               alt={getBookName(product)}
@@ -537,7 +537,7 @@ const HomePage = () => {
                             />
                           </div>
                           <hr />
-                          <div className="grid-item-header">
+                          <div className="grid-item-header-hp">
                             <h3 className="source-sans-semibold">
                               {getBookName(product).length > 27
                                 ? getBookName(product).slice(0, 27) + '...'
