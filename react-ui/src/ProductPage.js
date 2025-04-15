@@ -229,7 +229,7 @@ const ProductPage = () => {
         }
         
         localStorage.setItem('tempCart', JSON.stringify(tempCart));
-        showNotification("Product added to temporary cart!", "success");
+        showNotification("Added to cart successfully!", "success");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
