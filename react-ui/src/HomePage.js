@@ -41,10 +41,14 @@ const HomePage = () => {
   // Pagination state
   const [newArrivalsPage, setNewArrivalsPage] = useState(0);
   const [bestSellersPage, setBestSellersPage] = useState(0);
+  const [categoryScrollPosition, setCategoryScrollPosition] = useState(0);
+  const categoryScrollAmount = 800; // Amount to scroll in pixels per click
   const productsPerPage = 5;
+ 
   
   const extendedBanners = [banners[banners.length - 1], ...banners, banners[0]];
   
+
   // Fetch new arrivals (last 20 products)
   useEffect(() => {
     const fetchNewArrivals = async () => {
@@ -440,6 +444,28 @@ const HomePage = () => {
       setTimeout(() => setIsTransitioning(false), 500);
     }
   }, [bannerIndex, extendedBanners.length, banners.length]);
+
+  
+
+  // Add these scrolling functions for categories section
+  const scrollCategoriesRight = () => {
+    // Get the category wrapper element
+    const categoryWrapper = document.querySelector('.category-wrapper');
+    if (!categoryWrapper) return;
+    
+    // Calculate max scroll based on content width minus visible width
+    const maxScroll = categoryWrapper.scrollWidth - categoryWrapper.offsetWidth;
+    
+    // Calculate new position and ensure it doesn't exceed boundaries
+    const newPosition = Math.min(categoryScrollPosition + categoryScrollAmount, maxScroll);
+    setCategoryScrollPosition(newPosition);
+  };
+
+  const scrollCategoriesLeft = () => {
+    // Calculate new position and ensure it doesn't go negative
+    const newPosition = Math.max(categoryScrollPosition - categoryScrollAmount, 0);
+    setCategoryScrollPosition(newPosition);
+  };
   
   // Publishers array
   const publishers = [
@@ -570,19 +596,33 @@ const HomePage = () => {
         <div className="category-container">
           <h2 className="source-sans-bold">Discover Categories</h2>
           <div className="category-slider">
-            <div className="category-wrapper">
+            <div 
+              className="category-wrapper" 
+              style={{
+                transform: `translateX(-${categoryScrollPosition}px)`,
+                transition: "transform 0.5s ease-in-out",
+              }}
+            >
               {categories.map((category, index) => (
                 <div
                   key={index}
                   className="category-item source-sans-regular"
-                  onClick={() => navigate('/category')}
+                  onClick={() => navigate('/category', { state: { selectedCategory: category.name } })}
                   style={{ cursor: "pointer" }}
                 >
                   <span style={{ marginLeft: "8px" }}>{category.name}</span>
                 </div>
               ))}
             </div>
+            
+            
           </div>
+          <button className="prev-button" onClick={scrollCategoriesLeft}>
+              <FiChevronLeft size={30} color="black" />
+            </button>
+            <button className="next-button" onClick={scrollCategoriesRight}>
+              <FiChevronRight size={30} color="black" />
+            </button>
         </div>
         <hr />
         
@@ -660,13 +700,14 @@ const HomePage = () => {
               ))}
             </div>
 
-            <button className="prev-button" onClick={prevBestSellersPage}>
+            
+          </div>
+          <button className="prev-button" onClick={prevBestSellersPage}>
               <FiChevronLeft size={30} color="black" />
             </button>
             <button className="next-button" onClick={nextBestSellersPage}>
               <FiChevronRight size={30} color="black" />
             </button>
-          </div>
         </div>
         <hr />
 

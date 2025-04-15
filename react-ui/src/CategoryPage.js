@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from "react-router-dom";
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import bookCover from './img/BookCover.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const CategoryPage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
+  const location = useLocation();
   
   console.log("Token from AuthContext:", token);
 
@@ -51,6 +52,33 @@ const CategoryPage = () => {
   // Price range state
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
   const [customPriceRange, setCustomPriceRange] = useState({ min: 0, max: 100 });
+
+  // Handle incoming category selection from HomePage
+  useEffect(() => {
+    if (location.state && location.state.selectedCategory) {
+      const selected = location.state.selectedCategory;
+      
+      // Set the active category
+      setActiveCategory(selected);
+      
+      // Open the categories dropdown
+      setDropdowns(prev => ({
+        ...prev,
+        categories: true
+      }));
+      
+      // Clear navigation state to prevent reapplying on page refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+  
+  // Add a separate useEffect that will trigger when activeCategory changes
+  useEffect(() => {
+    if (activeCategory) {
+      updateDisplayedProducts();
+    }
+  }, [activeCategory, allProducts]); // Include allProducts to ensure we have data
+  
 
   // Fetch products on component mount
   useEffect(() => {
