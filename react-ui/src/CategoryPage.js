@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import bookCover from './img/BookCover.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
@@ -688,6 +689,7 @@ const addToCart = async (event, book) => {
           {notification.message}
         </div>
       )}
+      <Footer />
     </div>
   );
 };

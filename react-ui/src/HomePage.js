@@ -9,6 +9,7 @@ import banner3 from "./img/HomePageBanner3.png";
 import bookCover from './img/BookCover.png';
 
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useAuth } from "./context/AuthContext";
 
@@ -699,6 +700,7 @@ const HomePage = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
