@@ -121,3 +121,18 @@ if __name__ == "__main__":
     print("Viewing order history...")
     orders = view_orders(customer_token)
     print("Order history:", orders)
+
+    # Step 8: Generate invoice and send email
+    print("Generating invoice and sending email...")
+    headers = {"Authorization": f"Bearer {customer_token}", **HEADERS}  
+    response = requests.post(f"{BASE_URL}/shopping/generate_invoice", headers=headers)
+
+    if response.status_code == 200:
+        print("Invoice generation successful:", response.json())
+    else:
+        try:
+            print("Invoice generation failed:", response.status_code, response.json())
+        except requests.exceptions.JSONDecodeError:
+            print("Invoice generation failed:", response.status_code, "(No JSON body returned)")
+
+

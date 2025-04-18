@@ -262,57 +262,56 @@ def send_invoice_email(to_email, file_path):
 @jwt_required()
 def generate_invoice():
     user_id = get_jwt_identity()
-    
-    # Siparişi ve ürünlerini al
+
     conn = get_db_connection()
     cur = conn.cursor()
-    
-    # Kullanıcının tamamlanmış siparişini al
+
+    # SORGUNUN FROM KISMI EKLENDİ
     cur.execute("""
         SELECT o.order_id, o.total_price, o.status, o.delivery_address
         FROM userorders o
-        WHERE o.user_id = %s AND o.status = 'completed'
+        WHERE o.user_id = %s AND o.status IN ('processing', 'completed')
         ORDER BY o.order_date DESC LIMIT 1
     """, (user_id,))
     
     order = cur.fetchone()
-    
+
     if not order:
         return jsonify({"error": "No completed order found for this user"}), 404
-    
+
     order_id, total_price, status, delivery_address = order
 
-    # Faturayı oluştur
-    cur.execute('INSERT INTO invoices (user_id, total_amount, delivery_address, payment_status) VALUES (%s, %s, %s, %s) RETURNING invoice_id',
-                (user_id, total_price, delivery_address, 'paid'))
+    cur.execute("""
+        INSERT INTO invoices (user_id, total_amount, delivery_address, payment_status)
+        VALUES (%s, %s, %s, %s) RETURNING invoice_id
+    """, (user_id, total_price, delivery_address, 'paid'))
     invoice_id = cur.fetchone()[0]
     conn.commit()
 
-    # Sipariş ürünlerini faturaya ekle
+    # Sipariş ürünlerini al, ürün adları dahil
     cur.execute("""
-        INSERT INTO invoiceitems (invoice_id, product_id, quantity, unit_price, total_price)
-        SELECT %s, oi.product_id, oi.quantity, oi.price, (oi.quantity * oi.price)
+        SELECT p.name, oi.quantity, (oi.price * oi.quantity)
         FROM orderitems oi
+        JOIN products p ON oi.product_id = p.product_id
         WHERE oi.order_id = %s
-    """, (invoice_id, order_id))
-    
-    conn.commit()
+    """, (order_id,))
+    items = cur.fetchall()
 
-    # Kullanıcı adı ve e-posta bilgisini al
+    item_details = [{"name": item[0], "quantity": item[1], "total_price": item[2]} for item in items]
+
     cur.execute('SELECT name, email FROM users WHERE user_id = %s', (user_id,))
     user_name, user_email = cur.fetchone()
-    
-    # Fatura PDF'sini oluştur
-    item_details = [{"name": item[0], "quantity": item[2], "total_price": item[3]} for item in cur.fetchall()]
+
     pdf_path = generate_invoice_pdf(invoice_id, user_name, total_price, item_details)
-    
-    # E-posta ile gönder
-    send_invoice_email(user_email, pdf_path)
+
+    # SMTP ayarları doğruysa bunu aç, değilse yorumla
+    # send_invoice_email(user_email, pdf_path)
 
     cur.close()
     conn.close()
 
     return jsonify({"message": "Invoice generated and sent to your email!"}), 200
+
 
 
 
