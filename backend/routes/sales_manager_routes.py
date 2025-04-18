@@ -16,7 +16,7 @@
 # Moreover, if the product was bought during a discount campaign and the customer chooses to return the product after the campaign ends, 
 # the refunded amount will be the same as the time of its purchase with the discount applied.
 
-# view pruudcts that are waiting for price update.\\
+# view products that are waiting for price update.\\
 import logging
 from flask import Blueprint, request, jsonify
 from db import get_db_connection

@@ -123,6 +123,11 @@ const Navbar = () => {
                 <Link to="/user">
                     <BsPersonCircle className="icon" />
                 </Link>
+
+                <Link to="/productmanager">
+                    <BsPersonCircle className="icon" />
+                </Link>
+
             </div>
         </header>
     );

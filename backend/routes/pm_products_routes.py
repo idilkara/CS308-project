@@ -14,7 +14,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
 
-
 # Create a new product - product manager does these
 
 import logging

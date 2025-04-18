@@ -1,14 +1,37 @@
 todo/ to test: 
 
-product manager: 
-approve of a comment to product
 
+**** PRIORITY FOR DEMO ****
+CHECKOUT FUNCTION  CHECK CREDIT CARD INFO 
+REVIEW-product manager match
+review remove
+*********************
 
 belli yerlerde pdf gonderme durumu var
 notification handling
 
-customer: -profile page
 view user info The customer should be able to view their name, email address, and delivery address on a profile page.
+the product manager shall view the invoices
+
+SALES MANAGER (IMPLEMENT): Additionally, they shall set a discount on the selected items. When the
+discount rate and the products are given, the system automatically sets the new price
+and notify the users, whose wish list includes the discounted product, about the
+discount. They shall also view all the invoices in a given date range, can print them or
+save them as PDF files. Last but not least, they shall calculate the revenue and
+loss/profit in between given dates and view a chart of it. For loss and profit calculations,
+the product cost can default to 50% of the sale price for convenience, or it can be
+specified by the product manager when adding the product.
+
+
+REFUND (TEST): A customer shall also be able to selectively return a product and ask for a refund. In
+such a case, the customer will select an already purchased product from his/her order
+history within 30 days of purchase, provided the product has been delivered. The sales
+manager will evaluate the refund request and upon receiving the product back to the
+store will authorize the refund. If a refund is approved, the product will be added back to
+stock, and the customer must be notified—ideally via email—of the approval and
+refunded amount. Moreover, if the product was bought during a discount campaign and
+the customer chooses to return the product after the campaign ends, the refunded
+amount will be the same as the time of its purchase with the discount applied. 
 
 
 $$$$$$$$$$$$$$$$
@@ -30,6 +53,12 @@ $$$$$$$$$$$$$$
 
 
 TESTED:
+
+customer: -profile page
+
+product manager: 
+approve of a comment to product
+
 
 sales manager:
 update price of a product

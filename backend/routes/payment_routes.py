@@ -15,13 +15,12 @@ import logging as log
 # A customer should enter his/her credit card information to purchase a product. 
 # Credit card verification and limit issues are out of scope of the project.
 
-## create a order , add the products in cart to the order and remove the products from the cart
-## stock should decrease after the order is created 
+# create a order, add the products in cart to the order and remove the products from the cart
+# stock should decrease after the order is created 
 # When the shopping is done, that product should be decreased from the stock and 
 
 
 payment_bp = Blueprint("payment", __name__)
-
 
 # buy everything in the cart
 # create order and remove the products from the cart
@@ -101,3 +100,5 @@ def create_order():
         conn.close()
 
     return jsonify({"message": "Order created successfully", "order_id": userorder_id}), 200
+
+

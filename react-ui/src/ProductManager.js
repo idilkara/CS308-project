@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 const ProductManager = () => {
 
     const { token } = useAuth();
+    console.log(token);
 
   // Add scroll fix
   useEffect(() => {

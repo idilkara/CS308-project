@@ -8,6 +8,8 @@ import logging
 
 shopping_bp = Blueprint("shopping", __name__)
 
+# SHOPPING CART FUNCTIONS 
+
 @shopping_bp.route("/view", methods=["GET"])
 @jwt_required()
 def view_cart():

@@ -7,11 +7,15 @@ products_bp = Blueprint("products", __name__)
 # and let users select and add the desired product/products 
 # to the shopping cart to purchase them.
 
+# [1]present a number of products in categories 
+
 import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
 
+
+# returns the list of products 
 @products_bp.route('/products', methods=['GET'])
 def get_products():
     logging.debug(f"Received {request.method} request at /products")
@@ -44,6 +48,7 @@ def get_products():
         for product in products
     ])
 
+# returns the list of products 
 @products_bp.route('/viewall', methods=['GET'])
 def get_all_products():
     logging.debug(f"Received {request.method} request at /viewall")
@@ -85,7 +90,7 @@ def get_all_products():
     ])
 
 
-# present products given categories
+# returns a dictionary of products given category ID
 @products_bp.route('/products/category/<int:category_id>', methods=['GET'])
 def get_products_by_category(category_id):
     
