@@ -29,7 +29,6 @@ payment_bp = Blueprint("payment", __name__)
 def create_order():
 
     user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
-
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -53,18 +52,21 @@ def create_order():
         if not cart_items:
             raise ValueError("Cart is empty")
 
+
+        #check if user have home address and payment method set
+
+        cur.execute("""
+            SELECT home_address, payment_method FROM users WHERE user_id = %s
+        """, (user_id,))
+        user_info = cur.fetchone()
+        if not user_info or not user_info[0] or not user_info[1]:
+            raise ValueError("User does not have a delibery address or payment method set")
+
         total_price = sum(item[2] * item[3] for item in cart_items)
 
         # Create user order
         cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING order_id", (user_id, total_price, delivery_address))
         userorder_id = cur.fetchone()[0]
-
-        #TODO handle error when users home adress is not registered
-        if delivery_address == "":
-
-            log.error("Delivery address cannot be empty")
-            return jsonify({"error": "Delivery address cannot be empty"}), 400
-
 
         # Add items to order and decrease stock quantity
         for item in cart_items:
