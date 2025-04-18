@@ -112,6 +112,7 @@ const ProductManager = () => {
       return { error: "An unexpected error occurred" };
     }
   };
+
   const addCategoryToProduct = async (token, productId, categoryId) => {
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -289,6 +290,70 @@ const deliverOrdersPM = async (token, orderItemId, newStatus) => {
     return { error: "An unexpected error occurred" };
   }
 };
+
+// REVIEW API CALLS 
+
+
+// React versions of the review management API calls
+
+// View unapproved reviews
+const viewUnapprovedReviews = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch("http://localhost/api/reviews/unapproved", {
+      method: "GET",
+      headers,
+    });
+
+    console.log("Unapproved reviews response:", response);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching unapproved reviews:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Approve a review
+const approveReview = async (token, reviewId) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch(`http://localhost/api/reviews/approve/${reviewId}`, {
+      method: "PUT",
+      headers,
+    });
+    return await response.json();
+    console.log("Review approved successfully:", result);
+  } catch (error) {
+    console.error("Error approving review:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Delete a review
+const deleteReview = async (token, reviewId) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch(`http://localhost/api/reviews/remove/${reviewId}`, {
+      method: "DELETE",
+      headers,
+    });
+    return await response.json();
+    console.log("Review deleted successfully:", result);
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
 
   // Load deliveries data when the "orders" section is active
   useEffect(() => {
