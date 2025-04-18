@@ -295,6 +295,31 @@ const deliverOrdersPM = async (token, orderItemId, newStatus) => {
 
 
 // React versions of the review management API calls
+const viewProductsPM = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch("http://localhost/api/pm_products/viewproducts", {
+      method: "GET",
+      headers,
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Products fetched successfully:", result);
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to fetch products:", errorData.error || "Unknown error");
+      return { error: errorData.error || "Failed to fetch products" };
+    }
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+viewProductsPM(token)
 
 // View unapproved reviews
 const viewUnapprovedReviews = async (token) => {
