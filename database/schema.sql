@@ -21,7 +21,7 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     home_address TEXT,
-    credit_card_info TEXT,
+    payment_method TEXT,
     role VARCHAR(50) CHECK (role IN ('customer', 'sales_manager', 'product_manager')) NOT NULL
 );
 

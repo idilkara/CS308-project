@@ -44,6 +44,56 @@ def user_info():
         return jsonify({"error": str(e)}), 400
 
 
+# get payment method
+@user_bp.route("/payment_method", methods=["GET"])
+@jwt_required()
+def get_payment_method():
+    try:
+        user_id = get_jwt_identity()
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute('SELECT payment_method FROM Users WHERE user_id = %s', (user_id,))
+        payment_method = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if payment_method is None:
+            return jsonify({"error": "Payment method not found"}), 404
+
+        return jsonify({"payment_method": payment_method[0]}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+# change payment method
+@user_bp.route("/change_payment_method", methods=["PUT"])
+@jwt_required() 
+def change_payment_method():
+    user_id = get_jwt_identity()
+    new_payment_method = request.json.get("new_payment_method")
+
+    if not new_payment_method:
+        return jsonify({"error": "New payment method is required"}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('UPDATE Users SET payment_method = %s WHERE user_id = %s', (new_payment_method, user_id))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 400
+    finally:
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    return jsonify({"message": "Payment method updated successfully!"}), 200
+
+
 
 # Edit user home address
 @user_bp.route("/edit_address", methods=["PUT"])
