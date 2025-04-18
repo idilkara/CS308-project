@@ -179,3 +179,27 @@ CREATE TABLE notifications (
     read BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
+
+CREATE TABLE invoices (
+    invoice_id SERIAL PRIMARY KEY,
+    user_id INT,
+    total_amount DECIMAL(10,2) NOT NULL,
+    invoice_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_status VARCHAR(50) CHECK (payment_status IN ('paid', 'unpaid')) DEFAULT 'paid',
+    status VARCHAR(50) CHECK (status IN ('processing', 'completed', 'cancelled')) DEFAULT 'processing',
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE invoiceitems (
+    invoiceitem_id SERIAL PRIMARY KEY,
+    invoice_id INT,
+    product_id INT,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+
