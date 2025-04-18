@@ -1,28 +1,33 @@
-todo/ to test: 
 
 
-**** PRIORITY FOR DEMO ****
-CHECKOUT FUNCTION  CHECK CREDIT CARD INFO 
-REVIEW-product manager match
-review remove
-*********************
+## PRIORITY FOR DEMO 
+[ ]   CHECKOUT FUNCTION  CHECK CREDIT CARD INFO 
+[ ]   REVIEW: product manager match
+[ ]   REVIEW: remove function
 
-belli yerlerde pdf gonderme durumu var
-notification handling
+## TO DO (NOT PROGRESS DEMO):
 
-view user info The customer should be able to view their name, email address, and delivery address on a profile page.
-the product manager shall view the invoices
+[ ] Notifications
+[ ] Send PDF
+[ ] Product manager shall view invoices
+[ ] Sales Manager sets discount
+[ ] Discount notification to user
+[ ] Sales manager view invoice pdf
+[ ] Sales manager calculate revenue and loss/profit in between given dates and view a chart of it. (For loss and profit calculations,the product cost can default to 50% of the sale price for convenience)
+[ ] Loss 
 
-SALES MANAGER (IMPLEMENT): Additionally, they shall set a discount on the selected items. When the
-discount rate and the products are given, the system automatically sets the new price
-and notify the users, whose wish list includes the discounted product, about the
-discount. They shall also view all the invoices in a given date range, can print them or
-save them as PDF files. Last but not least, they shall calculate the revenue and
-loss/profit in between given dates and view a chart of it. For loss and profit calculations,
-the product cost can default to 50% of the sale price for convenience, or it can be
-specified by the product manager when adding the product.
+### TEST & DEBUG: 
+
+[ ] refund routes (see notes from pdf)
+    customer:
+        request refund by order id and product id
+
+    sales manager:
+        accept refund
+        reject refund
 
 
+## ADITIONAL NOETS FROM THE PDF
 REFUND (TEST): A customer shall also be able to selectively return a product and ask for a refund. In
 such a case, the customer will select an already purchased product from his/her order
 history within 30 days of purchase, provided the product has been delivered. The sales
@@ -34,31 +39,15 @@ the customer chooses to return the product after the campaign ends, the refunded
 amount will be the same as the time of its purchase with the discount applied. 
 
 
-$$$$$$$$$$$$$$$$
+## TESTED - DONE:
 
-## BUG 
-customer: - TO TEST
 comment to a product
 rate a product
-
-customer:
-request refund by order id and product id
-
-sales manager:
-accept refund
-reject refund
-
-
-$$$$$$$$$$$$$$
-
-
-TESTED:
 
 customer: -profile page
 
 product manager: 
 approve of a comment to product
-
 
 sales manager:
 update price of a product
