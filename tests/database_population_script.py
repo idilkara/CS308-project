@@ -8,7 +8,16 @@ from product_test import create_product, update_price, addcategory_to_product
 
 from api_test_reviews import add_review, get_reviews , approve_review
 
-
+def view_products(token):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    response = requests.get(f"{BASEURL}/pm_products/viewproducts", headers=headers)
+    try:
+        return response.json()
+    except Exception:
+        return {"error": "Invalid response", "status_code": response.status_code}
 
 # 1- customer
 # 2- product manager
@@ -72,6 +81,8 @@ prices = [100, 200, 150, 180, 120, 160, 250, 220, 190, 130, 140, 260, 270, 210, 
 
 for i, product in enumerate(created_products):
     update_price(sm_token, product.get("product_id"), prices[i])
+
+print(view_products(pm_token))
 
 
 ## add categories

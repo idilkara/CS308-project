@@ -328,7 +328,7 @@ const approveReview = async (token, reviewId) => {
       headers,
     });
     return await response.json();
-    console.log("Review approved successfully:", result);
+
   } catch (error) {
     console.error("Error approving review:", error);
     return { error: "An unexpected error occurred" };
@@ -347,7 +347,7 @@ const deleteReview = async (token, reviewId) => {
       headers,
     });
     return await response.json();
-    console.log("Review deleted successfully:", result);
+   
   } catch (error) {
     console.error("Error deleting review:", error);
     return { error: "An unexpected error occurred" };
