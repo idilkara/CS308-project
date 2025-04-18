@@ -10,11 +10,13 @@ const Navbar = () => {
     const [allProducts, setAllProducts] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                //const res = await fetch("http://backend/api/categories/categories");
+    const [categories, setCategories] = useState([]);
+    const [authors, setAuthors] = useState([]);
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+ 
                 const res = await fetch("http://localhost/api/categories/categories", {
                     method: "GET",
                     headers: {
@@ -24,15 +26,37 @@ const Navbar = () => {
                 console.log("Raw response:", res);
                 const data = await res.json();
                 console.log("Fetched categories:", data);
-                setAllProducts(data);
+                setCategories(data);
             } catch (err) {
                 console.error("Failed to fetch products for search", err);
             }
         };
 
-        fetchProducts();
+        fetchCategories();
     }, []);
 
+
+    useEffect(() => {
+        const fetchAuthors = async () => {
+            try {
+ 
+                const res = await fetch("http://localhost/api/authors/authors", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                console.log("Raw response:", res);
+                const data = await res.json();
+                console.log("Fetched authors:", data);
+                setAuthors(data);
+            } catch (err) {
+                console.error("Failed to fetch products for search", err);
+            }
+        };
+
+        fetchAuthors();
+    }, []);
     //TODO add authors fetching
 
     return (
@@ -50,11 +74,13 @@ const Navbar = () => {
                 >
                     <Link to="/Categories" className="dropdown-trigger">Categories ▾</Link>
                     <div className={`dropdown-menu ${isCategoriesOpen ? 'show' : ''}`}>
-                        <a href="#">All Categories</a>
-                        <a href="#">Sci-fi</a>
-                        <a href="#">Fantasy</a>
-                        <a href="#">Crime</a>
-                        <a href="#">Magical Realism</a>
+
+                        {categories.map((category, index) => (
+                            <Link to ={`/home`} className="dropdown-item">
+                                {category.name}
+                            </Link>
+                        ))}
+
                     </div>
                 </div>
 
@@ -66,13 +92,11 @@ const Navbar = () => {
                 >
                     <Link to="/Authors" className="dropdown-trigger">Authors ▾</Link>
                     <div className={`dropdown-menu ${isAuthorsOpen ? 'show' : ''}`}>
-                        <a href="#">All Authors</a>
-                        <a href="#">Haruki Murakami</a>
-                        <a href="#">Secil's Fav Author</a>
-                        <a href="#">Idil's Fav Author</a>
-                        <a href="#">Ursula K. Le Guin</a>
-                        <a href="#">Zeynep's Fav Author</a>
-                        <a href="#">Duygu's Fav Author</a>
+                        {authors.map((author, index) => (
+                            <Link to={`/home`} className="dropdown-item" key={index}>
+                                {author.author}
+                            </Link>
+                        ))}
                     </div>
                 </div>
 
