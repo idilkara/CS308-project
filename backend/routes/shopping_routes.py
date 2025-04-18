@@ -61,13 +61,15 @@ logger = logging.getLogger(__name__)
 @shopping_bp.route("/add", methods=["POST"])
 @jwt_required()
 def add_to_cart():
+    logger.debug("Received request to add product to cart.")
     data = request.json
     user_id = get_jwt_identity()  # Ensure this returns the user_id as a string
     product_id = data["product_id"]
     quantity = data["quantity"]
 
     logger.debug(f"Received request to add product {product_id} with quantity {quantity} to user {user_id}'s cart.")
-    
+    logger.debug(f"User ID: {user_id}, Product ID: {product_id}, Quantity: {quantity}")
+
     conn = get_db_connection()
     cur = conn.cursor()
 

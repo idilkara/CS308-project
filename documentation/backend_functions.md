@@ -2,8 +2,6 @@
 
 ## PRIORITY FOR DEMO 
 [ ]   CHECKOUT FUNCTION  CHECK CREDIT CARD INFO 
-[ ]   REVIEW: product manager match
-[ ]   REVIEW: remove function
 
 ## TO DO (NOT PROGRESS DEMO):
 
@@ -80,3 +78,5 @@ present products given categories
 present product information given product id
 present categories
 
+REVIEW: product manager match
+REVIEW: remove function

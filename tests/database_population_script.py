@@ -6,9 +6,8 @@ from auth_test import login, register_user
 
 from product_test import create_product, update_price, addcategory_to_product
 
+from api_test_reviews import add_review, get_reviews , approve_review
 
-# register users
-# 
 
 
 # 1- customer

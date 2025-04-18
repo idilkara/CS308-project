@@ -1,5 +1,8 @@
 import requests
 import json
+from shopping_test import add_to_cart, create_order
+from order_test import deliver_orders_pm
+
 
 BASE_URL = "http://localhost:5001"
 HEADERS = {"Content-Type": "application/json"}
@@ -15,9 +18,22 @@ def add_review(token, product_id, rating, comment):
     response = requests.post(f"{BASE_URL}/reviews/add", json=data, headers=headers)
     return response.json()
 
+
+def view_unapproved_reviews(token):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.get(f"{BASE_URL}/reviews/unapproved", headers=headers)
+    print("Unapproved reviews response:", response.status_code)
+    return response.json()
+
+
 def approve_review(token, review_id):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     response = requests.put(f"{BASE_URL}/reviews/approve/{review_id}", headers=headers)
+    return response.json()
+
+def delete_review(token, review_id):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.delete(f"{BASE_URL}/reviews/remove/{review_id}", headers=headers)
     return response.json()
 
 def get_reviews(product_id):
@@ -37,8 +53,15 @@ if __name__ == "__main__":
 
     print("Users logged in successfully.")
 
-    product_id = 15
+    product_id = 1
 
+    # ADD TO CART , PURCHASE IT 
+    addResponse = add_to_cart(cm_token, product_id, 1)
+    print("Add to cart response:", addResponse)
+    order_resp = create_order(cm_token)
+    print("Order response:", order_resp)
+
+    update_response = deliver_orders_pm(pm_token, 1, "delivered")
     print(f"Submitting review for product {product_id}...")
     review_resp = add_review(cm_token, product_id, rating=4, comment="Product arrived on time and was high quality.")
     print("Review response:", review_resp)
@@ -48,6 +71,12 @@ if __name__ == "__main__":
         print("Review was not created. Ensure the product was delivered before submitting a review.")
         exit()
 
+    print("Fetching unapproved reviews...")
+    unapproved_reviews = view_unapproved_reviews(pm_token)
+    print("Unapproved reviews:")
+
+    print(unapproved_reviews)
+
     print("Approving review as product manager...")
     approval = approve_review(pm_token, review_id)
     print("Approval response:", approval)
@@ -56,6 +85,16 @@ if __name__ == "__main__":
     reviews = get_reviews(product_id)
     print("Approved reviews:")
     print(json.dumps(reviews, indent=2))
+
+    # 
+    print("Deleting review...")
+    delete_response = delete_review(pm_token, review_id)
+    print("Delete response:", delete_response)
+    print("Fetching reviews after deletion...")
+    reviews_after_deletion = get_reviews(product_id)
+    print("Reviews after deletion:")
+    print(json.dumps(reviews_after_deletion, indent=2))
+    print("Test completed.")
 
 
 
