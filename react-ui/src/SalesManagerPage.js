@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './SalesManagerPage.css';
 import { useAuth } from './context/AuthContext';
+import Navbar from "./components/Navbar.jsx";
 import Chart from 'chart.js/auto';
 
 const SalesManager = () => {
@@ -466,6 +467,9 @@ const SalesManager = () => {
   };
 
   return (
+    <div>
+      <Navbar />
+   
     <div className="container sales-manager">
       <h1 className="source-sans-bold sm-section-title">Sales Manager</h1>
       
@@ -831,6 +835,7 @@ const SalesManager = () => {
         </div>
       )}
     </div>
+  </div>
   </div>
 );
 };
