@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 import logging as log
+from .invoices import generate_invoice_pdf, send_invoice_email, generate_invoice_pdf_asBytes
 
 #4. They, however, should login before placing an order and making a payment.
 #  Upon logging in, any products previously added to their cart should be retained.
@@ -64,6 +65,17 @@ def create_order():
 
         total_price = sum(item[2] * item[3] for item in cart_items)
 
+        # check if there are enpugh stock for the products in the cart
+        for item in cart_items:
+            product_id = item[0]
+            quantity = item[3]
+            cur.execute("SELECT stock_quantity FROM products WHERE product_id = %s", (product_id,))
+            stock_quantity = cur.fetchone()[0]
+
+            if stock_quantity < quantity:
+                raise ValueError(f"Not enough stock for product {item[1]}")
+        
+        itemsAmountAndPrice = []
         # Create user order
         cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING order_id", (user_id, total_price, delivery_address))
         userorder_id = cur.fetchone()[0]
@@ -87,7 +99,22 @@ def create_order():
             new_stock_quantity = stock_quantity - quantity
             cur.execute("UPDATE products SET stock_quantity = %s WHERE product_id = %s", (new_stock_quantity, product_id))
             cur.execute("INSERT INTO orderitems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)", (userorder_id, product_id, quantity, price))
+            
+            cur.execute("SELECT name FROM products WHERE product_id = %s", (product_id,))
+            product_name = cur.fetchone()[0]
+            itemAmountAndPrice = {"productName": product_name , "quantity": quantity, "UnitPrice": price}
+            itemsAmountAndPrice.append(itemAmountAndPrice)
 
+        # create payment
+        cur.execute("""
+            INSERT INTO payments (user_id, userorder_id, amount, payment_date)
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP) RETURNING payment_id
+        """, (user_id, userorder_id, total_price))
+        payment_id = cur.fetchone()[0]
+
+
+        # Generate invoices and invoice pdfs
+        invoice_id = generate_invoices(userorder_id, payment_id)
         # Empty the shopping cart
         cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = (SELECT cart_id FROM shoppingcart WHERE user_id = %s)", (user_id,))
 
@@ -101,6 +128,178 @@ def create_order():
         cur.close()
         conn.close()
 
-    return jsonify({"message": "Order created successfully", "order_id": userorder_id}), 200
+    return jsonify({"message": "Order created successfully", "invoice_id": invoice_id, "order_id": userorder_id}), 200
+
+
+
+def generate_invoices(orderID, paymentID):
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # get userID and total price and the delivery address and order date 
+    cur.execute("""
+        SELECT u.user_id, u.home_address, o.total_price, o.order_date, u.name
+        FROM userorders o
+        JOIN users u ON o.user_id = u.user_id
+        WHERE o.order_id = %s
+    """, (orderID,))
+    order = cur.fetchone()
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+    customerID = order[0]
+    delivery_address = order[1]
+    total_price = order[2]
+    order_date = order[3]
+    customer_name = order[4]
+    
+
+    # get the order items 
+    cur.execute("""
+        SELECT oi.product_id, oi.quantity, oi.price, p.name
+        FROM orderitems oi
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE oi.order_id = %s
+    """, (orderID,))
+    order_items = cur.fetchall() #type list of tuples 
+
+    if not order_items:
+        return jsonify({"error": "No items found for this order"}), 404
+    
+    cur.execute("""
+        INSERT INTO invoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
+        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
+    """, (order[0], orderID, paymentID, order[2], order[1], 'paid'))
+    invoice_id = cur.fetchone()[0]
+    log.info(f"Invoice created with ID: {invoice_id}")
+    USERINVOIDCEID = invoice_id
+    
+
+    conn.commit()
+
+    # for each item in order_items, get the product name and quantity and price
+    items = []
+    setOfProductOwners = set()
+    setOfSalesManagers = set()
+
+    for item in order_items:
+        items.append({
+            "product_id": item[0],
+            "quantity": item[1],
+            "price": item[2],
+            "name": item[3]
+        })
+
+        product_id = item[0]
+        cur.execute("""
+            SELECT product_manager FROM products WHERE product_id = %s
+        """, (product_id,))
+        product_owner = cur.fetchone()[0]
+        setOfProductOwners.add(product_owner)
+
+        cur.execute("""
+            SELECT sales_manager FROM products WHERE product_id = %s
+        """, (product_id,))
+        sales_manager = cur.fetchone()[0]
+        setOfSalesManagers.add(sales_manager)
+
+
+    # generate the invoice pdf FOR USER
+    log.info(f"generating invoice: {invoice_id}")
+    pdf_asBytes = generate_invoice_pdf_asBytes(invoice_id, customer_name, delivery_address, items)
+    log.info(f"invoice generated: {invoice_id}")
+
+    cur.execute("""
+        UPDATE invoices SET pdf_file = %s WHERE invoice_id = %s
+    """, (pdf_asBytes, invoice_id))
+    conn.commit()
+
+    for product_owner in setOfProductOwners:
+        items = []
+        # get the order items
+        cur.execute("""
+            SELECT oi.product_id, oi.quantity, oi.price, p.name
+            FROM orderitems oi
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = %s AND p.product_manager = %s
+        """, (orderID, product_owner))
+        order_items = cur.fetchall()
+        if not order_items:
+            continue
+        for item in order_items:
+            items.append({
+                "product_id": item[0],
+                "quantity": item[1],
+                "price": item[2],
+                "name": item[3]
+            })
+
+        total_price = sum(item[2] * item[1] for item in order_items)
+        
+        # insert the invoice for the product owner
+        cur.execute("""
+            INSERT INTO managerinvoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
+            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
+        """, (product_owner, orderID, paymentID, total_price,delivery_address, 'paid'))
+
+        invoice_id = cur.fetchone()[0]
+        log.info(f"Invoice created with ID: {invoice_id}")
+        conn.commit()
+
+        # generate the invoice pdf FOR PRODUCT OWNER
+        pdf_asBytes = generate_invoice_pdf_asBytes(invoice_id, customer_name, delivery_address, items)
+        log.info(f"invoice pdf generated: {invoice_id}")
+        cur.execute("""
+            UPDATE managerinvoices SET pdf_file = %s WHERE invoice_id = %s
+        """, (pdf_asBytes, invoice_id))
+        conn.commit()
+
+    for sales_manager in setOfSalesManagers:
+
+        items = []
+        # get the order items
+        cur.execute("""
+            SELECT oi.product_id, oi.quantity, oi.price, p.name
+            FROM orderitems oi
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = %s AND p.sales_manager = %s
+        """, (orderID, sales_manager))
+        order_items = cur.fetchall()
+        if not order_items:
+            continue
+        for item in order_items:
+            items.append({
+                "product_id": item[0],
+                "quantity": item[1],
+                "price": item[2],
+                "name": item[3]
+            })
+
+        total_price = sum(item[2] * item[1] for item in order_items)
+        log.info(f"total price: {order}")
+        # insert the invoice for the product owner
+        cur.execute("""
+            INSERT INTO managerinvoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
+            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
+        """, (product_owner,orderID, paymentID, total_price,delivery_address, 'paid'))
+
+        invoice_id = cur.fetchone()[0]
+        log.info(f"invoice pdf generated: {invoice_id}")
+        conn.commit()
+
+        # generate the invoice pdf For SalesManager
+        pdf_asBytes = generate_invoice_pdf_asBytes(invoice_id, customer_name, delivery_address, items)
+        cur.execute("""
+            UPDATE managerinvoices SET pdf_file = %s WHERE invoice_id = %s
+        """, (pdf_asBytes, invoice_id))
+        conn.commit()
+
+
+    return USERINVOIDCEID
+
+
+
+
+    
 
 

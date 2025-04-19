@@ -184,13 +184,36 @@ CREATE TABLE notifications (
 
 CREATE TABLE invoices (
     invoice_id SERIAL PRIMARY KEY,
+    payment_id INT,
     user_id INT,
-    total_amount DECIMAL(10,2) NOT NULL,
+    order_id INT,
+    total_price DECIMAL(10,2) NOT NULL,
     invoice_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     delivery_address TEXT,
     payment_status VARCHAR(50) CHECK (payment_status IN ('paid', 'unpaid')) DEFAULT 'paid',
-    status VARCHAR(50) CHECK (status IN ('processing', 'completed', 'cancelled')) DEFAULT 'processing',
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    -- status VARCHAR(50) CHECK (status IN ('processing', 'completed', 'cancelled')) DEFAULT 'processing',
+    pdf_file BYTEA,  -- This stores the binary PDF data
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (order_id) REFERENCES userorders(order_id),
+    FOREIGN KEY (payment_id) REFERENCES payments(payment_id)
+);
+
+CREATE TABLE managerinvoices (
+    invoice_id SERIAL PRIMARY KEY,
+    manager_id INT,
+    payment_id INT,
+    user_id INT,
+    order_id INT,
+    total_price DECIMAL(10,2) NOT NULL,
+    invoice_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    delivery_address TEXT,
+    payment_status VARCHAR(50) CHECK (payment_status IN ('paid', 'unpaid')) DEFAULT 'paid',
+    -- status VARCHAR(50) CHECK (status IN ('processing', 'completed', 'cancelled')) DEFAULT 'processing',
+    pdf_file BYTEA,  -- This stores the binary PDF data
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (order_id) REFERENCES userorders(order_id),
+    FOREIGN KEY (payment_id) REFERENCES payments(payment_id),
+    FOREIGN KEY (manager_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE invoiceitems (

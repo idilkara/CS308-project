@@ -4,6 +4,7 @@ from config import BASEURL as BASE_URL, HEADERS
 import requests
 import json
 from auth_test import login 
+from shopping_test import create_order
 
 
 
@@ -64,12 +65,10 @@ if __name__ == "__main__":
     # Step 1: Login as a product manager and a customer
     pm_login = login("pm@example.com", "password")
     pm_token = pm_login.get("access_token")
-    idilToken = login("idil.kara@sabanciuniv.edu", "12312312")
 
     cm_login = login("customer@example.com", "password")
     cm_token = cm_login.get("access_token")
 
-    cm_token = idilToken.get("access_token")
     
     if not pm_token:
         print("Failed to log in as product manager")
@@ -83,24 +82,31 @@ if __name__ == "__main__":
     
     # Step 2: Customer places an order
     print("Customer is placing an order...")
-    headers = {"Authorization": f"Bearer {cm_token}", **HEADERS}
-    checkout_data = {
-        "delivery_address": "123 Main Street, Test City",
-        "items": [
-            {"product_id": 19, "quantity": 1},
-            {"product_id": 15, "quantity": 2}
-        ]
-    }
-    response = requests.post(f"{BASE_URL}/order/checkout", json=checkout_data, headers=headers)
-
-    if response.status_code == 201:
-        print("Order placed successfully:", response.json())
+    create_order_response = create_order(cm_token)
+    if create_order_response.get("error"):
+        print("Failed to create order:", create_order_response["error"])
+    
     else:
-        print("Failed to place order:", response.status_code)
-        try:
-            print("Error response:", response.json())
-        except ValueError:
-            print("Raw response:", response.text)
+        print("Order created successfully:", create_order_response)
+    # headers = {"Authorization": f"Bearer {cm_token}", **HEADERS}
+    # checkout_data = {
+    #     "delivery_address": "123 Main Street, Test City",
+    #     "items": [
+    #         {"product_id": 19, "quantity": 1},
+    #         {"product_id": 15, "quantity": 2}
+    #     ]
+    # }
+    # response = requests.post(f"{BASE_URL}/order/checkout", json=checkout_data, headers=headers)
+
+    # if response.status_code == 201:
+    #     print("Order placed successfully:", response.json())
+    # else:
+    #     print("Failed to place order:", response.status_code)
+    #     try:
+    #         print("Error response:", response.json())
+    #     except ValueError:
+    #         print("Raw response:", response.text)
+
 
 
     # Step 3: View all orders as product manager (delivery role)
@@ -131,8 +137,8 @@ if __name__ == "__main__":
     orderitem = view_orderitem(cm_token, 2)
     print("Order item:", orderitem)
 
-    print("generating invoice...")
-    invoice = generate_invoice(cm_token, 1)
-    print("Invoice:", invoice)
+    # print("generating invoice...")
+    # invoice = generate_invoice(cm_token, 1)
+    # print("Invoice:", invoice)
    
 
