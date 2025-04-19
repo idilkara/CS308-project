@@ -64,6 +64,12 @@ def create_order(token):
         print("cr order is a problem")
         return {"error": "Failed to create order", "status_code": response.status_code, "details": response.json()}
 
+def get_invoice(token, invoice_id):
+
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.get(f"{BASE_URL}/invoice/get_invoice_pdf/{invoice_id}", headers=headers)
+
+    return response
 
 def view_orders(token):
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
@@ -117,6 +123,15 @@ if __name__ == "__main__":
     print("Creating an order...")
     order = create_order(customer_token)
     print("Order created:", order)
+
+    def save_pdf(pdf_data, filename="invoice.pdf"):
+        with open(filename, "wb") as f:
+            f.write(pdf_data)
+        print(f"PDF saved as {filename}")
+
+    # Example usage:
+    pdf = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
+    save_pdf(pdf.content)
 
     # Step 7: View order history
     print("Viewing order history...")

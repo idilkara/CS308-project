@@ -17,6 +17,8 @@ from routes.pm_products_routes import pm_products_bp
 from routes.sales_manager_routes import sm_bp
 from routes.sm_orders_routes import sm_orders_bp
 
+from routes.invoice_routes import invoice_bp
+
 from routes.author_routes import authors_bp
 
 from routes.review_routes import review_bp  
@@ -43,6 +45,7 @@ app.register_blueprint(discount_bp, url_prefix="/discount")
 app.register_blueprint(categories_bp, url_prefix="/categories")
 app.register_blueprint(payment_bp, url_prefix="/payment")
 app.register_blueprint(order_bp, url_prefix="/order")
+app.register_blueprint(invoice_bp, url_prefix="/invoice")
 
 
 app.register_blueprint(company_bp, url_prefix="/company")

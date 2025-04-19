@@ -1,10 +1,11 @@
 
-from invoices import generate_invoice_pdf, send_invoice_email
+from .invoices import generate_invoice_pdf, send_invoice_email
 import logging
 from db import get_db_connection
-from payment_routes import payment_bp
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Response
 
 # Once payment is made and confirmed by the (mock-up) banking entity, 
 # an invoice must be shown on the screen and 
@@ -13,7 +14,46 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 # the product manager shall view the invoices, products to be delivered, and  the corresponding addresses for delivery
 # sales manager hey shall also view all the invoices in a given date range, can print them or save them as PDF files 
 
-@payment_bp.route("/generate_invoice", methods=["POST"])
+
+
+invoice_bp = Blueprint("invoice", __name__)
+@invoice_bp.route("/get_invoice_pdf/<invoiceID>", methods=["GET"])
+@jwt_required()
+def get_invoice_pdf(invoiceID):
+
+    user_id = get_jwt_identity()
+    logging.info(f"User ID: {user_id}")
+    logging.info(f"Invoice ID: {invoiceID}")
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT pdf_file 
+        FROM invoices
+        WHERE invoice_id = %s AND user_id = %s  
+    """, (invoiceID, user_id))
+
+    result = cur.fetchone()
+    logging.info(f"Fetched invoice data: {result}")
+    cur.close()
+    conn.close()
+
+    if result is None:
+        return {"message": "Invoice not found or not authorized"}, 404
+
+    pdf_data = result[0]
+
+    return Response(
+        pdf_data,
+        mimetype='application/pdf',
+        headers={
+            "Content-Disposition": f'inline; filename=invoice_{invoiceID}.pdf'
+        }
+    )
+
+
+
+@invoice_bp.route("/generate_invoice", methods=["POST"])
 @jwt_required()
 def generate_invoice():
     user_id = get_jwt_identity()
