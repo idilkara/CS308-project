@@ -4,6 +4,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(null); // Manage token state
+    const [role, setRole] = useState(null); // Manage role state
 
     // Debugging: Log when the token is set
     const debugSetToken = (newToken) => {
@@ -15,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     console.log("Current token in AuthContext:", token);
 
     return (
-        <AuthContext.Provider value={{ token, setToken: debugSetToken }}>
+        <AuthContext.Provider value={{ token, setToken: debugSetToken, role, setRole }}>
             {children}
         </AuthContext.Provider>
     );
@@ -28,3 +29,13 @@ export const useAuth = () => {
     }
     return context;
 };
+
+
+export const useSetRole = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useSetRole must be used within an AuthProvider");
+    }
+    return context.setRole;
+};
+

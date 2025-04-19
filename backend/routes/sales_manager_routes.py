@@ -16,7 +16,7 @@
 # Moreover, if the product was bought during a discount campaign and the customer chooses to return the product after the campaign ends, 
 # the refunded amount will be the same as the time of its purchase with the discount applied.
 
-# view pruudcts that are waiting for price update.\\
+# view products that are waiting for price update.\\
 import logging
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
@@ -25,6 +25,51 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 sm_bp = Blueprint("sm", __name__)
 
 
+
+# VIEW PM MANAGERS PRODUCTS 
+@sm_bp.route('/viewproducts', methods=['GET'])
+@jwt_required()
+def view_products():
+    userid = get_jwt_identity()
+
+    # Check role
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "sales_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    try:
+        cursor.execute("SELECT * FROM products WHERE sales_manager = %s", (userid,))
+        products = cursor.fetchall()
+
+        if not products:
+            return jsonify({"message": "No products found"}), 404
+
+        product_list = []
+        for product in products:
+            product_list.append({
+                "product_id": product[0],
+                "name": product[1],
+                "model": product[2],
+                "description": product[3],
+                "stock_quantity": product[4],
+                "distributor_information": product[5],
+                "product_manager": product[6],
+                "author": product[7]
+            })
+
+        return jsonify(product_list), 200
+
+    except Exception as e:
+        logger.exception("Unexpected error while fetching products")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 # View products that are waiting for price update
 # this one can view every waiting product

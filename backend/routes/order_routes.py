@@ -112,7 +112,6 @@ def view_orderitem(orderitem_id):
             "price": order_item[3],
             "order_id": order_item[4],
             "order_date": order_item[5],
-          
             "status": order_item[6]
         }
 

@@ -33,7 +33,7 @@ function App() {
         <Route path="/manager-login" element={<ManagerLoginPage />} />
         <Route path="/manager-register" element={<ManagerRegisterPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/sales-manager" element={<SalesManagerDashboard />} />
+        <Route path="/salesmanager" element={<SalesManagerDashboard />} />
         <Route path="/authors" element={<Authors />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/productmanager" element={<ProductManager />} />

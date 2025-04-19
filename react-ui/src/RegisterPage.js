@@ -8,29 +8,29 @@ const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [roleType, setRoleType] = useState("customers"); // Default to Sales Manager
 
     const handleRegister = async (e) => {
         e.preventDefault(); // Prevent page reload
 
         // Check if any field is empty
-        if (!name || !surname || !email || !password) {
+        if (!name  || !email || !password) {
             setErrorMessage("All fields are required.");
             return;
         }
 
         try {
             // TODO: Replace with actual API URL when backend is ready
-            const response = await fetch("http://backend/auth/register", {
+            const response = await fetch("http://localhost/api/auth/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name,
-                    surname,
-                    email,
-                    password,
-                    role: "customer"  // Correctly setting the role property here 
+                    name: name,
+                    email: email,
+                    password: password,
+                    role: roleType   // Correctly setting the role property here 
                 }),
             });
 
@@ -55,12 +55,34 @@ const Register = () => {
                     <h1 className="brand auth-brand">ODYSSEY</h1>
                     <h2 className="auth-title">Sign Up</h2>
 
+                    {/* Select Role */}
+                    <p className="auth-text">Select your role:</p>
+                    <div className="manager-toggle">
+                        <button
+                            className={`toggle-button ${roleType === "customer" ? "active" : ""}`}
+                            onClick={() => setRoleType("customer")}
+                        >
+                            Customer
+                        </button>
+                        <button
+                            className={`toggle-button ${roleType === "sales_manager" ? "active" : ""}`}
+                            onClick={() => setRoleType("sales_manager")}
+                        >
+                            Sales Manager
+                        </button>
+                        <button
+                            className={`toggle-button ${roleType === "product_manager" ? "active" : ""}`}
+                            onClick={() => setRoleType("product_manager")}
+                        >
+                            Product Manager
+                        </button>
+                    </div>
                     {/* Show error message if fields are empty */}
                     {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
                     <form className="auth-form" onSubmit={handleRegister}>
                         <input type="text" className="auth-input" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-                        <input type="text" className="auth-input" placeholder="Surname" value={surname} onChange={(e) => setSurname(e.target.value)} />
+                        {/* <input type="text" className="auth-input" placeholder="Surname" value={surname} onChange={(e) => setSurname(e.target.value)} /> */}
                         <input type="email" className="auth-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                         <input type="password" className="auth-input" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
                         <button type="submit" className="auth-button">Sign Up</button>
@@ -71,7 +93,7 @@ const Register = () => {
                     </Link>
                 </div>
             </div>
-            <Link to="/manager-login" className="auth-manager">Login or register as manager</Link>
+            {/* <Link to="/manager-login" className="auth-manager">Login or register as manager</Link> */}
         </div>
     );
 };

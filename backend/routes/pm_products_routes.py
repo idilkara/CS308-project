@@ -14,7 +14,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
 
-
 # Create a new product - product manager does these
 
 import logging
@@ -25,6 +24,51 @@ pm_products_bp = Blueprint("pm_products", __name__)
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# VIEW PM MANAGERS PRODUCTS 
+@pm_products_bp.route('/viewproducts', methods=['GET'])
+@jwt_required()
+def view_products():
+    userid = get_jwt_identity()
+
+    # Check role
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT role FROM users WHERE user_id = %s", (userid,))
+    role = cursor.fetchone()[0]
+    logger.debug("role: %s", role)
+    if (role != "product_manager"):
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    try:
+        cursor.execute("SELECT * FROM products WHERE product_manager = %s", (userid,))
+        products = cursor.fetchall()
+
+        if not products:
+            return jsonify({"message": "No products found"}), 404
+
+        product_list = []
+        for product in products:
+            product_list.append({
+                "product_id": product[0],
+                "name": product[1],
+                "model": product[2],
+                "description": product[3],
+                "stock_quantity": product[4],
+                "distributor_information": product[5],
+                "product_manager": product[6],
+                "author": product[7]
+            })
+
+        return jsonify(product_list), 200
+
+    except Exception as e:
+        logger.exception("Unexpected error while fetching products")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @pm_products_bp.route('/product/create', methods=['POST'])
 @jwt_required()

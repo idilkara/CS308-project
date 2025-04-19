@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from db import get_db_connection
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+
 # Blueprint oluştur
 discount_bp = Blueprint("discount", __name__)
 

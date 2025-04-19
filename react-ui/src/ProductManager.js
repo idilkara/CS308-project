@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
 import { useAuth } from './context/AuthContext';
+import Navbar from "./components/Navbar.jsx";
 
 const ProductManager = () => {
 
-    const { token } = useAuth();
+    const { token, role } = useAuth();
+    console.log(token);
+    console.log(role);
 
   // Add scroll fix
   useEffect(() => {
@@ -111,6 +114,7 @@ const ProductManager = () => {
       return { error: "An unexpected error occurred" };
     }
   };
+
   const addCategoryToProduct = async (token, productId, categoryId) => {
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -171,35 +175,6 @@ const ProductManager = () => {
     }
   };
   
-  const updatePrice = async (token, productId, price) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-  
-    const data = { price };
-  
-    try {
-      const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(data),
-      });
-  
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Price updated successfully:", result);
-        return result;
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to update price:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to update price" };
-      }
-    } catch (error) {
-      console.error("Error updating price:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
 
   const removeProduct = async (token, productId) => {
     const headers = {
@@ -288,6 +263,95 @@ const deliverOrdersPM = async (token, orderItemId, newStatus) => {
     return { error: "An unexpected error occurred" };
   }
 };
+
+// REVIEW API CALLS 
+
+
+// React versions of the review management API calls
+const viewProductsPM = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch("http://localhost/api/pm_products/viewproducts", {
+      method: "GET",
+      headers,
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Products fetched successfully:", result);
+      return result;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to fetch products:", errorData.error || "Unknown error");
+      return { error: errorData.error || "Failed to fetch products" };
+    }
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+viewProductsPM(token)
+
+// View unapproved reviews
+const viewUnapprovedReviews = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch("http://localhost/api/reviews/unapproved", {
+      method: "GET",
+      headers,
+    });
+
+    console.log("Unapproved reviews response:", response);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching unapproved reviews:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Approve a review
+const approveReview = async (token, reviewId) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch(`http://localhost/api/reviews/approve/${reviewId}`, {
+      method: "PUT",
+      headers,
+    });
+    return await response.json();
+
+  } catch (error) {
+    console.error("Error approving review:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+// Delete a review
+const deleteReview = async (token, reviewId) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch(`http://localhost/api/reviews/remove/${reviewId}`, {
+      method: "DELETE",
+      headers,
+    });
+    return await response.json();
+   
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
 
   // Load deliveries data when the "orders" section is active
   useEffect(() => {
@@ -705,6 +769,9 @@ const getFilteredAndSortedProducts = () => {
   };
 
   return (
+    <div>
+      <Navbar />
+   
     <div className="container product-manager">
       <h1 className="source-sans-bold pm-section-title">Product Manager</h1>
       
@@ -1315,6 +1382,7 @@ const getFilteredAndSortedProducts = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

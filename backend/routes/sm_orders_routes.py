@@ -5,7 +5,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 
 sm_orders_bp = Blueprint("sm_orders", __name__)
-# View all orders for product manager
+
+
+# View all orders for sales manager
 @sm_orders_bp.route("/view_orders", methods=["GET"])
 @jwt_required()
 def view_orders():
@@ -20,7 +22,7 @@ def view_orders():
         if user_role != "sales_manager":
             raise ValueError("Unauthorized access")
         
-        # Fetch all orders related to the product manager's products
+        # Fetch all orders related to the sales manager's products
         cur.execute("""
             SELECT u.userid, o.delivery_address , o.order_id, o.order_date, o.status, p.product_id, op.quantity, op.price, p.name, p.model
             FROM userorders o users u  products p orderitems op

@@ -8,12 +8,39 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
+
+
 const CategoryPage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const location = useLocation();
+
+  const searchQuery = location.state?.searchQuery || ""; // Retrieve searchQuery from state
+
+  const [searchKeyWord, setSearchKeyWord] = useState(''); 
   
-  console.log("Token from AuthContext:", token);
+      console.log("Token from AuthContext:", token);
+      useEffect(() => {
+        setSearchKeyWord(searchQuery);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        console.log("Search keyword updated:", searchKeyWord);
+
+        // Perform search or filter action here based on searchKeyWord
+          if (searchKeyWord) {
+            console.log("Filtering products with keyword:", searchKeyWord);
+            const filtered = allProducts.filter(product => {
+                const bookName = getBookName(product).toLowerCase();
+                return bookName.includes(searchKeyWord.toLowerCase());
+            });
+            setFilteredProducts(filtered);
+        } else {
+            // If no search keyword, reset to show all products
+            setFilteredProducts(allProducts);
+        }
+
+    }, [searchKeyWord]);
 
   // State for filter dropdowns
   const [dropdowns, setDropdowns] = useState({
@@ -98,12 +125,10 @@ const CategoryPage = () => {
         if (token) {
           fetchWishlist(token).then(wishlistData => {
             if (wishlistData && Array.isArray(wishlistData)) {
+              // Create a map using product_id as keys instead of array indices
               const wishlistMap = {};
-              data.forEach((product, index) => {
-                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-                if (isInWishlist) {
-                  wishlistMap[index] = true;
-                }
+              wishlistData.forEach(item => {
+                wishlistMap[item.product_id] = true;
               });
               setFavorites(wishlistMap);
             }
@@ -115,6 +140,39 @@ const CategoryPage = () => {
     };
     fetchProducts();
   }, [token]);
+
+
+  
+// Filter products whenever searchKeyWord or allProducts changes
+useEffect(() => {
+  if (searchKeyWord) {
+    console.log("Filtering products with keyword:", searchKeyWord);
+
+    const filtered = allProducts.filter(product => {
+      // Check all fields of the product and the categories array
+      return (
+        Object.values(product).some(value => {
+          if (typeof value === "string") {
+            return value.toLowerCase().includes(searchKeyWord.toLowerCase());
+          }
+          return false; // Skip non-string fields
+        }) ||
+        // Check if the searchKeyWord exists in the categories array
+        (Array.isArray(product.categories) &&
+          product.categories.some(category =>
+            category.toLowerCase().includes(searchKeyWord.toLowerCase())
+          ))
+      );
+    });
+
+    setFilteredProducts(filtered);
+  } else {
+    // If no search keyword, reset to show all products
+    setFilteredProducts(allProducts);
+  }
+}, [searchKeyWord, allProducts]); // Run whenever searchKeyWord or allProducts changes
+
+
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -409,22 +467,26 @@ const addToCart = async (event, book) => {
     setDropdowns({ ...dropdowns, [dropdown]: !dropdowns[dropdown] });
   };
 
-  // Toggle favorite status
-  const toggleFavorite = (index, productId) => {
-    if (favorites[index]) {
-      removeFromWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [index]: false });
-        }
-      });
-    } else {
-      addToWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [index]: true });
-        }
-      });
-    }
-  };
+// Toggle favorite status - update to use product ID as key
+const toggleFavorite = (productId) => {
+  if (favorites[productId]) {
+    removeFromWishlist(productId).then((result) => {
+      if (!result.error) {
+        // Use product ID as key instead of index
+        const updatedFavorites = { ...favorites };
+        delete updatedFavorites[productId];
+        setFavorites(updatedFavorites);
+      }
+    });
+  } else {
+    addToWishlist(productId).then((result) => {
+      if (!result.error) {
+        // Use product ID as key instead of index
+        setFavorites({ ...favorites, [productId]: true });
+      }
+    });
+  }
+};
 
   // Handle filter checkbox changes
   const handleFilterChange = (filterType, value, checked) => {
@@ -614,7 +676,27 @@ const addToCart = async (event, book) => {
 
         <div className="main-content">
           <div className="top-bar">
-            <div className="sort-filter">
+
+          {searchKeyWord !== "" && (
+            <div> 
+                <h3 className="source-sans-semibold">Showing products for your search: {searchKeyWord}</h3>
+            <h3
+              onClick={() => {
+                if (window.confirm("Are you sure you want to clear the search?")) {
+                  setFilters({ priceRange: [], author: [] });
+                  setActiveCategory('All');
+                  setCustomPriceRange({ min: 0, max: 100 });
+                  setSearchKeyWord('');
+                  setFilteredProducts(allProducts);
+                }
+              }}
+            >
+              Clear Search
+            </h3>
+            </div> 
+              )}
+
+          <div className="sort-filter">
               <select
                 className="source-sans-regular"
                 value={sortMethod}
@@ -634,10 +716,10 @@ const addToCart = async (event, book) => {
           <div className="content-wrapper">
             <div className="grid-container">
               {filteredProducts.length > 0 ? (
-                filteredProducts.map((book, index) => (
+                 filteredProducts.map((book, index) => (
                   <div
                     className="grid-item"
-                    key={index}
+                    key={book.product_id} // Use product_id as key for better stability
                     onClick={(e) => {
                       // Prevent navigation if clicking on buttons
                       if (e.target.closest('.item-actions')) {
@@ -650,23 +732,24 @@ const addToCart = async (event, book) => {
                   >
                     <div className="item-actions" onClick={(e) => e.stopPropagation()}>
                       <button
-                        className={`favorite-btn ${favorites[index] ? 'active' : ''}`}
+                        className={`favorite-btn ${favorites[book.product_id] ? 'active' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleFavorite(index, book.product_id);
+                          toggleFavorite(book.product_id);
                         }}
                       >
-                        {favorites[index] ? (
+                        {favorites[book.product_id] ? (
                           <span className="heart-filled">♥</span>
                         ) : (
                           <span className="heart-outline">♡</span>
                         )}
                       </button>
                       <button 
-                    className="cart-btn" 
-                    onClick={(e) => addToCart(e, book)}
-                  >
+                        className="cart-btn" 
+                        onClick={(e) => addToCart(e, book)}
+                      >
                         <span>🛒</span>
+               
                       </button>
                     </div>
                     <div className="grid-item-content">
@@ -701,6 +784,8 @@ const addToCart = async (event, book) => {
                       setFilters({priceRange: [], author: []});
                       setActiveCategory('All');
                       setCustomPriceRange({ min: 0, max: 100 });
+                      setSearchKeyWord(''); // Clear search keyword
+                      setFilteredProducts(allProducts); // Reset to show all products
                     }}
                     className="clear-filters-btn"
                   >

@@ -1,0 +1,149 @@
+classDiagram
+    class users {
+        +SERIAL user_id PK
+        +VARCHAR(255) name
+        +VARCHAR(255) email
+        +VARCHAR(255) password
+        +TEXT home_address
+        +VARCHAR(50) role
+    }
+    
+    class companies {
+        +SERIAL company_id PK
+        +VARCHAR(255) name
+        +TEXT address
+    }
+    
+    class companymanagers {
+        +SERIAL companymanager_id PK
+        +INT company_id
+        +INT user_id FK
+    }
+    
+    class products {
+        +SERIAL product_id PK
+        +VARCHAR(255) name
+        +VARCHAR(255) model
+        +TEXT description
+        +INT stock_quantity
+        +DECIMAL price
+        +VARCHAR(255) warranty_status
+        +TEXT distributor_information
+        +INT sales_manager FK
+        +INT product_manager FK
+        +TEXT author
+        +BOOLEAN waiting
+    }
+    
+    class categories {
+        +SERIAL category_id PK
+        +VARCHAR(255) name
+    }
+    
+    class productcategories {
+        +INT product_id PK, FK
+        +INT category_id PK, FK
+    }
+    
+    class shoppingcart {
+        +SERIAL cart_id PK
+        +INT user_id FK
+    }
+    
+    class shoppingcartproducts {
+        +INT cart_id PK, FK
+        +INT product_id PK, FK
+        +INT quantity
+    }
+    
+    class userorders {
+        +SERIAL order_id PK
+        +INT user_id FK
+        +TIMESTAMP order_date
+        +DECIMAL total_price
+        +TEXT delivery_address
+        +VARCHAR(50) status
+    }
+    
+    class orderitems {
+        +SERIAL orderitem_id PK
+        +INT order_id FK
+        +INT product_id FK
+        +INT quantity
+        +DECIMAL price
+        +VARCHAR(50) status
+    }
+    
+    class payments {
+        +SERIAL payment_id PK
+        +INT userorder_id FK
+        +INT user_id FK
+        +DECIMAL amount
+        +TIMESTAMP payment_date
+    }
+    
+    class reviews {
+        +SERIAL review_id PK
+        +INT user_id FK
+        +INT product_id FK
+        +INT rating
+        +TEXT comment
+        +BOOLEAN approved
+    }
+    
+    class wishlists {
+        +SERIAL wishlist_id PK
+        +INT user_id FK
+    }
+    
+    class wishlistproducts {
+        +INT wishlist_id PK, FK
+        +INT product_id PK, FK
+    }
+    
+    class discounts {
+        +SERIAL discount_id PK
+        +INT product_id FK
+        +DECIMAL discount_amount
+    }
+    
+    class refunds {
+        +SERIAL refund_id PK
+        +INT orderitem_id FK
+        +INT user_id FK
+        +INT product_id FK
+        +DECIMAL refund_amount
+        +VARCHAR(50) status
+        +TIMESTAMP request_date
+    }
+    
+    class notifications {
+        +SERIAL notification_id PK
+        +INT user_id FK
+        +TEXT message
+        +BOOLEAN read
+    }
+    
+    users "1" -- "0..*" companymanagers
+    companymanagers "0..*" -- "1" companies
+    products "0..*" -- "1" users : sales_manager
+    products "0..*" -- "1" users : product_manager
+    users "1" -- "1" shoppingcart
+    users "1" -- "0..*" userorders
+    shoppingcart "1" -- "0..*" shoppingcartproducts
+    products "1" -- "0..*" shoppingcartproducts
+    userorders "1" -- "0..*" orderitems
+    products "1" -- "0..*" orderitems
+    userorders "1" -- "0..*" payments
+    users "1" -- "0..*" payments
+    users "1" -- "0..*" reviews
+    products "1" -- "0..*" reviews
+    users "1" -- "1" wishlists
+    wishlists "1" -- "0..*" wishlistproducts
+    products "1" -- "0..*" wishlistproducts
+    products "1" -- "0..*" discounts
+    orderitems "1" -- "0..*" refunds
+    users "1" -- "0..*" refunds
+    users "1" -- "0..*" notifications
+    products "1" -- "0..*" productcategories
+    categories "1" -- "0..*" productcategories

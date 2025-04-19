@@ -17,6 +17,7 @@ from routes.pm_products_routes import pm_products_bp
 from routes.sales_manager_routes import sm_bp
 from routes.sm_orders_routes import sm_orders_bp
 
+from routes.author_routes import authors_bp
 
 from routes.review_routes import review_bp  
 
@@ -32,7 +33,7 @@ app.register_blueprint(user_bp, url_prefix="/users")
 app.register_blueprint(products_bp, url_prefix="/products")
 app.register_blueprint(auth_bp, url_prefix="/auth") 
 app.register_blueprint(review_bp, url_prefix="/reviews")
-
+app.register_blueprint(authors_bp, url_prefix="/authors")
 
 app.register_blueprint(shopping_bp, url_prefix="/shopping")
 app.register_blueprint(wishlist_bp, url_prefix="/wishlist")

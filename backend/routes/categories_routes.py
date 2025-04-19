@@ -1,8 +1,11 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
+# [1] present a number of products in categories 
+
 categories_bp = Blueprint("categories", __name__)
 
+# returns a list of categories
 @categories_bp.route("/categories", methods=["GET"])
 def get_categories():
     conn = get_db_connection()
@@ -21,7 +24,6 @@ def get_categories():
         """)
         categories = cursor.fetchall()
 
-
         return jsonify([
             {"category_id": category[0], "name": category[1]}
             for category in categories
@@ -34,7 +36,7 @@ def get_categories():
         conn.close()
 
 
-
+# adds a category to the database
 @categories_bp.route("/addcategory", methods=["POST"])
 def add_category():
 
@@ -56,6 +58,7 @@ def add_category():
             cursor.execute("INSERT INTO categories (name) VALUES (%s) RETURNING category_id", (category_name,))
             category_id = cursor.fetchone()[0]
             conn.commit()
+            
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500

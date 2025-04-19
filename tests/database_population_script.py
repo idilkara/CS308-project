@@ -6,10 +6,18 @@ from auth_test import login, register_user
 
 from product_test import create_product, update_price, addcategory_to_product
 
+from api_test_reviews import add_review, get_reviews , approve_review
 
-# register users
-# 
-
+def view_products(token):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    response = requests.get(f"{BASEURL}/pm_products/viewproducts", headers=headers)
+    try:
+        return response.json()
+    except Exception:
+        return {"error": "Invalid response", "status_code": response.status_code}
 
 # 1- customer
 # 2- product manager
@@ -41,7 +49,7 @@ products = [
     ("The Catcher in the Rye", "JD-001", "A novel about teenage rebellion.", 15, "Penguin Books", "J.D. Salinger", ["Classic", "Fiction"]),
     ("To Kill a Mockingbird", "TK-002", "A novel about racial injustice.", 20, "HarperCollins", "Harper Lee", ["Classic", "Drama"]),
     ("1984", "OR-003", "A dystopian novel about surveillance.", 25, "Secker & Warburg", "George Orwell", ["Dystopian", "Science Fiction"]),
-    ("Moby-Dick", "MD-004", "A novel about a man's obsession with a whale.", 30, "Harper & Brothers", "Herman Melville", ["Classic", "Adventure"]),
+    ("Moby-Dick", "MD-004", "A novel about a man's obsession with a whale.", 0, "Harper & Brothers", "Herman Melville", ["Classic", "Adventure"]),
     ("Pride and Prejudice", "PP-005", "A classic romance novel.", 18, "T. Egerton", "Jane Austen", ["Romance", "Classic"]),
     ("The Great Gatsby", "GG-006", "A novel about the American dream.", 22, "Scribner", "F. Scott Fitzgerald", ["Classic", "Drama"]),
     ("War and Peace", "WP-007", "A historical novel set in Russia.", 40, "The Russian Messenger", "Leo Tolstoy", ["Historical", "Classic"]),
@@ -73,6 +81,8 @@ prices = [100, 200, 150, 180, 120, 160, 250, 220, 190, 130, 140, 260, 270, 210, 
 
 for i, product in enumerate(created_products):
     update_price(sm_token, product.get("product_id"), prices[i])
+
+print(view_products(pm_token))
 
 
 ## add categories
