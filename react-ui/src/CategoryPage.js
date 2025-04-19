@@ -98,12 +98,10 @@ const CategoryPage = () => {
         if (token) {
           fetchWishlist(token).then(wishlistData => {
             if (wishlistData && Array.isArray(wishlistData)) {
+              // Create a map using product_id as keys instead of array indices
               const wishlistMap = {};
-              data.forEach((product, index) => {
-                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-                if (isInWishlist) {
-                  wishlistMap[index] = true;
-                }
+              wishlistData.forEach(item => {
+                wishlistMap[item.product_id] = true;
               });
               setFavorites(wishlistMap);
             }
@@ -409,22 +407,26 @@ const addToCart = async (event, book) => {
     setDropdowns({ ...dropdowns, [dropdown]: !dropdowns[dropdown] });
   };
 
-  // Toggle favorite status
-  const toggleFavorite = (index, productId) => {
-    if (favorites[index]) {
-      removeFromWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [index]: false });
-        }
-      });
-    } else {
-      addToWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [index]: true });
-        }
-      });
-    }
-  };
+// Toggle favorite status - update to use product ID as key
+const toggleFavorite = (productId) => {
+  if (favorites[productId]) {
+    removeFromWishlist(productId).then((result) => {
+      if (!result.error) {
+        // Use product ID as key instead of index
+        const updatedFavorites = { ...favorites };
+        delete updatedFavorites[productId];
+        setFavorites(updatedFavorites);
+      }
+    });
+  } else {
+    addToWishlist(productId).then((result) => {
+      if (!result.error) {
+        // Use product ID as key instead of index
+        setFavorites({ ...favorites, [productId]: true });
+      }
+    });
+  }
+};
 
   // Handle filter checkbox changes
   const handleFilterChange = (filterType, value, checked) => {
@@ -634,10 +636,10 @@ const addToCart = async (event, book) => {
           <div className="content-wrapper">
             <div className="grid-container">
               {filteredProducts.length > 0 ? (
-                filteredProducts.map((book, index) => (
+                 filteredProducts.map((book, index) => (
                   <div
                     className="grid-item"
-                    key={index}
+                    key={book.product_id} // Use product_id as key for better stability
                     onClick={(e) => {
                       // Prevent navigation if clicking on buttons
                       if (e.target.closest('.item-actions')) {
@@ -650,23 +652,24 @@ const addToCart = async (event, book) => {
                   >
                     <div className="item-actions" onClick={(e) => e.stopPropagation()}>
                       <button
-                        className={`favorite-btn ${favorites[index] ? 'active' : ''}`}
+                        className={`favorite-btn ${favorites[book.product_id] ? 'active' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleFavorite(index, book.product_id);
+                          toggleFavorite(book.product_id);
                         }}
                       >
-                        {favorites[index] ? (
+                        {favorites[book.product_id] ? (
                           <span className="heart-filled">♥</span>
                         ) : (
                           <span className="heart-outline">♡</span>
                         )}
                       </button>
                       <button 
-                    className="cart-btn" 
-                    onClick={(e) => addToCart(e, book)}
-                  >
+                        className="cart-btn" 
+                        onClick={(e) => addToCart(e, book)}
+                      >
                         <span>🛒</span>
+               
                       </button>
                     </div>
                     <div className="grid-item-content">
