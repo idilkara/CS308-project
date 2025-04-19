@@ -472,3 +472,31 @@ height: calc(100vh - 130px); /* Adjust based on navbar and top bar height */
     gap: 10px;
 }
 }
+
+/* Add this to your CategoryPage.css file */
+.grid-item.out-of-stock {
+    background-color: rgba(230, 230, 230, 0.7);
+    position: relative;
+  }
+  
+  .out-of-stock-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(128, 128, 128, 0.8);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 5;
+  }
+  
+  .grid-item.out-of-stock img {
+    opacity: 0.7;
+  }
+  
+  /* Disable cart button for out-of-stock items */
+  .grid-item.out-of-stock .cart-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
