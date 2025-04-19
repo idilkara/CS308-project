@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './SalesManagerPage.css';
 import { useAuth } from './context/AuthContext';
+import Navbar from "./components/Navbar.jsx";
 import Chart from 'chart.js/auto';
 
 const SalesManager = () => {
-  const { token } = useAuth();
+    const { token, role } = useAuth();
+    console.log(token);
+    console.log(role);
 
   // Fix scroll issues (same approach as ProductManager)
   useEffect(() => {
@@ -70,65 +73,94 @@ const SalesManager = () => {
   const [refundIsLoading, setRefundIsLoading] = useState(false);
 
   // API calls for pricing
-  const fetchNewProducts = async () => {
-    setPricingIsLoading(true);
-    try {
-      // Simulate API call
-      setTimeout(() => {
-        const sampleNewProducts = [
-          { id: 201, name: "New Novel", author: "J. Author", stock: 20, price: "", cost: "", status: "Pending" },
-          { id: 202, name: "Business Guide", author: "B. Writer", stock: 15, price: "", cost: "", status: "Pending" },
-          { id: 203, name: "Adventure Book", author: "A. Explorer", stock: 25, price: "", cost: "", status: "Pending" }
-        ];
-        setNewProducts(sampleNewProducts);
-        setPricingIsLoading(false);
-      }, 800);
+  const fetchNewProducts = async (token) => {
+   
+      try {
+          const response = await fetch("http://localhost/api/sm/waiting_products", {
+              method: "GET",
+              headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json"
+              }
+          });
+  
+          if (response.ok) {
+              try {
+                  const data = await response.json();
+                  console.log("Waiting products fetched successfully:", data);
+                  return data; // Return the waiting products
+              } catch (error) {
+                  console.error("Invalid JSON response:", error);
+                  return { error: "Invalid JSON response", status_code: response.status };
+              }
+          } else {
+              try {
+                  const errorData = await response.json();
+                  console.error("Failed to fetch waiting products:", errorData);
+                  return { error: "Failed to fetch waiting products", status_code: response.status, details: errorData };
+              } catch (error) {
+                  console.error("Failed to fetch waiting products:", error);
+                  return { error: "Failed to fetch waiting products", status_code: response.status, details: response.statusText };
+              }
+          }
+      } catch (error) {
+          console.error("Error fetching waiting products:", error);
+          return { error: "An unexpected error occurred", status_code: 500 };
+      }
+  
+  };
+
+  const updatePrice = async (token, productId, price) => {
+      try {
+        const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ price: price })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Price updated successfully:", data);
+            return data; // Return the response data
+        } else {
+            const errorData = await response.json();
+            console.error("Failed to update price:", errorData);
+            return { error: "Failed to update price", status_code: response.status };
+        }
     } catch (error) {
-      console.error("Error fetching new products:", error);
-      setPricingIsLoading(false);
+        console.error("Error updating price:", error);
+        return { error: "An unexpected error occurred", status_code: 500 };
     }
   };
 
-  const updatePrice = async (productId, price, cost) => {
+  const viewProductsSM = async (token) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
     try {
-      // Simulate API call
-      console.log(`Updating product ${productId} with price: ${price}, cost: ${cost}`);
-      
-      // Update local state
-      setNewProducts(prevProducts => 
-        prevProducts.map(product => 
-          product.id === productId 
-            ? {...product, price, cost, status: "Priced"} 
-            : product
-        )
-      );
-      
-      return { success: true };
+      const response = await fetch("http://localhost/api/sm/viewproducts", {
+        method: "GET",
+        headers,
+      });
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Products fetched successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to fetch products:", errorData.error || "Unknown error");
+        return { error: errorData.error || "Failed to fetch products" };
+      }
     } catch (error) {
-      console.error("Error updating price:", error);
+      console.error("Error fetching products:", error);
       return { error: "An unexpected error occurred" };
     }
   };
-
-  // API calls for discounts
-  const fetchAllProducts = async () => {
-    try {
-      // Simulate API call
-      setTimeout(() => {
-        const sampleProducts = [
-          { id: 101, name: "Fiction Novel", author: "John Author", price: 12.99, discounted: false },
-          { id: 102, name: "Non-Fiction Book", author: "Jane Writer", price: 14.99, discounted: false },
-          { id: 103, name: "Sci-Fi Novel", author: "Robert Pen", price: 11.99, discounted: false },
-          { id: 104, name: "Fantasy Book", author: "Sarah Storyteller", price: 16.99, discounted: false },
-          { id: 201, name: "New Novel", author: "J. Author", price: 13.99, discounted: false },
-          { id: 202, name: "Business Guide", author: "B. Writer", price: 19.99, discounted: false }
-        ];
-        setAllProducts(sampleProducts);
-      }, 800);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
+  viewProductsSM(token)
 
   const applyDiscount = async () => {
     if (!discountRate || !discountStartDate || !discountEndDate || selectedProducts.length === 0) {
@@ -137,7 +169,7 @@ const SalesManager = () => {
     }
     
     try {
-      // Simulate API call
+     
       console.log(`Applying ${discountRate}% discount to ${selectedProducts.length} products`);
       console.log(`From ${discountStartDate} to ${discountEndDate}`);
       
@@ -355,7 +387,7 @@ const SalesManager = () => {
         fetchNewProducts();
         break;
       case 'discounts':
-        fetchAllProducts();
+        viewProductsSM();
         break;
       case 'refunds':
         fetchRefundRequests();
@@ -435,6 +467,9 @@ const SalesManager = () => {
   };
 
   return (
+    <div>
+      <Navbar />
+   
     <div className="container sales-manager">
       <h1 className="source-sans-bold sm-section-title">Sales Manager</h1>
       
@@ -800,6 +835,7 @@ const SalesManager = () => {
         </div>
       )}
     </div>
+  </div>
   </div>
 );
 };

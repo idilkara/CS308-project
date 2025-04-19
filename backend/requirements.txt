@@ -4,3 +4,4 @@ pytest
 bcrypt
 flask_jwt_extended
 requests
+reportlab

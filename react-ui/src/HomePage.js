@@ -344,7 +344,7 @@ const HomePage = () => {
         
         localStorage.setItem('tempCart', JSON.stringify(tempCart));
         setNotification({
-          message: "Product added to temporary cart!",
+          message: "Added to cart successfully!",
           visible: true
         });
         setTimeout(() => {

@@ -2,13 +2,16 @@ import React, { useState ,useEffect  }  from 'react';
 import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
 import { useNavigate } from 'react-router-dom'; 
-import { useAuth } from "./context/AuthContext";
+import { useAuth, useSetRole } from "./context/AuthContext";
 
   const UserAccountPage = () => {
 
     const navigate = useNavigate(); // Initialize useNavigate
     const { token } = useAuth(); // Access the token from AuthContext
     console.log("Token from context:", token); // Log the token to check if it's being passed correctly
+    const setRole = useSetRole(); // This is the hook call
+   
+    
     
     const [userData, setUserData] = useState({ name: '', email: '', address: '' }); // address is primary
     const [formData, setFormData] = useState({
@@ -81,6 +84,7 @@ import { useAuth } from "./context/AuthContext";
             const data = await response.json();
             console.log("User data fetched successfully:", data);
 
+            setRole(data.role); // This is the actual role-setting
             setUserData({name: data.name, email: data.email, address: data.home_address});
 
             // get payment method
