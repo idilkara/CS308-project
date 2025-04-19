@@ -99,8 +99,10 @@ def create_product():
         categories = data.get('categories', [])
         author = data.get('author')
         
-        if not all([name, model, description, stock_quantity, distributor_information]):
+        required_fields = [name, model, description, distributor_information, author]
+        if any(field is None for field in required_fields) or stock_quantity is None:
             raise ValueError("Missing required fields")
+
         
         
         # Check user role
