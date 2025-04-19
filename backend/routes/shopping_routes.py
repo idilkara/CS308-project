@@ -1,7 +1,14 @@
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+import smtplib
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 from db import get_db_connection
 import logging
+import base64
 
 #login yapmadan shopping cart a ekleme ve sonra login ile shopping cart i saklama yapilcak 
 # -frontendde yapilsin bu login gerceklesince cart temizlenmesin
@@ -214,6 +221,7 @@ def clear_cart():
 
 
 
+### INVOICE FUNCTIONS
 # PDF Oluşturma Fonksiyonu
 def generate_invoice_pdf(invoice_id, user_name, total_amount, items):
     file_name = f"invoice_{invoice_id}.pdf"
@@ -265,7 +273,7 @@ def generate_invoice():
     cur.execute("""
         SELECT o.order_id, o.total_price, o.status, o.delivery_address
         FROM userorders o
-        WHERE o.user_id = %s AND o.status IN ('processing', 'completed')
+        WHERE o.user_id = %s AND o.status IN ('processing', 'delivered')
         ORDER BY o.order_date DESC LIMIT 1
     """, (user_id,))
     
@@ -298,12 +306,24 @@ def generate_invoice():
     user_name, user_email = cur.fetchone()
 
     pdf_path = generate_invoice_pdf(invoice_id, user_name, total_price, item_details)
+    print(f"PDF generated at: {pdf_path}")
 
     # SMTP ayarları doğruysa bunu aç, değilse yorumla
-    # send_invoice_email(user_email, pdf_path)
+    #send_invoice_email(user_email, pdf_path)
 
     cur.close()
     conn.close()
 
-    return jsonify({"message": "Invoice generated and sent to your email!"}), 200
+   
+
+    with open(pdf_path, "rb") as f:
+        encoded_pdf = base64.b64encode(f.read()).decode("utf-8")
+
+    return jsonify({
+        "message": "Invoice generated",
+        "invoice_id": invoice_id,
+        "pdf_base64": encoded_pdf
+    }), 200
+
+
 

@@ -187,6 +187,7 @@ CREATE TABLE invoices (
     user_id INT,
     total_amount DECIMAL(10,2) NOT NULL,
     invoice_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    delivery_address TEXT,
     payment_status VARCHAR(50) CHECK (payment_status IN ('paid', 'unpaid')) DEFAULT 'paid',
     status VARCHAR(50) CHECK (status IN ('processing', 'completed', 'cancelled')) DEFAULT 'processing',
     FOREIGN KEY (user_id) REFERENCES users(user_id)
