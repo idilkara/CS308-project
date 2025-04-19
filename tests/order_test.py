@@ -48,16 +48,29 @@ def view_orderitem (token, orderitem_id):
     if response.status_code == 200:
         return response.json()
     return {"error": "Failed to view orderitem", "status_code": response.status_code}
+
+def generate_invoice(token, orderitem_id):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.post(f"{BASE_URL}/shopping/generate_invoice", headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    return {"error": "Failed to generate invoice", "status_code": response.status_code}
+
+
     
 
 if __name__ == "__main__":
     # Step 1: Login as a product manager and a customer
     pm_login = login("pm@example.com", "password")
     pm_token = pm_login.get("access_token")
+    idilToken = login("idil.kara@sabanciuniv.edu", "12312312")
 
     cm_login = login("customer@example.com", "password")
     cm_token = cm_login.get("access_token")
 
+    cm_token = idilToken.get("access_token")
+    
     if not pm_token:
         print("Failed to log in as product manager")
         exit()
@@ -117,4 +130,9 @@ if __name__ == "__main__":
     print("Viewing order item #2 details...")
     orderitem = view_orderitem(cm_token, 2)
     print("Order item:", orderitem)
+
+    print("generating invoice...")
+    invoice = generate_invoice(cm_token, 1)
+    print("Invoice:", invoice)
+   
 
