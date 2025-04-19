@@ -1,10 +1,11 @@
 
 
 ## PRIORITY FOR DEMO 
-[ ]   CHECKOUT FUNCTION  CHECK CREDIT CARD INFO 
-[ ] INVOICE THINGS
+
+
 
 ## TO DO (NOT PROGRESS DEMO):
+[ ] INVOICE viewing pdf download etc
 
 [ ] Notifications
 
@@ -44,6 +45,7 @@ amount will be the same as the time of its purchase with the discount applied.
 
 
 ## TESTED - DONE:
+INVOICE THINGS
 
 comment to a product
 rate a product
