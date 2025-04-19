@@ -65,7 +65,15 @@ products = [
     ("Dracula", "D-017", "A gothic horror novel about a vampire.", 26, "Archibald Constable and Company", "Bram Stoker", ["Horror", "Gothic"]),
     ("Les Misérables", "LM-018", "A novel about redemption and revolution.", 45, "A. Lacroix, Verboeckhoven & Cie", "Victor Hugo", ["Classic", "Historical"]),
     ("The Divine Comedy", "DC-019", "A poetic journey through the afterlife.", 50, "Italy", "Dante Alighieri", ["Classic", "Philosophy"]),
-    ("Don Quixote", "DQ-020", "A satirical novel about chivalry.", 38, "Francisco de Robles", "Miguel de Cervantes", ["Classic", "Satire"]),
+    ("Don Quixote", "DQ-020", "A satirical novel about chivalry.", 0, "Francisco de Robles", "Miguel de Cervantes", ["Classic", "Satire"]),
+    ("The Brothers Karamazov", "BK-021", "A philosophical novel exploring faith, doubt, and morality.", 30, "The Russian Messenger", "Fyodor Dostoevsky", ["Classic", "Philosophical"]),
+    ("Notes from Underground", "NU-022", "An existential novella delving into the psyche of an isolated man.", 12, "The Russian Messenger", "Fyodor Dostoevsky", ["Classic", "Existential"]),
+    ("The Silmarillion", "TS-023", "A mythopoeic work detailing the lore of Middle-earth.", 20, "George Allen & Unwin", "J.R.R. Tolkien", ["Fantasy", "Mythology"]),
+    ("The House of the Spirits", "HS-024", "A multi-generational saga blending the personal and political.", 18, "Harper & Brothers", "Isabel Allende", ["Magical Realism", "Drama"]),
+    ("Klara and the Sun", "KS-025", "A story about an artificial friend who longs for love and purpose.", 22, "Scribner", "Kazuo Ishiguro", ["Science Fiction", "Philosophical"]),
+    ("The Remains of the Day", "RD-026", "A poignant tale of duty, regret, and lost time.", 20, "Scribner", "Kazuo Ishiguro", ["Historical", "Drama"]),
+    ("Norwegian Wood", "NW-027", "A nostalgic story of love and loss in 1960s Japan.", 25, "Ballantine Books", "Haruki Murakami", ["Romance", "Drama"]),
+    ("Kafka on the Shore", "KS-028", "A surreal journey through memory, fate, and identity.", 27, "Ballantine Books", "Haruki Murakami", ["Fantasy", "Philosophical"])
 ]
 
 # Create book products
@@ -77,7 +85,7 @@ for title, model, description, stock, distributor, author, categories in product
         addcategory_to_product(pm_token, product.get("product_id"), category)
         
 # # Set prices to books as a sales_manager
-prices = [100, 200, 150, 180, 120, 160, 250, 220, 190, 130, 140, 260, 270, 210, 230, 170, 175, 280, 300, 290]
+prices = [100, 200, 150, 180, 120, 160, 250, 220, 190, 130, 140, 260, 270, 210, 230, 170, 175, 280, 300, 290, 100,  100, 100, 100, 100, 100, 100, 100, 100, 100]
 
 for i, product in enumerate(created_products):
     update_price(sm_token, product.get("product_id"), prices[i])

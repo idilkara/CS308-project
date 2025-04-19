@@ -58,16 +58,22 @@ const HomePage = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        // Get the last 20 items
-        const lastTwenty = data.slice(Math.max(data.length - 20, 0));
-        setNewArrivals(lastTwenty);
+        
+        // Filter out out-of-stock items
+        const inStockItems = data.filter(item => item.stock_quantity && item.stock_quantity > 0);
+
+        // Get the last 20 items from the list
+        const newestTwenty = inStockItems.slice(-20);
+
+        setNewArrivals(newestTwenty);
+
         
         // Initialize favorites state based on wishlist if token exists
         if (token) {
           fetchWishlist(token).then(wishlistData => {
             if (wishlistData && Array.isArray(wishlistData)) {
               const wishlistMap = {};
-              lastTwenty.forEach((product, index) => {
+              newestTwenty.forEach((product, index) => {
                 const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
                 if (isInWishlist) {
                   wishlistMap[`new-${index}`] = true;
@@ -93,16 +99,24 @@ const HomePage = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        // Get the first 20 items
-        const firstTwenty = data.slice(0, 20);
-        setBestSellers(firstTwenty);
+        
+        // Filter out out-of-stock items
+        const inStockItems = data.filter(item => item.stock_quantity && item.stock_quantity > 0);
+        
+        // For best sellers, we would ideally sort by sales or popularity
+        // Since we don't have that data, we'll simulate it by taking the first 20 in-stock items
+        // In a real app, you'd want to add a sales_count or popularity field to sort by
+        
+        // Get the first 20 in-stock items
+        const topTwenty = inStockItems.slice(0, 20);
+        setBestSellers(topTwenty);
         
         // Initialize favorites state based on wishlist if token exists
         if (token) {
           fetchWishlist(token).then(wishlistData => {
             if (wishlistData && Array.isArray(wishlistData)) {
               const wishlistMap = {...favorites};
-              firstTwenty.forEach((product, index) => {
+              topTwenty.forEach((product, index) => {
                 const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
                 if (isInWishlist) {
                   wishlistMap[`best-${index}`] = true;
