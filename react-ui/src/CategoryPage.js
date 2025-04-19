@@ -108,19 +108,26 @@ const CategoryPage = () => {
   
 
   // Fetch products on component mount
+  // Update the fetch products useEffect to apply sorting when products are first loaded
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await fetch("http://localhost/api/products/viewall");
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
-
         }
         const data = await res.json();
         console.log("Fetched products:", data);
+        
+        // Store the raw data in allProducts
         setAllProducts(data);
-        setFilteredProducts(data);
-
+        
+        // Apply initial sorting to move out-of-stock items to the bottom
+        const sortedData = sortProducts(data, sortMethod);
+        
+        // Set initially sorted data for display
+        setFilteredProducts(sortedData);
+  
         // Initialize favorites state based on wishlist if token exists
         if (token) {
           fetchWishlist(token).then(wishlistData => {
@@ -139,40 +146,39 @@ const CategoryPage = () => {
       }
     };
     fetchProducts();
-  }, [token]);
-
-
+  }, [token, sortMethod]); // Add sortMethod as a dependency
   
-// Filter products whenever searchKeyWord or allProducts changes
-useEffect(() => {
-  if (searchKeyWord) {
-    console.log("Filtering products with keyword:", searchKeyWord);
-
-    const filtered = allProducts.filter(product => {
-      // Check all fields of the product and the categories array
-      return (
-        Object.values(product).some(value => {
-          if (typeof value === "string") {
-            return value.toLowerCase().includes(searchKeyWord.toLowerCase());
-          }
-          return false; // Skip non-string fields
-        }) ||
-        // Check if the searchKeyWord exists in the categories array
-        (Array.isArray(product.categories) &&
-          product.categories.some(category =>
-            category.toLowerCase().includes(searchKeyWord.toLowerCase())
-          ))
-      );
-    });
-
-    setFilteredProducts(filtered);
-  } else {
-    // If no search keyword, reset to show all products
-    setFilteredProducts(allProducts);
-  }
-}, [searchKeyWord, allProducts]); // Run whenever searchKeyWord or allProducts changes
-
-
+  // Modify the search effect to maintain sorting after filtering
+  useEffect(() => {
+    if (searchKeyWord) {
+      console.log("Filtering products with keyword:", searchKeyWord);
+  
+      const filtered = allProducts.filter(product => {
+        // Check all fields of the product and the categories array
+        return (
+          Object.values(product).some(value => {
+            if (typeof value === "string") {
+              return value.toLowerCase().includes(searchKeyWord.toLowerCase());
+            }
+            return false; // Skip non-string fields
+          }) ||
+          // Check if the searchKeyWord exists in the categories array
+          (Array.isArray(product.categories) &&
+            product.categories.some(category =>
+              category.toLowerCase().includes(searchKeyWord.toLowerCase())
+            ))
+        );
+      });
+  
+      // Apply sorting to maintain out-of-stock items at the bottom
+      const sortedFiltered = sortProducts(filtered, sortMethod);
+      setFilteredProducts(sortedFiltered);
+    } else {
+      // If no search keyword, reset to show all products (sorted)
+      const sortedAllProducts = sortProducts(allProducts, sortMethod);
+      setFilteredProducts(sortedAllProducts);
+    }
+  }, [searchKeyWord, allProducts, sortMethod]); 
 
   // Fetch categories on component mount
   useEffect(() => {
