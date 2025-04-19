@@ -118,6 +118,36 @@ const ProductManager = () => {
     }
   };
 
+  const updateStockQuantity = async (token, productId, stockQuantity) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const data = { stock_quantity: stockQuantity };
+
+    try {
+      const response = await fetch(`http://localhost/api/pm_products/product/update_stock_quantity/${productId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Stock updated successfully:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to update stock quantity:", errorData.error || "Unknown error");
+        return { error: errorData.error || "Failed to update stock quantity" };
+      }
+    } catch (error) {
+      console.error("Error updating stock quantity:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
   const addCategoryToProduct = async (token, productId, categoryId) => {
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -266,6 +296,7 @@ const ProductManager = () => {
       return { error: "An unexpected error occurred" };
     }
   };
+
   const deliverOrdersPM = async (token, orderItemId, newStatus) => {
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -324,11 +355,25 @@ const ProductManager = () => {
       return { error: "An unexpected error occurred" };
     }
   };
-// viewProductsPM(token)
 
   useEffect(() => {
     viewProductsPM(token);
   }, [token]);
+
+  const fetchProductsForStock = async () => {
+    const products = await viewProductsPM(token); // You already wrote viewProductsPM
+
+    if (products && !products.error) {
+      setStockProducts(products.map(product => ({
+        id: product.product_id,
+        name: product.name,
+        author: product.author,
+        stock: product.stock_quantity,
+        price: 0, // Backend currently doesn't return price, default to 0
+        lastUpdated: new Date().toISOString().split('T')[0]
+      })));
+    }
+  };
 
 // View unapproved reviews
   const viewUnapprovedReviews = async (token) => {
@@ -754,27 +799,9 @@ const ProductManager = () => {
   // Load stock data when the "stocks" section is active
   useEffect(() => {
     if (activeSection === 'stocks') {
-      // Simulate loading from an API
-      setStockIsLoading(true);
-
-      // Simulate API call with a timeout
-      setTimeout(() => {
-        const sampleProducts = [
-          { id: 101, name: "Fiction Novel", author: "John Author", stock: 15, price: 12.99, lastUpdated: "2025-03-10" },
-          { id: 102, name: "Non-Fiction Book", author: "Jane Writer", stock: 8, price: 14.99, lastUpdated: "2025-03-12" },
-          { id: 103, name: "Sci-Fi Novel", author: "Robert Pen", stock: 22, price: 11.99, lastUpdated: "2025-03-15" },
-          { id: 104, name: "Fantasy Book", author: "Sarah Storyteller", stock: 5, price: 16.99, lastUpdated: "2025-03-08" },
-          { id: 105, name: "Mystery Novel", author: "Michael Mystery", stock: 30, price: 9.99, lastUpdated: "2025-03-14" },
-          { id: 106, name: "Historical Fiction", author: "Helen Historian", stock: 12, price: 13.99, lastUpdated: "2025-03-11" },
-          { id: 107, name: "Biography", author: "Thomas Truth", stock: 3, price: 19.99, lastUpdated: "2025-03-09" },
-          { id: 108, name: "Poetry Collection", author: "Patricia Poet", stock: 18, price: 8.99, lastUpdated: "2025-03-13" },
-        ];
-
-        setStockProducts(sampleProducts);
-        setStockIsLoading(false);
-      }, 800);
+      fetchProductsForStock();
     }
-  }, [activeSection]);
+  }, [activeSection, token]);
 
 // Handle stock update input change
   const handleStockInputChange = (e) => {
@@ -782,27 +809,34 @@ const ProductManager = () => {
   };
 
 // Handle stock update submission
-  const handleStockUpdate = (id) => {
+  const handleStockUpdate = async (id) => {
     if (newStockValue === '' || isNaN(newStockValue) || parseInt(newStockValue) < 0) {
       alert('Please enter a valid stock quantity (must be a non-negative number)');
       return;
     }
 
-    // In a real app, you would make an API call here
-    setStockProducts(prevProducts =>
-        prevProducts.map(product =>
-            product.id === id ? {
-              ...product,
-              stock: parseInt(newStockValue),
-              lastUpdated: new Date().toISOString().split('T')[0]
-            } : product
-        )
-    );
+    try {
+      const result = await updateStockQuantity(token, id, parseInt(newStockValue));
 
-    setEditStockId(null);
-    setNewStockValue('');
+      if (result && !result.error) {
+        setStockProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.id === id
+                    ? { ...product, stock: parseInt(newStockValue), lastUpdated: new Date().toISOString().split('T')[0] }
+                    : product
+            )
+        );
 
-    alert(`Stock updated successfully for product #${id}`);
+        setEditStockId(null);
+        setNewStockValue('');
+        alert(`Stock updated successfully for product #${id}`);
+      } else {
+        alert(`Failed to update stock: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Unexpected error updating stock:", error);
+      alert('An unexpected error occurred while updating stock.');
+    }
   };
 
 // Cancel stock editing
@@ -964,6 +998,7 @@ const ProductManager = () => {
       ...newProduct,
       stock_quantity: parseInt(newProduct.stock_quantity, 10),
       price: parseFloat(newProduct.price),
+      distributor_information: "Distributor Placeholder",
       discount: newProduct.discount.discount_percentage
           ? {
             ...newProduct.discount,

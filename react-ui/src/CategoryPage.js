@@ -14,12 +14,12 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const location = useLocation();
-
+  
   const searchQuery = location.state?.searchQuery || ""; // Retrieve searchQuery from state
 
   const [searchKeyWord, setSearchKeyWord] = useState(''); 
   
-      console.log("Token from AuthContext:", token);
+  console.log("Token from AuthContext:", token);
       useEffect(() => {
         setSearchKeyWord(searchQuery);
     }, [searchQuery]);
@@ -470,23 +470,23 @@ const addToCart = async (event, book) => {
 // Toggle favorite status - update to use product ID as key
 const toggleFavorite = (productId) => {
   if (favorites[productId]) {
-    removeFromWishlist(productId).then((result) => {
-      if (!result.error) {
+      removeFromWishlist(productId).then((result) => {
+        if (!result.error) {
         // Use product ID as key instead of index
         const updatedFavorites = { ...favorites };
         delete updatedFavorites[productId];
         setFavorites(updatedFavorites);
-      }
-    });
-  } else {
-    addToWishlist(productId).then((result) => {
-      if (!result.error) {
+        }
+      });
+    } else {
+      addToWishlist(productId).then((result) => {
+        if (!result.error) {
         // Use product ID as key instead of index
         setFavorites({ ...favorites, [productId]: true });
-      }
-    });
-  }
-};
+        }
+      });
+    }
+  };
 
   // Handle filter checkbox changes
   const handleFilterChange = (filterType, value, checked) => {
@@ -696,7 +696,7 @@ const toggleFavorite = (productId) => {
             </div> 
               )}
 
-          <div className="sort-filter">
+            <div className="sort-filter">
               <select
                 className="source-sans-regular"
                 value={sortMethod}
@@ -716,7 +716,7 @@ const toggleFavorite = (productId) => {
           <div className="content-wrapper">
             <div className="grid-container">
               {filteredProducts.length > 0 ? (
-                 filteredProducts.map((book, index) => (
+                filteredProducts.map((book, index) => (
                   <div
                     className="grid-item"
                     key={book.product_id} // Use product_id as key for better stability
@@ -745,9 +745,9 @@ const toggleFavorite = (productId) => {
                         )}
                       </button>
                       <button 
-                        className="cart-btn" 
-                        onClick={(e) => addToCart(e, book)}
-                      >
+                    className="cart-btn" 
+                    onClick={(e) => addToCart(e, book)}
+                  >
                         <span>🛒</span>
                
                       </button>
