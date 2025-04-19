@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BsBag, BsPersonCircle } from "react-icons/bs";
-import { Link } from 'react-router-dom';
+import { Link , useNavigate } from 'react-router-dom';
 import { searchProducts } from "../utils/SearchUtils";
 import { useAuth } from "../context/AuthContext";
 
@@ -13,7 +13,7 @@ const Navbar = () => {
     const [searchResults, setSearchResults] = useState([]);
 
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [authors, setAuthors] = useState([]);
 
@@ -106,7 +106,6 @@ const Navbar = () => {
 
                     </div>
                 </div>
-
                 {/* Authors Dropdown */}
                 <div
                     className="dropdown"
@@ -136,6 +135,8 @@ const Navbar = () => {
                     onChange={(e) => {
                         const q = e.target.value;
                         setSearchQuery(q);
+
+                        // Debounce filtering logic
                         if (q.length > 3) {
                             const results = searchProducts(q, allProducts);
                             setSearchResults(results);
@@ -144,6 +145,20 @@ const Navbar = () => {
                         }
                     }}
                 />
+                <div
+                    className="search-button"
+                    onClick={() => {
+                        // if (searchQuery.trim() === "") {
+                        //     console.log("Search query is empty. Navigation canceled.");
+                        //     return;
+                        // }
+                        console.log("Search clicked with query:", searchQuery);
+                        navigate("/category", { state: { searchQuery } });
+                    }}
+                >
+                    Search
+                </div>
+        
 
                 {searchResults.length > 0 && (
                     <div className="search-dropdown">
@@ -161,8 +176,9 @@ const Navbar = () => {
                         ))}
                     </div>
                 )}
-            </div>
 
+
+            </div>
 
 
             <div className="icons">

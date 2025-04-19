@@ -8,12 +8,39 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
+
+
 const CategoryPage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const location = useLocation();
+
+  const searchQuery = location.state?.searchQuery || ""; // Retrieve searchQuery from state
+
+  const [searchKeyWord, setSearchKeyWord] = useState(''); 
   
-  console.log("Token from AuthContext:", token);
+      console.log("Token from AuthContext:", token);
+      useEffect(() => {
+        setSearchKeyWord(searchQuery);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        console.log("Search keyword updated:", searchKeyWord);
+
+        // Perform search or filter action here based on searchKeyWord
+          if (searchKeyWord) {
+            console.log("Filtering products with keyword:", searchKeyWord);
+            const filtered = allProducts.filter(product => {
+                const bookName = getBookName(product).toLowerCase();
+                return bookName.includes(searchKeyWord.toLowerCase());
+            });
+            setFilteredProducts(filtered);
+        } else {
+            // If no search keyword, reset to show all products
+            setFilteredProducts(allProducts);
+        }
+
+    }, [searchKeyWord]);
 
   // State for filter dropdowns
   const [dropdowns, setDropdowns] = useState({
@@ -113,6 +140,39 @@ const CategoryPage = () => {
     };
     fetchProducts();
   }, [token]);
+
+
+  
+// Filter products whenever searchKeyWord or allProducts changes
+useEffect(() => {
+  if (searchKeyWord) {
+    console.log("Filtering products with keyword:", searchKeyWord);
+
+    const filtered = allProducts.filter(product => {
+      // Check all fields of the product and the categories array
+      return (
+        Object.values(product).some(value => {
+          if (typeof value === "string") {
+            return value.toLowerCase().includes(searchKeyWord.toLowerCase());
+          }
+          return false; // Skip non-string fields
+        }) ||
+        // Check if the searchKeyWord exists in the categories array
+        (Array.isArray(product.categories) &&
+          product.categories.some(category =>
+            category.toLowerCase().includes(searchKeyWord.toLowerCase())
+          ))
+      );
+    });
+
+    setFilteredProducts(filtered);
+  } else {
+    // If no search keyword, reset to show all products
+    setFilteredProducts(allProducts);
+  }
+}, [searchKeyWord, allProducts]); // Run whenever searchKeyWord or allProducts changes
+
+
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -616,7 +676,27 @@ const toggleFavorite = (productId) => {
 
         <div className="main-content">
           <div className="top-bar">
-            <div className="sort-filter">
+
+          {searchKeyWord !== "" && (
+            <div> 
+                <h3 className="source-sans-semibold">Showing products for your search: {searchKeyWord}</h3>
+            <h3
+              onClick={() => {
+                if (window.confirm("Are you sure you want to clear the search?")) {
+                  setFilters({ priceRange: [], author: [] });
+                  setActiveCategory('All');
+                  setCustomPriceRange({ min: 0, max: 100 });
+                  setSearchKeyWord('');
+                  setFilteredProducts(allProducts);
+                }
+              }}
+            >
+              Clear Search
+            </h3>
+            </div> 
+              )}
+
+          <div className="sort-filter">
               <select
                 className="source-sans-regular"
                 value={sortMethod}
@@ -704,6 +784,8 @@ const toggleFavorite = (productId) => {
                       setFilters({priceRange: [], author: []});
                       setActiveCategory('All');
                       setCustomPriceRange({ min: 0, max: 100 });
+                      setSearchKeyWord(''); // Clear search keyword
+                      setFilteredProducts(allProducts); // Reset to show all products
                     }}
                     className="clear-filters-btn"
                   >
