@@ -108,18 +108,22 @@ const CategoryPage = () => {
   
 
   // Fetch products on component mount
+  // Update the fetch products useEffect to apply sorting when products are first loaded
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await fetch("http://localhost/api/products/viewall");
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
-
         }
         const data = await res.json();
         console.log("Fetched products:", data);
-        setAllProducts(data);
-        setFilteredProducts(data);
+        
+        // Apply initial sorting to move out-of-stock items to the bottom
+        const sortedData = sortProducts(data, sortMethod);
+        
+        //setAllProducts(data);
+        setFilteredProducts(sortedData); // Set initially sorted data
 
         // Initialize favorites state based on wishlist if token exists
         if (token) {
@@ -139,7 +143,7 @@ const CategoryPage = () => {
       }
     };
     fetchProducts();
-  }, [token]);
+  }, [token, sortMethod]); // Add sortMethod as a dependency
 
 
   

@@ -696,12 +696,12 @@
 }
 
 .cart-notification.success {
-  background-color: #4CAF50;
+  background-color: var(--warm-green-light);
   color: white;
 }
 
 .cart-notification.error {
-  background-color: #f44336;
+  background-color: #c2524a;
   color: white;
 }
 
