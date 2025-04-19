@@ -140,7 +140,6 @@ def update_stock_quantity(token, product_id, stock_quantity):
     response = requests.put(f"{BASEURL}/pm_products/product/update_stock_quantity/{product_id}", json=data, headers=headers)
     return
 
-    
 
 
 if __name__ == "__main__":

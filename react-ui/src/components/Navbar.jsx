@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BsBag, BsPersonCircle } from "react-icons/bs";
+
 import { Link , useNavigate } from 'react-router-dom';
+import { BsBag, BsPersonCircle, BsBarChartLineFill } from "react-icons/bs";
+
 import { searchProducts } from "../utils/SearchUtils";
 import { useAuth } from "../context/AuthContext";
 
@@ -185,11 +187,11 @@ const Navbar = () => {
       
             {role === "product_manager" ? (
                     <Link to="/productmanager">
-                        <BsPersonCircle className="icon" />
+                        <BsBarChartLineFill className="icon" />
                     </Link>
                 ) : role === "sales_manager" ? (
                     <Link to="/salesmanager">
-                        <BsPersonCircle className="icon" />
+                        <BsBarChartLineFill className="icon" />
                     </Link>
                 ) : (
                     <Link to="/cart">

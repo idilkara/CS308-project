@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
 import { useAuth } from './context/AuthContext';
+import Navbar from "./components/Navbar.jsx";
 
 const ProductManager = () => {
 
@@ -768,6 +769,9 @@ const getFilteredAndSortedProducts = () => {
   };
 
   return (
+    <div>
+      <Navbar />
+   
     <div className="container product-manager">
       <h1 className="source-sans-bold pm-section-title">Product Manager</h1>
       
@@ -1378,6 +1382,7 @@ const getFilteredAndSortedProducts = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };
