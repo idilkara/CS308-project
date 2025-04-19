@@ -383,7 +383,7 @@ textarea.pm-form-control {
     text-align: left;
     font-weight: 600;
     color: var(--main-text-color);
-    border-bottom: 2px solid var(--warm-green);
+    border-bottom: 2px solid var(--warm-green-light);
 }
 
 .pm-deliveries-table td {
@@ -884,12 +884,12 @@ textarea.pm-form-control {
 }
 
 .pm-stocks-table th {
-    background-color: var(--warm-green-light);
+    background-color: var(--main-text-color);
     padding: 12px 15px;
     text-align: left;
     font-weight: 600;
     color: var(--main-text-color);
-    border-bottom: 2px solid var(--warm-green);
+    border-bottom: 2px solid var(--main-text-color);
     position: relative;
 }
 
@@ -898,7 +898,7 @@ textarea.pm-form-control {
 }
 
 .pm-stocks-table th.sortable:hover {
-    background-color: var(--warm-green);
+    background-color: var(--warm-green-light);
 }
 
 .pm-stocks-table th .sort-indicator {
@@ -951,7 +951,7 @@ textarea.pm-form-control {
 
 .pm-btn-edit-stock {
     padding: 6px 12px;
-    background-color: var(--warm-green);
+    background-color: var(--main-text-color);
     color: white;
     border: none;
     border-radius: 4px;
@@ -961,7 +961,7 @@ textarea.pm-form-control {
 }
 
 .pm-btn-edit-stock:hover {
-    background-color: var(--warm-green-dark);
+    background-color: var(--warm-green-light);
 }
 
 .pm-btn-save-stock {
