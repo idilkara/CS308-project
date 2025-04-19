@@ -568,3 +568,22 @@
     flex-direction: column;
   }
 }
+
+.shipping-display, .payment-display {
+  background-color: white;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.shipping-display p, .payment-display p {
+  margin: 10px 0;
+  font-family: 'SourceSans3-Regular', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.shipping-display strong, .payment-display strong {
+  font-family: 'SourceSans3-SemiBold', sans-serif;
+  color: var(--secondary-text-color);
+}

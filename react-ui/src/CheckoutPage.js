@@ -6,6 +6,12 @@ import { useAuth } from "./context/AuthContext";
 import "./CheckoutPage.css";
 import bookCover from './img/BookCover.png';
 
+//phone city country / expire card name info falan sil
+// siparişiniz alındı sayfasına yönlendir
+// address ve payment yoksa devam etmeye izin verme
+// user logged in değilken checkouta girmeye izin verme !!!!!!!!!!!!!
+// cart boşsa checkouta girmeye izin verme
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -145,12 +151,25 @@ const CheckoutPage = () => {
             fullName: userData.name || '',
             email: userData.email || '',
             phone: userData.phone || '',
-            address: address.street || '',
+            address: userData.home_address || '',
             city: address.city || '',
             state: address.state || '',
             zipCode: address.zipCode || '',
             country: address.country || 'United States'
           });
+          
+          // Pre-fill payment info if available
+          if (userData.paymentMethods && userData.paymentMethods.length > 0) {
+            const defaultPayment = userData.paymentMethods[0];
+            setPaymentInfo({
+              cardName: defaultPayment.cardName || '',
+              cardNumber: defaultPayment.cardNumber || '',
+              expMonth: defaultPayment.expMonth || '',
+              expYear: defaultPayment.expYear || '',
+              cvv: '',
+              saveCard: false
+            });
+          }
         }
       }
     } catch (error) {
@@ -262,11 +281,7 @@ const CheckoutPage = () => {
 
   // Place order function
   const placeOrder = async (e) => {
-    e.preventDefault();
-    
-    if (!validatePaymentForm()) {
-      return;
-    }
+    if (e) e.preventDefault();
     
     setLoading(true);
     
@@ -318,7 +333,6 @@ const CheckoutPage = () => {
         }
       } else {
         // If user is not logged in, simulate order creation
-        // In a real app, you might want to create a guest checkout API endpoint
         setTimeout(() => {
           setOrderNumber('ORD-' + Math.floor(100000 + Math.random() * 900000));
           localStorage.setItem('tempCart', JSON.stringify([]));
@@ -423,247 +437,40 @@ const CheckoutPage = () => {
         </div>
 
         {activeStep === 'shipping' && (
-          <form className="shipping-form" onSubmit={handleContinueToPayment}>
-            <h2>Shipping Information</h2>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="fullName">Full Name *</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={shippingInfo.fullName}
-                  onChange={handleShippingChange}
-                  className={formErrors.fullName ? 'error' : ''}
-                />
-                {formErrors.fullName && <div className="error-message">{formErrors.fullName}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="email">Email Address *</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={shippingInfo.email}
-                  onChange={handleShippingChange}
-                  className={formErrors.email ? 'error' : ''}
-                />
-                {formErrors.email && <div className="error-message">{formErrors.email}</div>}
-              </div>
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={shippingInfo.phone}
-                  onChange={handleShippingChange}
-                  className={formErrors.phone ? 'error' : ''}
-                />
-                {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label htmlFor="address">Street Address *</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={shippingInfo.address}
-                  onChange={handleShippingChange}
-                  className={formErrors.address ? 'error' : ''}
-                />
-                {formErrors.address && <div className="error-message">{formErrors.address}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="city">City *</label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={shippingInfo.city}
-                  onChange={handleShippingChange}
-                  className={formErrors.city ? 'error' : ''}
-                />
-                {formErrors.city && <div className="error-message">{formErrors.city}</div>}
-              </div>
-              <div className="form-group">
-                <label htmlFor="state">State/Province *</label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={shippingInfo.state}
-                  onChange={handleShippingChange}
-                  className={formErrors.state ? 'error' : ''}
-                />
-                {formErrors.state && <div className="error-message">{formErrors.state}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="zipCode">ZIP/Postal Code *</label>
-                <input
-                  type="text"
-                  id="zipCode"
-                  name="zipCode"
-                  value={shippingInfo.zipCode}
-                  onChange={handleShippingChange}
-                  className={formErrors.zipCode ? 'error' : ''}
-                />
-                {formErrors.zipCode && <div className="error-message">{formErrors.zipCode}</div>}
-              </div>
-              <div className="form-group">
-                <label htmlFor="country">Country *</label>
-                <select
-                  id="country"
-                  name="country"
-                  value={shippingInfo.country}
-                  onChange={handleShippingChange}
-                >
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Japan">Japan</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="form-actions">
-              <button type="submit" className="continue-btn">Continue to Payment</button>
-              <button type="button" className="back-btn" onClick={() => navigate('/cart')}>Back to Cart</button>
-            </div>
-          </form>
+          <div className="shipping-form">
+          <h2>Shipping Information</h2>
+          <div className="shipping-display">
+            <p><strong>Name:</strong> {shippingInfo.fullName}</p>
+            <p><strong>Email:</strong> {shippingInfo.email}</p>
+            <p><strong>Phone:</strong> {shippingInfo.phone}</p>
+            <p><strong>Address:</strong> {shippingInfo.address}</p>
+            <p><strong>City:</strong> {shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
+            <p><strong>Country:</strong> {shippingInfo.country}</p>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="continue-btn" onClick={() => setActiveStep('payment')}>Continue to Payment</button>
+            <button type="button" className="back-btn" onClick={() => navigate('/cart')}>Back to Cart</button>
+          </div>
+        </div>
         )}
 
         {activeStep === 'payment' && (
-          <form className="payment-form" onSubmit={placeOrder}>
-            <h2>Payment Information</h2>
-            
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label htmlFor="cardName">Name on Card *</label>
-                <input
-                  type="text"
-                  id="cardName"
-                  name="cardName"
-                  value={paymentInfo.cardName}
-                  onChange={handlePaymentChange}
-                  className={formErrors.cardName ? 'error' : ''}
-                />
-                {formErrors.cardName && <div className="error-message">{formErrors.cardName}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label htmlFor="cardNumber">Card Number *</label>
-                <input
-                  type="text"
-                  id="cardNumber"
-                  name="cardNumber"
-                  value={paymentInfo.cardNumber}
-                  onChange={(e) => {
-                    const formattedValue = formatCardNumber(e.target.value);
-                    setPaymentInfo({...paymentInfo, cardNumber: formattedValue});
-                  }}
-                  className={formErrors.cardNumber ? 'error' : ''}
-                  placeholder="1234 5678 9012 3456"
-                  maxLength="19"
-                />
-                {formErrors.cardNumber && <div className="error-message">{formErrors.cardNumber}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group expiry-group">
-                <label>Expiration Date *</label>
-                <div className="expiry-inputs">
-                  <select
-                    id="expMonth"
-                    name="expMonth"
-                    value={paymentInfo.expMonth}
-                    onChange={handlePaymentChange}
-                    className={formErrors.expMonth ? 'error' : ''}
-                  >
-                    <option value="">Month</option>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                      <option key={month} value={month}>{month}</option>
-                    ))}
-                  </select>
-                  
-                  <select
-                    id="expYear"
-                    name="expYear"
-                    value={paymentInfo.expYear}
-                    onChange={handlePaymentChange}
-                    className={formErrors.expYear ? 'error' : ''}
-                  >
-                    <option value="">Year</option>
-                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
-                {(formErrors.expMonth || formErrors.expYear) && 
-                  <div className="error-message">{formErrors.expMonth || formErrors.expYear}</div>
-                }
-              </div>
-              
-              <div className="form-group cvv-group">
-                <label htmlFor="cvv">CVV *</label>
-                <input
-                  type="text"
-                  id="cvv"
-                  name="cvv"
-                  value={paymentInfo.cvv}
-                  onChange={handlePaymentChange}
-                  className={formErrors.cvv ? 'error' : ''}
-                  placeholder="123"
-                  maxLength="4"
-                />
-                {formErrors.cvv && <div className="error-message">{formErrors.cvv}</div>}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group checkbox-group">
-                <label className="checkbox-container">
-                  <input
-                    type="checkbox"
-                    name="saveCard"
-                    checked={paymentInfo.saveCard}
-                    onChange={handlePaymentChange}
-                  />
-                  <span className="checkmark"></span>
-                  Save card for future purchases
-                </label>
-              </div>
-            </div>
-            
-            <div className="form-actions">
-              <button type="submit" className="place-order-btn" disabled={loading}>
-                {loading ? 'Processing...' : 'Place Order'}
-              </button>
-              <button type="button" className="back-btn" onClick={handleBackToShipping}>
-                Back to Shipping
-              </button>
-            </div>
-          </form>
+          <div className="payment-form">
+          <h2>Payment Information</h2>
+          <div className="payment-display">
+            <p><strong>Card:</strong> **** **** **** {paymentInfo.cardNumber.slice(-4)}</p>
+            <p><strong>Name on Card:</strong> {paymentInfo.cardName}</p>
+            <p><strong>Expires:</strong> {paymentInfo.expMonth}/{paymentInfo.expYear}</p>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="place-order-btn" onClick={placeOrder} disabled={loading}>
+              {loading ? 'Processing...' : 'Confirm Payment'}
+            </button>
+            <button type="button" className="back-btn" onClick={() => setActiveStep('shipping')}>
+              Back to Shipping
+            </button>
+          </div>
+        </div>
         )}
       </div>
 
@@ -714,14 +521,7 @@ const CheckoutPage = () => {
           </div>
         </div>
         
-        <div className="promo-section">
-          <input 
-            type="text" 
-            placeholder="Promo Code" 
-            className="promo-input"
-          />
-          <button className="apply-promo-btn">Apply</button>
-        </div>
+        
       </div>
     </div>
   );
