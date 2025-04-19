@@ -211,3 +211,99 @@ def clear_cart():
         conn.close()
 
     return jsonify({"message": "Shopping cart cleared successfully!"}), 200
+
+
+
+# PDF Oluşturma Fonksiyonu
+def generate_invoice_pdf(invoice_id, user_name, total_amount, items):
+    file_name = f"invoice_{invoice_id}.pdf"
+    c = canvas.Canvas(file_name, pagesize=letter)
+    c.drawString(100, 750, f"Invoice ID: {invoice_id}")
+    c.drawString(100, 735, f"Customer: {user_name}")
+    c.drawString(100, 720, f"Total Amount: ${total_amount}")
+    
+    y_position = 700
+    for item in items:
+        c.drawString(100, y_position, f"Product: {item['name']}, Quantity: {item['quantity']}, Price: ${item['total_price']}")
+        y_position -= 20
+        
+    c.save()
+    return file_name
+
+# E-posta Gönderme Fonksiyonu
+def send_invoice_email(to_email, file_path):
+    from_email = "your-email@example.com"
+    password = "your-email-password"
+    subject = "Your Invoice"
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    part = MIMEBase('application', 'octet-stream')
+    with open(file_path, 'rb') as file:
+        part.set_payload(file.read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', f"attachment; filename={file_path}")
+    msg.attach(part)
+
+    with smtplib.SMTP('smtp.example.com', 587) as server:
+        server.starttls()
+        server.login(from_email, password)
+        server.sendmail(from_email, to_email, msg.as_string())
+
+@shopping_bp.route("/generate_invoice", methods=["POST"])
+@jwt_required()
+def generate_invoice():
+    user_id = get_jwt_identity()
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # SORGUNUN FROM KISMI EKLENDİ
+    cur.execute("""
+        SELECT o.order_id, o.total_price, o.status, o.delivery_address
+        FROM userorders o
+        WHERE o.user_id = %s AND o.status IN ('processing', 'completed')
+        ORDER BY o.order_date DESC LIMIT 1
+    """, (user_id,))
+    
+    order = cur.fetchone()
+
+    if not order:
+        return jsonify({"error": "No completed order found for this user"}), 404
+
+    order_id, total_price, status, delivery_address = order
+
+    cur.execute("""
+        INSERT INTO invoices (user_id, total_amount, delivery_address, payment_status)
+        VALUES (%s, %s, %s, %s) RETURNING invoice_id
+    """, (user_id, total_price, delivery_address, 'paid'))
+    invoice_id = cur.fetchone()[0]
+    conn.commit()
+
+    # Sipariş ürünlerini al, ürün adları dahil
+    cur.execute("""
+        SELECT p.name, oi.quantity, (oi.price * oi.quantity)
+        FROM orderitems oi
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE oi.order_id = %s
+    """, (order_id,))
+    items = cur.fetchall()
+
+    item_details = [{"name": item[0], "quantity": item[1], "total_price": item[2]} for item in items]
+
+    cur.execute('SELECT name, email FROM users WHERE user_id = %s', (user_id,))
+    user_name, user_email = cur.fetchone()
+
+    pdf_path = generate_invoice_pdf(invoice_id, user_name, total_price, item_details)
+
+    # SMTP ayarları doğruysa bunu aç, değilse yorumla
+    # send_invoice_email(user_email, pdf_path)
+
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Invoice generated and sent to your email!"}), 200
+
