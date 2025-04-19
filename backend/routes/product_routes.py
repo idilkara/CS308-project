@@ -57,8 +57,9 @@ def get_all_products():
     cursor = conn.cursor()
     cursor.execute("""
         SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories, 
-               p.warranty_status, p.distributor_information, p.sales_manager, 
-               p.product_manager, p.waiting, p.author
+       p.warranty_status, p.distributor_information, p.sales_manager, 
+       p.product_manager, p.waiting, p.author, p.stock_quantity
+
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
         LEFT JOIN categories c ON pc.category_id = c.category_id
@@ -73,21 +74,23 @@ def get_all_products():
         logging.warning("No products found in /viewall.")
 
     return jsonify([
-        {
-            "product_id": product[0],
-            "name": product[1],
-            "price": str(product[2]),
-            "description": product[3],
-            "categories": product[4],
-            "warranty_status": product[5],
-            "distributor_information": product[6],
-            "sales_manager": product[7],
-            "product_manager": product[8],
-            "waiting": product[9],
-            "author": product[10]
-        }
-        for product in products
-    ])
+    {
+        "product_id": product[0],
+        "name": product[1],
+        "price": str(product[2]),
+        "description": product[3],
+        "categories": product[4],
+        "warranty_status": product[5],
+        "distributor_information": product[6],
+        "sales_manager": product[7],
+        "product_manager": product[8],
+        "waiting": product[9],
+        "author": product[10],
+        "stock_quantity": product[11]  # Add this line
+    }
+    for product in products
+])
+
 
 
 # returns a dictionary of products given category ID

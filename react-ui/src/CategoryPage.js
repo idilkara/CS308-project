@@ -229,6 +229,18 @@ const addToCart = async (event, book) => {
     event.stopPropagation(); // Stop the event from propagating to the parent div
   }
   
+  // Check if item is out of stock
+  if (!book.stock_quantity || book.stock_quantity <= 0) {
+    setNotification({
+      message: "This item is currently out of stock",
+      visible: true
+    });
+    setTimeout(() => {
+      setNotification({ message: '', visible: false });
+    }, 3000);
+    return { error: "Out of stock" };
+  }
+  
   try {
     if (token) {
       // User is logged in, add to their cart in the database
@@ -443,23 +455,43 @@ const addToCart = async (event, book) => {
 
   // Custom sort function
   const sortProducts = (products, sortMethod) => {
-    const sorted = [...products];
+    // First, separate in-stock and out-of-stock items
+    const inStock = products.filter(item => item.stock_quantity > 0);
+    const outOfStock = products.filter(item => !item.stock_quantity || item.stock_quantity <= 0);
+    
+    // Sort each group by the selected method
+    let sortedInStock = [...inStock];
+    let sortedOutOfStock = [...outOfStock];
+    
     switch (sortMethod) {
       case 'alpha-ascend':
-        return sorted.sort((a, b) => getBookName(a).localeCompare(getBookName(b)));
+        sortedInStock.sort((a, b) => getBookName(a).localeCompare(getBookName(b)));
+        sortedOutOfStock.sort((a, b) => getBookName(a).localeCompare(getBookName(b)));
+        break;
       case 'alpha-descend':
-        return sorted.sort((a, b) => getBookName(b).localeCompare(getBookName(a)));
+        sortedInStock.sort((a, b) => getBookName(b).localeCompare(getBookName(a)));
+        sortedOutOfStock.sort((a, b) => getBookName(b).localeCompare(getBookName(a)));
+        break;
       case 'price-ascend':
-        return sorted.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+        sortedInStock.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+        sortedOutOfStock.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+        break;
       case 'price-descend':
-        return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+        sortedInStock.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+        sortedOutOfStock.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+        break;
       case 'date-ascend':
-        return sorted.sort((a, b) => new Date(a.publication_date || 0) - new Date(b.publication_date || 0));
+        sortedInStock.sort((a, b) => new Date(a.publication_date || 0) - new Date(b.publication_date || 0));
+        sortedOutOfStock.sort((a, b) => new Date(a.publication_date || 0) - new Date(b.publication_date || 0));
+        break;
       case 'date-descend':
-        return sorted.sort((a, b) => new Date(b.publication_date || 0) - new Date(a.publication_date || 0));
-      default:
-        return sorted;
+        sortedInStock.sort((a, b) => new Date(b.publication_date || 0) - new Date(a.publication_date || 0));
+        sortedOutOfStock.sort((a, b) => new Date(b.publication_date || 0) - new Date(a.publication_date || 0));
+        break;
     }
+    
+    // Return in-stock items first, followed by out-of-stock items
+    return [...sortedInStock, ...sortedOutOfStock];
   };
 
   // Toggle dropdown visibility
@@ -715,11 +747,14 @@ const toggleFavorite = (productId) => {
 
           <div className="content-wrapper">
             <div className="grid-container">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((book, index) => (
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((book, index) => {
+                const isOutOfStock = !book.stock_quantity || book.stock_quantity <= 0;
+                
+                return (
                   <div
-                    className="grid-item"
-                    key={book.product_id} // Use product_id as key for better stability
+                    className={`grid-item ${isOutOfStock ? 'out-of-stock' : ''}`}
+                    key={book.product_id}
                     onClick={(e) => {
                       // Prevent navigation if clicking on buttons
                       if (e.target.closest('.item-actions')) {
@@ -730,6 +765,7 @@ const toggleFavorite = (productId) => {
                     }}
                     style={{ cursor: 'pointer' }}
                   >
+                    {isOutOfStock && <span className="out-of-stock-label">Out of Stock</span>}
                     <div className="item-actions" onClick={(e) => e.stopPropagation()}>
                       <button
                         className={`favorite-btn ${favorites[book.product_id] ? 'active' : ''}`}
@@ -745,11 +781,11 @@ const toggleFavorite = (productId) => {
                         )}
                       </button>
                       <button 
-                    className="cart-btn" 
-                    onClick={(e) => addToCart(e, book)}
-                  >
+                        className="cart-btn" 
+                        onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
+                        disabled={isOutOfStock}
+                      >
                         <span>🛒</span>
-               
                       </button>
                     </div>
                     <div className="grid-item-content">
@@ -774,8 +810,9 @@ const toggleFavorite = (productId) => {
                       <span className="source-sans-bold">${book.price || "0.00"}</span>
                     </div>
                   </div>
-                ))
-              ) : (
+                );
+              })
+            ) : (
                 <div className="no-results">
                   <h3>No books match your current filters</h3>
                   <p>Try adjusting your filter criteria or clear filters to see more results.</p>
