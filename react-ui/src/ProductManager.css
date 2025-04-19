@@ -310,11 +310,11 @@ textarea.pm-form-control {
         flex-direction: column !important;
         gap: 10px;
     }
-    
+
     .pm-section-tabs {
         flex-wrap: wrap !important;
     }
-    
+
     .pm-tab {
         flex-grow: 1 !important;
         text-align: center;
@@ -493,19 +493,19 @@ textarea.pm-form-control {
     .pm-deliveries-table-container {
         overflow-x: auto;
     }
-    
+
     .pm-deliveries-table {
         min-width: 800px;
     }
 }
 
 @media (max-width: 768px) {
-    .pm-deliveries-table td, 
+    .pm-deliveries-table td,
     .pm-deliveries-table th {
         padding: 10px 8px;
         font-size: 0.9rem;
     }
-    
+
     .pm-btn-action {
         padding: 6px 10px;
         font-size: 0.9rem;
@@ -616,7 +616,7 @@ textarea.pm-form-control {
     border-radius: 8px !important;
     background-color: white !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
-    width: 100% !important; 
+    width: 100% !important;
     box-sizing: border-box !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -785,25 +785,25 @@ textarea.pm-form-control {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
-    
+
     .pm-comment-actions-row {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 15px !important;
     }
-    
+
     .pm-comment-actions {
         margin-left: 0 !important;
         width: 100% !important;
         justify-content: flex-start !important;
     }
-    
+
     .pm-btn-approve,
     .pm-btn-reject {
         flex: 1 !important;
         text-align: center !important;
     }
-    
+
     .pm-comment-card {
         padding: 15px !important;
     }
