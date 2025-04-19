@@ -55,7 +55,12 @@ const ProductManager = () => {
   }, []);
 
   // State for active section
+  // const [activeSection, setActiveSection] = useState('add');
   const [activeSection, setActiveSection] = useState('add');
+
+  useEffect(() => {
+    console.log("Active section changed to:", activeSection);
+  }, [activeSection]);
   
   // State for the new product form
   const [newProduct, setNewProduct] = useState({
@@ -319,7 +324,11 @@ const viewProductsPM = async (token) => {
     return { error: "An unexpected error occurred" };
   }
 };
-viewProductsPM(token)
+// viewProductsPM(token)
+
+useEffect(() => {
+  viewProductsPM(token);
+}, [token]);
 
 // View unapproved reviews
 const viewUnapprovedReviews = async (token) => {
@@ -333,10 +342,33 @@ const viewUnapprovedReviews = async (token) => {
       headers,
     });
 
-    console.log("Unapproved reviews response:", response);
-    return await response.json();
+    const json = await response.json();
+    console.log("Unapproved reviews JSON:", json);
+    return json;
+
   } catch (error) {
     console.error("Error fetching unapproved reviews:", error);
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+const viewApprovedReviews = async (token) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  try {
+    const response = await fetch("http://localhost/api/reviews/approved", {
+      method: "GET",
+      headers,
+    });
+
+    const json = await response.json();
+    console.log("Approved reviews JSON:", json);
+    return json;
+
+  } catch (error) {
+    console.error("Error fetching approved reviews:", error);
     return { error: "An unexpected error occurred" };
   }
 };
@@ -382,105 +414,120 @@ const deleteReview = async (token, reviewId) => {
 
   // Load deliveries data when the "orders" section is active
   useEffect(() => {
-    if (activeSection === 'orders') {
-      // Simulate loading from an API
-      setIsLoading(true);
-      
-      // Simulate API call with a timeout
-      setTimeout(() => {
-        const sampleDeliveries = [
-          { id: 101, orderId: "ORD-2023-001", customer: "John Doe", product: "Fiction Book Title", status: "Pending", date: "2025-03-15" },
-          { id: 102, orderId: "ORD-2023-002", customer: "Jane Smith", product: "Non-Fiction Book Title", status: "Shipped", date: "2025-03-16" },
-          { id: 103, orderId: "ORD-2023-003", customer: "Bob Johnson", product: "Sci-fi Book Title", status: "Delivered", date: "2025-03-12" },
-          { id: 104, orderId: "ORD-2023-004", customer: "Alice Williams", product: "Fantasy Book Title", status: "Returned", date: "2025-03-10" },
-          { id: 105, orderId: "ORD-2023-005", customer: "Charlie Brown", product: "Fiction Book Title", status: "Processing", date: "2025-03-18" },
-        ];
-        
-        setDeliveries(sampleDeliveries);
-        
-        // Initialize selected status for each delivery
-        const initialStatus = {};
-        sampleDeliveries.forEach(delivery => {
-          initialStatus[delivery.id] = delivery.status;
-        });
-        setSelectedStatus(initialStatus);
-        
-        setIsLoading(false);
-      }, 800);
-    }
-  }, [activeSection]);
+    const fetchDeliveries = async () => {
+      if (activeSection === 'orders') {
+        setIsLoading(true);
 
-  // Load comments when the "comments" section is active
-  useEffect(() => {
-    if (activeSection === 'comments') {
-      // Simulate loading from an API
-      setCommentIsLoading(true);
-      
-      // Simulate API call with a timeout
-      setTimeout(() => {
-        const sampleComments = [
-          { 
-            id: 1, 
-            productId: 101, 
-            productName: "Fiction Novel", 
-            userId: 201, 
-            userName: "John Smith", 
-            rating: 4, 
-            comment: "Great book, really enjoyed the characters and plot development.", 
-            date: "2025-03-12", 
-            status: "pending" 
-          },
-          { 
-            id: 2, 
-            productId: 102, 
-            productName: "Non-Fiction Book", 
-            userId: 202, 
-            userName: "Jane Doe", 
-            rating: 5, 
-            comment: "Very informative and well-written. Highly recommend for anyone interested in this subject.", 
-            date: "2025-03-14", 
-            status: "pending" 
-          },
-          { 
-            id: 3, 
-            productId: 103, 
-            productName: "Sci-Fi Novel", 
-            userId: 203, 
-            userName: "Bob Johnson", 
-            rating: 2, 
-            comment: "I found the story confusing and the characters underdeveloped.", 
-            date: "2025-03-10", 
-            status: "pending" 
-          },
-          { 
-            id: 4, 
-            productId: 104, 
-            productName: "Fantasy Book", 
-            userId: 204, 
-            userName: "Alice Williams", 
-            rating: 3, 
-            comment: "The world-building was excellent but the pacing was a bit slow.", 
-            date: "2025-03-15", 
-            status: "approved" 
-          },
-          { 
-            id: 5, 
-            productId: 105, 
-            productName: "Mystery Novel", 
-            userId: 205, 
-            userName: "Charlie Brown", 
-            rating: 1, 
-            comment: "Very disappointing. The plot had too many holes and the ending was predictable.", 
-            date: "2025-03-11", 
-            status: "rejected" 
-          },
-        ];
-        
-        setComments(sampleComments);
-        setCommentIsLoading(false);
-      }, 800);
-    }
-  }, [activeSection]);
+        try {
+          const result = await viewOrdersPM(token);
+
+          if (result && !result.error) {
+            const ordersArray = Array.isArray(result) ? result : result.orders;
+
+            const mappedDeliveries = (ordersArray || []).map(item => ({
+              id: item.userorder_id || item.orderitem_id || item.id, // fallback
+              orderId: item.userorder_id || item.orderitem_id,
+              customer: item.delivery_address || `User ${item.user_id}`,  // Using delivery address if available
+              product: item.product_name,
+              date: new Date(item.order_date).toLocaleDateString(),  // 🧽 Format clean date
+              status: item.status
+            }));
+
+            setDeliveries(mappedDeliveries);
+
+            const initialStatus = {};
+            mappedDeliveries.forEach(delivery => {
+              initialStatus[delivery.id] = delivery.status;
+            });
+            setSelectedStatus(initialStatus);
+
+          } else {
+            alert(result.error || 'Failed to fetch orders');
+          }
+        } catch (error) {
+          console.error("Unexpected error fetching orders:", error);
+          alert('An unexpected error occurred while fetching orders.');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchDeliveries();
+  }, [activeSection, token]);
+
+  // // Load comments when the "comments" section is active
+  // useEffect(() => {
+  //   if (activeSection === 'comments') {
+  //     // Simulate loading from an API
+  //     setCommentIsLoading(true);
+  //
+  //     // Simulate API call with a timeout
+  //     setTimeout(() => {
+  //       const sampleComments = [
+  //         {
+  //           id: 1,
+  //           productId: 101,
+  //           productName: "Fiction Novel",
+  //           userId: 201,
+  //           userName: "John Smith",
+  //           rating: 4,
+  //           comment: "Great book, really enjoyed the characters and plot development.",
+  //           date: "2025-03-12",
+  //           status: "pending"
+  //         },
+  //         {
+  //           id: 2,
+  //           productId: 102,
+  //           productName: "Non-Fiction Book",
+  //           userId: 202,
+  //           userName: "Jane Doe",
+  //           rating: 5,
+  //           comment: "Very informative and well-written. Highly recommend for anyone interested in this subject.",
+  //           date: "2025-03-14",
+  //           status: "pending"
+  //         },
+  //         {
+  //           id: 3,
+  //           productId: 103,
+  //           productName: "Sci-Fi Novel",
+  //           userId: 203,
+  //           userName: "Bob Johnson",
+  //           rating: 2,
+  //           comment: "I found the story confusing and the characters underdeveloped.",
+  //           date: "2025-03-10",
+  //           status: "pending"
+  //         },
+  //         {
+  //           id: 4,
+  //           productId: 104,
+  //           productName: "Fantasy Book",
+  //           userId: 204,
+  //           userName: "Alice Williams",
+  //           rating: 3,
+  //           comment: "The world-building was excellent but the pacing was a bit slow.",
+  //           date: "2025-03-15",
+  //           status: "approved"
+  //         },
+  //         {
+  //           id: 5,
+  //           productId: 105,
+  //           productName: "Mystery Novel",
+  //           userId: 205,
+  //           userName: "Charlie Brown",
+  //           rating: 1,
+  //           comment: "Very disappointing. The plot had too many holes and the ending was predictable.",
+  //           date: "2025-03-11",
+  //           status: "rejected"
+  //         },
+  //       ];
+  //
+  //       setComments(sampleComments);
+  //       setCommentIsLoading(false);
+  //     }, 800);
+  //   }
+  // }, [activeSection]);
+  //
 
   // Handle status change for deliveries
   const handleStatusChange = (deliveryId, newStatus) => {
@@ -490,47 +537,177 @@ const deleteReview = async (token, reviewId) => {
     }));
   };
 
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (activeSection === 'comments') {
+        setCommentIsLoading(true);
+
+        try {
+          let unapproved = await viewUnapprovedReviews(token);
+          let approved = await viewApprovedReviews(token);
+
+          console.log("Fetched unapproved:", unapproved);
+          console.log("Fetched approved:", approved);
+
+          let mappedComments = [];
+
+          if (Array.isArray(unapproved)) {
+            mappedComments = mappedComments.concat(
+                unapproved.map(comment => ({
+                  id: comment.review_id,
+                  productId: comment.product_id,
+                  productName: `Product ID ${comment.product_id}`,
+                  userId: comment.user_id,
+                  userName: `User ${comment.user_id}`,
+                  rating: comment.rating,
+                  comment: comment.comment,
+                  date: new Date().toLocaleDateString(),
+                  status: 'pending'  // unapproved -> pending
+                }))
+            );
+          }
+
+          if (Array.isArray(approved)) {
+            mappedComments = mappedComments.concat(
+                approved.map(comment => ({
+                  id: comment.review_id,
+                  productId: comment.product_id,
+                  productName: `Product ID ${comment.product_id}`,
+                  userId: comment.user_id,
+                  userName: `User ${comment.user_id}`,
+                  rating: comment.rating,
+                  comment: comment.comment,
+                  date: new Date().toLocaleDateString(),
+                  status: 'approved'  // approved -> approved
+                }))
+            );
+          }
+
+          setComments(mappedComments);
+
+        } catch (error) {
+          console.error("Unexpected error fetching comments:", error);
+          alert('An unexpected error occurred while fetching comments.');
+        } finally {
+          setCommentIsLoading(false);
+        }
+      }
+    };
+
+    fetchComments();
+  }, [activeSection, token]);
+
+  // // Handle save changes for deliveries
+  // const handleSaveStatus = (deliveryId) => {
+  //   // Find the delivery
+  //   const delivery = deliveries.find(d => d.id === deliveryId);
+  //
+  //   // In a real app, you would make an API call here
+  //   console.log(`Updating delivery ${deliveryId} (Order: ${delivery.orderId}) status to: ${selectedStatus[deliveryId]}`);
+  //
+  //   // Update the delivery status in the local state
+  //   setDeliveries(prevDeliveries =>
+  //     prevDeliveries.map(d =>
+  //       d.id === deliveryId ? {...d, status: selectedStatus[deliveryId]} : d
+  //     )
+  //   );
+  //
+  //   // Show feedback
+  //   alert(`Status updated for Order ${delivery.orderId}`);
+  // };
+
   // Handle save changes for deliveries
-  const handleSaveStatus = (deliveryId) => {
-    // Find the delivery
+  const handleSaveStatus = async (deliveryId) => {
     const delivery = deliveries.find(d => d.id === deliveryId);
-    
-    // In a real app, you would make an API call here
-    console.log(`Updating delivery ${deliveryId} (Order: ${delivery.orderId}) status to: ${selectedStatus[deliveryId]}`);
-    
-    // Update the delivery status in the local state
-    setDeliveries(prevDeliveries => 
-      prevDeliveries.map(d => 
-        d.id === deliveryId ? {...d, status: selectedStatus[deliveryId]} : d
-      )
-    );
-    
-    // Show feedback
-    alert(`Status updated for Order ${delivery.orderId}`);
+
+    if (!delivery) {
+      alert('Delivery not found.');
+      return;
+    }
+
+    try {
+      const result = await deliverOrdersPM(token, deliveryId, selectedStatus[deliveryId]);
+
+      if (result && !result.error) {
+        // If API call was successful, update the delivery status in the local state
+        setDeliveries(prevDeliveries =>
+            prevDeliveries.map(d =>
+                d.id === deliveryId ? { ...d, status: selectedStatus[deliveryId] } : d
+            )
+        );
+
+        alert(`Order ${delivery.orderId} status updated successfully!`);
+      } else {
+        alert(`Failed to update status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      alert('An unexpected error occurred while updating status.');
+    }
   };
 
-  // Handle comment approval
-  const handleApproveComment = (commentId) => {
-    // In a real app, you would make an API call here
-    setComments(prevComments => 
-      prevComments.map(comment => 
-        comment.id === commentId ? {...comment, status: "approved"} : comment
-      )
-    );
-    
-    alert(`Comment #${commentId} has been approved and is now visible to users.`);
+
+  // // Handle comment approval
+  // const handleApproveComment = (commentId) => {
+  //   // In a real app, you would make an API call here
+  //   setComments(prevComments =>
+  //     prevComments.map(comment =>
+  //       comment.id === commentId ? {...comment, status: "approved"} : comment
+  //     )
+  //   );
+  //
+  //   alert(`Comment #${commentId} has been approved and is now visible to users.`);
+  // };
+  //
+  // // Handle comment rejection
+  // const handleRejectComment = (commentId) => {
+  //   // In a real app, you would make an API call here
+  //   setComments(prevComments =>
+  //     prevComments.map(comment =>
+  //       comment.id === commentId ? {...comment, status: "rejected"} : comment
+  //     )
+  //   );
+  //
+  //   alert(`Comment #${commentId} has been rejected and will not be visible to users.`);
+  // };
+
+  const handleApproveComment = async (commentId) => {
+    try {
+      const result = await approveReview(token, commentId);
+
+      if (result && !result.error) {
+        setComments(prevComments =>
+            prevComments.map(comment =>
+                comment.id === commentId ? { ...comment, status: "approved" } : comment
+            )
+        );
+        alert(`Comment #${commentId} has been approved and is now visible to users.`);
+      } else {
+        alert(result.error || 'Failed to approve comment.');
+      }
+    } catch (error) {
+      console.error("Error approving comment:", error);
+      alert('An unexpected error occurred while approving comment.');
+    }
   };
 
-  // Handle comment rejection
-  const handleRejectComment = (commentId) => {
-    // In a real app, you would make an API call here
-    setComments(prevComments => 
-      prevComments.map(comment => 
-        comment.id === commentId ? {...comment, status: "rejected"} : comment
-      )
-    );
-    
-    alert(`Comment #${commentId} has been rejected and will not be visible to users.`);
+  const handleRejectComment = async (commentId) => {
+    try {
+      const result = await deleteReview(token, commentId);
+
+      if (result && !result.error) {
+        // After deleting, remove comment from the list
+        setComments(prevComments =>
+            prevComments.filter(comment => comment.id !== commentId)
+        );
+        alert(`Comment #${commentId} has been rejected and deleted.`);
+      } else {
+        alert(result.error || 'Failed to reject comment.');
+      }
+    } catch (error) {
+      console.error("Error rejecting comment:", error);
+      alert('An unexpected error occurred while rejecting comment.');
+    }
   };
 
   // Get filtered comments based on current filter
@@ -542,7 +719,7 @@ const deleteReview = async (token, reviewId) => {
   };
 
   // Define available status options for deliveries
-  const statusOptions = ["Processing",  "In Transit", "Delivered"];
+  const statusOptions = ["processing", "in-transit", "delivered"];
 
   // Handle input changes for product details
   const handleInputChange = (e) => {
@@ -716,48 +893,100 @@ const getFilteredAndSortedProducts = () => {
     });
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  // // Handle form submission
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //
+  //   // Validate the form data
+  //   const requiredFields = [
+  //     'name', 'author', 'cover_img_url', 'stock_quantity', 'price'
+  //   ];
+  //
+  //   const missingFields = requiredFields.filter(field => !newProduct[field]);
+  //
+  //   if (missingFields.length > 0) {
+  //     alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+  //     return;
+  //   }
+  //
+  //   // Check if dates are valid when discount is specified
+  //   if (newProduct.discount.discount_percentage &&
+  //      (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
+  //     alert('Please specify both start and end dates for the discount');
+  //     return;
+  //   }
+  //
+  //   // Format the data for API submission
+  //   const productData = {
+  //     ...newProduct,
+  //     stock_quantity: parseInt(newProduct.stock_quantity, 10),
+  //     price: parseFloat(newProduct.price),
+  //     discount: newProduct.discount.discount_percentage
+  //       ? {
+  //           ...newProduct.discount,
+  //           discount_percentage: parseFloat(newProduct.discount.discount_percentage)
+  //         }
+  //       : null
+  //   };
+  //
+  //   console.log('Product ready for submission:', productData);
+  //
+  //   // Here you would typically send the data to your backend API
+  //   // For now, just simulate success
+  //   resetForm();
+  //   alert('Product added successfully!');
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate the form data
     const requiredFields = [
       'name', 'author', 'cover_img_url', 'stock_quantity', 'price'
     ];
-    
+
     const missingFields = requiredFields.filter(field => !newProduct[field]);
-    
+
     if (missingFields.length > 0) {
       alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
     }
-    
+
     // Check if dates are valid when discount is specified
-    if (newProduct.discount.discount_percentage && 
-       (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
+    if (newProduct.discount.discount_percentage &&
+        (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
       alert('Please specify both start and end dates for the discount');
       return;
     }
-    
+
     // Format the data for API submission
     const productData = {
       ...newProduct,
       stock_quantity: parseInt(newProduct.stock_quantity, 10),
       price: parseFloat(newProduct.price),
-      discount: newProduct.discount.discount_percentage 
-        ? {
+      discount: newProduct.discount.discount_percentage
+          ? {
             ...newProduct.discount,
             discount_percentage: parseFloat(newProduct.discount.discount_percentage)
-          } 
-        : null
+          }
+          : null
     };
-    
+
     console.log('Product ready for submission:', productData);
-    
-    // Here you would typically send the data to your backend API
-    // For now, just simulate success
-    resetForm();
-    alert('Product added successfully!');
+
+    try {
+      const result = await createProduct(token, productData);
+
+      if (result && !result.error) {
+        alert('Product added successfully!');
+        resetForm();
+      } else {
+        alert(`Error adding product: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error submitting new product:", error);
+      alert('An unexpected error occurred while adding the product.');
+    }
   };
 
   // Placeholder categories (you would fetch these from your database)
