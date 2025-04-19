@@ -4,8 +4,9 @@ import { useAuth } from './context/AuthContext';
 
 const ProductManager = () => {
 
-    const { token } = useAuth();
+    const { token, role } = useAuth();
     console.log(token);
+    console.log(role);
 
   // Add scroll fix
   useEffect(() => {
@@ -173,35 +174,6 @@ const ProductManager = () => {
     }
   };
   
-  const updatePrice = async (token, productId, price) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-  
-    const data = { price };
-  
-    try {
-      const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(data),
-      });
-  
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Price updated successfully:", result);
-        return result;
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to update price:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to update price" };
-      }
-    } catch (error) {
-      console.error("Error updating price:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
 
   const removeProduct = async (token, productId) => {
     const headers = {

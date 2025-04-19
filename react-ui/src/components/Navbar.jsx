@@ -2,16 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { BsBag, BsPersonCircle } from "react-icons/bs";
 import { Link } from 'react-router-dom';
 import { searchProducts } from "../utils/SearchUtils";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
     const [isAuthorsOpen, setIsAuthorsOpen] = useState(false);
     const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+    const [isUserOpen, setIsUserOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [allProducts, setAllProducts] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
 
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+
     const [categories, setCategories] = useState([]);
     const [authors, setAuthors] = useState([]);
+
+    const { token, role, setToken, setRole } = useAuth(); // Assuming setToken is provided by AuthContext
+    // const setRole = useSetRole();
+
+    const handleLogout = () => {
+        setToken(null); // Clear the token
+        setRole(null);  // Optionally reset the role
+    };
+
+
+    // if token != null, user is logged in
+    useEffect(() => {
+        if (token) {
+            setIsUserLoggedIn(true);
+        } else {
+            setIsUserLoggedIn(false);
+        }
+    }, [token]);
+
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -140,18 +163,60 @@ const Navbar = () => {
                 )}
             </div>
 
+
+
             <div className="icons">
-                <Link to="/cart">
-                    <BsBag className="icon" />
-                </Link>
-                <Link to="/user">
-                    <BsPersonCircle className="icon" />
-                </Link>
+      
+            {role === "product_manager" ? (
+                    <Link to="/productmanager">
+                        <BsPersonCircle className="icon" />
+                    </Link>
+                ) : role === "sales_manager" ? (
+                    <Link to="/salesmanager">
+                        <BsPersonCircle className="icon" />
+                    </Link>
+                ) : (
+                    <Link to="/cart">
+                        <BsBag className="icon" />
+                    </Link>
+                )}
 
-                <Link to="/productmanager">
-                    <BsPersonCircle className="icon" />
-                </Link>
 
+                {/* UER Dropdown */}
+                <div
+                    className="dropdown"
+                    onMouseEnter={() => setIsUserOpen(true)}
+                    onMouseLeave={() => setIsUserOpen(false)}
+                >
+
+                    <Link to="/user" className="dropdown-trigger"><BsPersonCircle className="icon" /></Link>
+                    <div className={`dropdown-menu ${isUserOpen ? 'show' : ''}`}>
+                        {isUserLoggedIn ? (
+                            <div style={{ marginRight: '10px' }}>
+                            <Link to={`/user`} className="dropdown-item">
+                                Profile Page
+                            </Link>
+                            <Link to={`/login`} className="dropdown-item" onClick={handleLogout} >
+                                Log Out 
+                            </Link>
+                            </div>
+                        ) : (       
+                            <div>                     
+                            <Link to ={`/login`} className="dropdown-item">
+                                Log In
+                            </Link>
+                            <Link to={`/register`} className="dropdown-item">
+                                Register
+                            </Link>
+                            </div>  
+                        )}
+
+
+
+                    </div>
+                </div>
+
+                
             </div>
         </header>
     );

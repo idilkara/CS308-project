@@ -108,9 +108,12 @@ const Login = () => {
                     <Link to="/register" className="auth-toggle">
                         Don't have an account? Register
                     </Link>
+                    <Link to="/home" className="auth-toggle">
+                        Continue as guest
+                    </Link>
                 </div>
             </div>
-            <Link to="/manager-login" className="auth-manager">Login or register as manager</Link>
+            {/* <Link to="/manager-login" className="auth-manager">Login or register as manager</Link> */}
         </div>
     );
 };
