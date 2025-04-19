@@ -3,15 +3,21 @@ import Navbar from "./components/Navbar.jsx";
 import { FaTrash } from "react-icons/fa";
 import { useAuth } from "./context/AuthContext"; // Import AuthContext if using Context API
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 const ShoppingCart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const { token } = useAuth(); // Use the auth context to check if user is logged in
 
-
+  // Update the checkout button onClick handler
+  const handleCheckout = () => {
+  navigate('/checkout');
+  };
+  
   useEffect(() => {
     fetchCart();
   }, [token]);
@@ -326,7 +332,7 @@ return (
             </div>
           </div>
           
-          <button className="checkout-button source-sans-bold">CHECKOUT</button>
+          <button className="checkout-button source-sans-bold" onClick={handleCheckout}>CHECKOUT</button>
           <button className="continue-shopping source-sans-semibold">Continue Shopping</button>
         </div>
       </div>

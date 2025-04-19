@@ -4,6 +4,7 @@ import HomePage from "./HomePage";
 import CategoryPage from "./CategoryPage";
 import UserPage from "./UserPage";
 import ShoppingCart  from "./ShoppingCart";
+import CheckoutPage from "./CheckoutPage";
 import ProductPage from "./ProductPage";
 import ManagerLoginPage from "./ManagerLoginPage";
 import LoginPage from "./LoginPage";
@@ -25,6 +26,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/cart" element={<ShoppingCart/>} />
+        <Route path="/checkout" element={<CheckoutPage/>} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/product" element={<ProductPage />} />
         <Route path="/login" element={<LoginPage />} />
