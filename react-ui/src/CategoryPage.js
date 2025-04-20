@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, use } from 'react';
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx";
@@ -28,7 +27,8 @@ const CategoryPage = () => {
     useEffect(() => {
       if (categoryQuery != "") {
         console.log("Category from state:", categoryQuery);
-        setActiveCategory(categoryQuery);
+        // Instead of setting active category, add to selectedCategories
+        setSelectedCategories(prev => [...prev, categoryQuery]);
       }
     }, [categoryQuery]);
 
@@ -78,7 +78,8 @@ const CategoryPage = () => {
 
   // State for product data and filters
   const [favorites, setFavorites] = useState({});
-  const [activeCategory, setActiveCategory] = useState('All');
+  // Replace activeCategory with selectedCategories array
+  const [selectedCategories, setSelectedCategories] = useState(['All']);
   const [allProducts, setAllProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
@@ -102,8 +103,13 @@ const CategoryPage = () => {
     if (location.state && location.state.selectedCategory) {
       const selected = location.state.selectedCategory;
       
-      // Set the active category
-      setActiveCategory(selected);
+      // Add to selectedCategories instead of setting activeCategory
+      setSelectedCategories(prev => {
+        if (prev.includes('All')) {
+          return [selected];
+        }
+        return [...prev, selected];
+      });
       
       // Open the categories dropdown
       setDropdowns(prev => ({
@@ -116,12 +122,12 @@ const CategoryPage = () => {
     }
   }, [location.state]);
   
-  // Add a separate useEffect that will trigger when activeCategory changes
+  // Add a separate useEffect that will trigger when selectedCategories changes
   useEffect(() => {
-    if (activeCategory) {
+    if (selectedCategories.length > 0) {
       updateDisplayedProducts();
     }
-  }, [activeCategory, allProducts]); // Include allProducts to ensure we have data
+  }, [selectedCategories, allProducts]); // Include allProducts to ensure we have data
   
 
   // Fetch products on component mount
@@ -219,7 +225,7 @@ const CategoryPage = () => {
   // Update filtered products when filters or sort method changes
   useEffect(() => {
     updateDisplayedProducts();
-  }, [filters, sortMethod, activeCategory]);
+  }, [filters, sortMethod, selectedCategories]);
 
   // Fetch wishlist data
   const fetchWishlist = async (token) => {
@@ -436,12 +442,12 @@ const addToCart = async (event, book) => {
     // Start with all products
     let filtered = [...allProducts];
    
-    // Apply category filter
-    if (activeCategory !== 'All') {
+    // Apply category filter - modified to handle multiple categories
+    if (!selectedCategories.includes('All')) {
       filtered = filtered.filter(product =>
-        // Check if product.categories array contains the active category
+        // Check if product.categories array contains any of the selected categories
         product.categories && Array.isArray(product.categories) &&
-        product.categories.includes(activeCategory)
+        product.categories.some(category => selectedCategories.includes(category))
       );
     }
    
@@ -476,7 +482,7 @@ const addToCart = async (event, book) => {
     setFilteredProducts(sorted);
   };
 
-  // Custom sort function
+  // Custom sort function - updated to include popularity sort based on average_rating
   const sortProducts = (products, sortMethod) => {
     // First, separate in-stock and out-of-stock items
     const inStock = products.filter(item => item.stock_quantity > 0);
@@ -510,6 +516,10 @@ const addToCart = async (event, book) => {
       case 'date-descend':
         sortedInStock.sort((a, b) => new Date(b.publication_date || 0) - new Date(a.publication_date || 0));
         sortedOutOfStock.sort((a, b) => new Date(b.publication_date || 0) - new Date(a.publication_date || 0));
+        break;
+      case 'popularity': // New case for popularity sort
+        sortedInStock.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
+        sortedOutOfStock.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
         break;
     }
     
@@ -585,6 +595,34 @@ const toggleFavorite = (productId) => {
     ).length;
   };
 
+  // Handle category selection/deselection
+  const handleCategoryChange = (categoryName, checked) => {
+    setSelectedCategories(prev => {
+      // If "All" is being selected, return only "All"
+      if (categoryName === 'All' && checked) {
+        return ['All'];
+      }
+      
+      // If any other category is being selected, remove "All"
+      let newCategories = prev.filter(cat => cat !== 'All');
+      
+      if (checked) {
+        // Add the category
+        newCategories.push(categoryName);
+      } else {
+        // Remove the category
+        newCategories = newCategories.filter(cat => cat !== categoryName);
+      }
+      
+      // If no categories are selected, default to "All"
+      if (newCategories.length === 0) {
+        return ['All'];
+      }
+      
+      return newCategories;
+    });
+  };
+
   return (
     <div>
       <Navbar />
@@ -611,8 +649,8 @@ const toggleFavorite = (productId) => {
                   <input
                     type="checkbox"
                     value="All"
-                    onChange={() => setActiveCategory('All')}
-                    checked={activeCategory === 'All'}
+                    onChange={(e) => handleCategoryChange('All', e.target.checked)}
+                    checked={selectedCategories.includes('All')}
                   />
                   All
                 </label>
@@ -622,14 +660,8 @@ const toggleFavorite = (productId) => {
                     <input
                       type="checkbox"
                       value={category.name}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setActiveCategory(category.name);
-                        } else {
-                          setActiveCategory('All');
-                        }
-                      }}
-                      checked={activeCategory === category.name}
+                      onChange={(e) => handleCategoryChange(category.name, e.target.checked)}
+                      checked={selectedCategories.includes(category.name)}
                     />
                     {category.name}
                     <span className="filter-count">({getCategoryCount(category.name) || 0})</span>
@@ -731,25 +763,25 @@ const toggleFavorite = (productId) => {
 
         <div className="main-content">
           <div className="top-bar">
-
-          {searchKeyWord !== "" && (
-            <div> 
-                <h3 className="source-sans-semibold">Showing products for your search: {searchKeyWord}</h3>
-            <h3
-              onClick={() => {
-                if (window.confirm("Are you sure you want to clear the search?")) {
-                  setFilters({ priceRange: [], author: [] });
-                  setActiveCategory('All');
-                  setCustomPriceRange({ min: 0, max: 100 });
-                  setSearchKeyWord('');
-                  setFilteredProducts(allProducts);
-                }
-              }}
-            >
-              Clear Search
-            </h3>
-            </div> 
-              )}
+            {searchKeyWord !== "" && (
+              <div className="search-result-info">
+                <h3 className="source-sans-semibold">Showing products for your search: "{searchKeyWord}"</h3>
+                <button 
+                  className="clear-search-btn"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to clear the search?")) {
+                      setFilters({ priceRange: [], author: [] });
+                      setSelectedCategories(['All']);
+                      setCustomPriceRange({ min: 0, max: 100 });
+                      setSearchKeyWord('');
+                      setFilteredProducts(allProducts);
+                    }
+                  }}
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
 
             <div className="sort-filter">
               <select
@@ -764,6 +796,7 @@ const toggleFavorite = (productId) => {
                 <option value="price-ascend">Price: Low to High</option>
                 <option value="price-descend">Price: High to Low</option>
                 <option value="date-descend">Newest Arrivals</option>
+                <option value="popularity">Most Popular</option>
               </select>
             </div>
           </div>
@@ -809,7 +842,7 @@ const toggleFavorite = (productId) => {
                         disabled={isOutOfStock}
                       >
                         <span>🛒</span>
-                      </button>
+                        </button>
                     </div>
                     <div className="grid-item-content">
                       <img
@@ -836,21 +869,23 @@ const toggleFavorite = (productId) => {
                 );
               })
             ) : (
-                <div className="no-results">
-                  <h3>No books match your current filters</h3>
-                  <p>Try adjusting your filter criteria or clear filters to see more results.</p>
-                  <button
-                    onClick={() => {
-                      setFilters({priceRange: [], author: []});
-                      setActiveCategory('All');
-                      setCustomPriceRange({ min: 0, max: 100 });
-                      setSearchKeyWord(''); // Clear search keyword
-                      setFilteredProducts(allProducts); // Reset to show all products
-                    }}
-                    className="clear-filters-btn"
-                  >
-                    Clear All Filters
-                  </button>
+              <div className="grid-container no-results-active">
+                  <div className="no-results">
+                    <h3>No books match your current filters</h3>
+                    <p>Try adjusting your filter criteria or clear filters to see more results.</p>
+                    <button
+                      onClick={() => {
+                        setFilters({priceRange: [], author: []});
+                        setSelectedCategories(['All']); 
+                        setCustomPriceRange({ min: 0, max: 100 });
+                        setSearchKeyWord(''); // Clear search keyword
+                        setFilteredProducts(allProducts); // Reset to show all products
+                      }}
+                      className="clear-filters-btn"
+                    >
+                      Clear All Filters
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -862,7 +897,7 @@ const toggleFavorite = (productId) => {
           {notification.message}
         </div>
       )}
-      <Footer />
+    
     </div>
   );
 };
