@@ -85,7 +85,7 @@ const CheckoutPage = () => {
     };
 
     fetchPdf();
-  }, [invId, token]);
+  }, [invId]);
 
 
   // Calculate summary whenever cart items change
@@ -186,6 +186,10 @@ const CheckoutPage = () => {
             setPaymentInfo({
               cardNumber: userData.payment_method || '',
             });
+          if (userData.payment_method = null) {
+
+            alert("Please add a payment method to your account from the profile page. ");
+          }
           }
         }
       }
@@ -329,7 +333,7 @@ const placeOrder = async (e) => {
         setOrderComplete(true);
       } else {
         const errorData = await response.json();
-        alert(`Order failed: ${errorData.message || 'Please try again later'}`);
+        alert(`Order failed: 'Please add delivery address and payment information to your account and try again'}`);
       }
     }
   } catch (error) {

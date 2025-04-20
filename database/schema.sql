@@ -137,8 +137,9 @@ CREATE TABLE reviews (
     rating INT CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    approved BOOLEAN DEFAULT FALSE,
-    rejected BOOLEAN DEFAULT FALSE,
+    -- approved BOOLEAN DEFAULT FALSE,
+    -- rejected BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );

@@ -376,68 +376,27 @@ const ProductManager = () => {
   };
 
 // View unapproved reviews
-  const viewUnapprovedReviews = async (token) => {
+  const viewReviews = async (token) => {
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
     try {
-      const response = await fetch("http://localhost/api/reviews/unapproved", {
+      const response = await fetch("http://localhost/api/reviews/pm_reviews", {
         method: "GET",
         headers,
       });
 
       const json = await response.json();
-      console.log("Unapproved reviews JSON:", json);
+      console.log("pm reviews JSON:", json);
       return json;
 
     } catch (error) {
-      console.error("Error fetching unapproved reviews:", error);
+      console.error("Error fetching reviews:", error);
       return { error: "An unexpected error occurred" };
     }
   };
 
-  const viewApprovedReviews = async (token) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-    try {
-      const response = await fetch("http://localhost/api/reviews/approved_reviews", {
-        method: "GET",
-        headers,
-      });
-
-      const json = await response.json();
-      console.log("Approved reviews JSON:", json);
-      return json;
-
-    } catch (error) {
-      console.error("Error fetching approved reviews:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
-  const viewRejectedReviews = async (token) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-    try {
-      const response = await fetch("http://localhost/api/reviews/rejected_review", {
-        method: "GET",
-        headers,
-      });
-
-      const json = await response.json();
-      console.log("Rejected reviews JSON:", json);
-      return json;
-
-    } catch (error) {
-      console.error("Error fetching approved reviews:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
 
 // Approve a review
   const approveReview = async (token, reviewId) => {
@@ -458,25 +417,6 @@ const ProductManager = () => {
     }
   };
 
-  //reject rev
-  const rejectReview = async (token, reviewId) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-    try {
-      const response = await fetch(`http://localhost/api/reviews/reject/${reviewId}`, {
-        method: "PUT",
-        headers,
-      });
-      return await response.json();
-
-    } catch (error) {
-      console.error("Error rejecting review:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
 // Delete a review
   const deleteReview = async (token, reviewId) => {
     const headers = {
@@ -484,8 +424,8 @@ const ProductManager = () => {
       "Content-Type": "application/json",
     };
     try {
-      const response = await fetch(`http://localhost/api/reviews/remove/${reviewId}`, {
-        method: "DELETE",
+      const response = await fetch(`http://localhost/api/reviews/reject/${reviewId}`, {
+        method: "PUT",
         headers,
       });
       return await response.json();
@@ -541,78 +481,6 @@ const ProductManager = () => {
     fetchDeliveries();
   }, [activeSection, token]);
 
-  // // Load comments when the "comments" section is active
-  // useEffect(() => {
-  //   if (activeSection === 'comments') {
-  //     // Simulate loading from an API
-  //     setCommentIsLoading(true);
-  //
-  //     // Simulate API call with a timeout
-  //     setTimeout(() => {
-  //       const sampleComments = [
-  //         {
-  //           id: 1,
-  //           productId: 101,
-  //           productName: "Fiction Novel",
-  //           userId: 201,
-  //           userName: "John Smith",
-  //           rating: 4,
-  //           comment: "Great book, really enjoyed the characters and plot development.",
-  //           date: "2025-03-12",
-  //           status: "pending"
-  //         },
-  //         {
-  //           id: 2,
-  //           productId: 102,
-  //           productName: "Non-Fiction Book",
-  //           userId: 202,
-  //           userName: "Jane Doe",
-  //           rating: 5,
-  //           comment: "Very informative and well-written. Highly recommend for anyone interested in this subject.",
-  //           date: "2025-03-14",
-  //           status: "pending"
-  //         },
-  //         {
-  //           id: 3,
-  //           productId: 103,
-  //           productName: "Sci-Fi Novel",
-  //           userId: 203,
-  //           userName: "Bob Johnson",
-  //           rating: 2,
-  //           comment: "I found the story confusing and the characters underdeveloped.",
-  //           date: "2025-03-10",
-  //           status: "pending"
-  //         },
-  //         {
-  //           id: 4,
-  //           productId: 104,
-  //           productName: "Fantasy Book",
-  //           userId: 204,
-  //           userName: "Alice Williams",
-  //           rating: 3,
-  //           comment: "The world-building was excellent but the pacing was a bit slow.",
-  //           date: "2025-03-15",
-  //           status: "approved"
-  //         },
-  //         {
-  //           id: 5,
-  //           productId: 105,
-  //           productName: "Mystery Novel",
-  //           userId: 205,
-  //           userName: "Charlie Brown",
-  //           rating: 1,
-  //           comment: "Very disappointing. The plot had too many holes and the ending was predictable.",
-  //           date: "2025-03-11",
-  //           status: "rejected"
-  //         },
-  //       ];
-  //
-  //       setComments(sampleComments);
-  //       setCommentIsLoading(false);
-  //     }, 800);
-  //   }
-  // }, [activeSection]);
-  //
 
   // Handle status change for deliveries
   const handleStatusChange = (deliveryId, newStatus) => {
@@ -628,17 +496,9 @@ const ProductManager = () => {
         setCommentIsLoading(true);
 
         try {
-          let unapproved = await viewUnapprovedReviews(token);
-          let approved = await viewApprovedReviews(token);
-
-          let rejected = await viewRejectedReviews(token);
-
-
-          console.log("Fetched rejected:", rejected);
-
-          console.log("Fetched unapproved:", unapproved);
-          console.log("Fetched approved:", approved);
-
+          let unapproved = await viewReviews(token);
+          console.log("Fetchedrevs:", unapproved);
+         
           let mappedComments = [];
 
           if (Array.isArray(unapproved)) {
@@ -652,28 +512,13 @@ const ProductManager = () => {
                   rating: comment.rating,
                   comment: comment.comment,
                   date: new Date().toLocaleDateString(),
-                  status: 'pending'  // unapproved -> pending
-                }))
-            );
-          }
-
-          if (Array.isArray(approved)) {
-            mappedComments = mappedComments.concat(
-                approved.map(comment => ({
-                  id: comment.review_id,
-                  productId: comment.product_id,
-                  productName: `Product ID ${comment.product_id}`,
-                  userId: comment.user_id,
-                  userName: `User ${comment.user_id}`,
-                  rating: comment.rating,
-                  comment: comment.comment,
-                  date: new Date().toLocaleDateString(),
-                  status: 'approved'  // approved -> approved
+                  status: comment.status // unapproved -> pending
                 }))
             );
           }
 
           setComments(mappedComments);
+          console.log("Mapped comments:", mappedComments);
 
         } catch (error) {
           console.error("Unexpected error fetching comments:", error);
@@ -783,20 +628,21 @@ const ProductManager = () => {
 
   const handleRejectComment = async (commentId) => {
     try {
-      const result = await rejectReview(token, commentId);
+      const result = await deleteReview(token, commentId);
 
       if (result && !result.error) {
-        // After deleting, remove comment from the list
         setComments(prevComments =>
-            prevComments.filter(comment => comment.id !== commentId)
+            prevComments.map(comment =>
+                comment.id === commentId ? { ...comment, status: "rejected" } : comment
+            )
         );
-        alert(`Comment #${commentId} has been rejected and deleted.`);
+        alert(`Comment #${commentId} has been rejected.`);
       } else {
-        alert(result.error || 'Failed to reject comment.');
+        alert(result.error || 'Failed to approve comment.');
       }
     } catch (error) {
-      console.error("Error rejecting comment:", error);
-      alert('An unexpected error occurred while rejecting comment.');
+      console.error("Error approving comment:", error);
+      alert('An unexpected error occurred while approving comment.');
     }
   };
 
