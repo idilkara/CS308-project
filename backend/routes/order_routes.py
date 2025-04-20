@@ -59,10 +59,10 @@ def view_orders():
                 "quantity": order[5],
                 "price": order[6],
                 "orderitem_id": order[7],
-                "name": order[8],  # Assuming you want to include the product name as well
-                "author": order[9],  # Assuming you want to include the product author as well
-                "distributor": order[10],  # Assuming you want to include the product publisher as well
-                "orderitem_status": order[11]  # Assuming you want to include the order item status as well
+                "name": order[8], 
+                "author": order[9],  
+                "distributor": order[10], 
+                "orderitem_status": order[11]  
             })
         if current_order is not None:
             order_list.append(current_order)

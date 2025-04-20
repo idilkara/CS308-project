@@ -118,12 +118,9 @@ def approve_review(review_id):
         # Approve the review
                 
         cur.execute("UPDATE reviews SET status = 'approved' WHERE review_id = %s", (review_id,))
-
-
         conn.commit()
         cur.close()
         conn.close()
-
         return jsonify({"message": "Review approved successfully!"}), 200
 
     except Exception as e:
@@ -159,11 +156,8 @@ def reject_review(review_id):
 
         if int(user) != int(product_manager_id):
             return jsonify({"error": "You are not authorized to approve this review."}), 403
-        # Approve the review
-                
+        # Approve the review                
         cur.execute("UPDATE reviews SET status = 'rejected' WHERE review_id = %s", (review_id,))
-
-
         conn.commit()
         cur.close()
         conn.close()
