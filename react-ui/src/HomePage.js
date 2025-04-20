@@ -69,20 +69,7 @@ const HomePage = () => {
 
         
         // Initialize favorites state based on wishlist if token exists
-        if (token) {
-          fetchWishlist(token).then(wishlistData => {
-            if (wishlistData && Array.isArray(wishlistData)) {
-              const wishlistMap = {};
-              newestTwenty.forEach((product, index) => {
-                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-                if (isInWishlist) {
-                  wishlistMap[`new-${index}`] = true;
-                }
-              });
-              setFavorites(wishlistMap);
-            }
-          });
-        }
+        
       } catch (error) {
         console.error("Failed to fetch new arrivals", error);
       }
@@ -112,20 +99,7 @@ const HomePage = () => {
         setBestSellers(topTwenty);
         
         // Initialize favorites state based on wishlist if token exists
-        if (token) {
-          fetchWishlist(token).then(wishlistData => {
-            if (wishlistData && Array.isArray(wishlistData)) {
-              const wishlistMap = {...favorites};
-              topTwenty.forEach((product, index) => {
-                const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-                if (isInWishlist) {
-                  wishlistMap[`best-${index}`] = true;
-                }
-              });
-              setFavorites(wishlistMap);
-            }
-          });
-        }
+        
       } catch (error) {
         console.error("Failed to fetch best sellers", error);
       }
@@ -133,7 +107,12 @@ const HomePage = () => {
     fetchBestSellers();
   }, [token]);
 
-
+  useEffect(() => {
+    // Call this after both newArrivals and bestSellers are set
+    if (token && newArrivals.length > 0 && bestSellers.length > 0) {
+      fetchWishlist();
+    }
+  }, [newArrivals, bestSellers, token]);
 
   // Fetch categories
   useEffect(() => {
@@ -150,43 +129,32 @@ const HomePage = () => {
   }, []);
   
   // Fetch wishlist data
-  const fetchWishlist = async (token) => {
+  const fetchWishlist = async () => {
     if (!token) return;
-  
-  try {
-    const response = await fetch("http://localhost/api/wishlist/view", {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
     
-    if (response.ok) {
-      const wishlistData = await response.json();
-      if (Array.isArray(wishlistData)) {
-        // Create a map of product_id to favorite status
-        const newFavorites = {};
-        
-        // Process new arrivals
-        newArrivals.forEach(product => {
-          if (wishlistData.some(item => item.product_id === product.product_id)) {
-            newFavorites[`new-${product.product_id}`] = true;
-          }
-        });
-        bestSellers.forEach(product => {
-          if (wishlistData.some(item => item.product_id === product.product_id)) {
-            newFavorites[`best-${product.product_id}`] = true;
-          }
-        });
-        
-        
-        setFavorites(newFavorites);
+    try {
+      const response = await fetch("http://localhost/api/wishlist/view", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (response.ok) {
+        const wishlistData = await response.json();
+        if (Array.isArray(wishlistData)) {
+          // Create a map using product_id as keys instead of array indices
+          const wishlistMap = {};
+          wishlistData.forEach(item => {
+            wishlistMap[item.product_id] = true;
+          });
+          setFavorites(wishlistMap);
+        }
       }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
     }
-  } catch (error) {
-    console.error("Error fetching wishlist:", error);
-  }
   };
   
   // Add to wishlist function
@@ -356,15 +324,23 @@ const HomePage = () => {
   
   // Toggle favorite status
   const toggleFavorite = (index, productId, section) => {
-    const key = `${section}-${index}`;
-    const currentStatus = favorites[key];
+    // The section and index parameters are kept for backward compatibility
+    const currentStatus = favorites[productId];
     
     // Call the appropriate API function based on current status
     const apiFunction = currentStatus ? removeFromWishlist : addToWishlist;
     
     apiFunction(productId).then((result) => {
       if (!result.error) {
-        setFavorites({ ...favorites, [key]: !currentStatus });
+        if (currentStatus) {
+          // Remove from favorites
+          const updatedFavorites = { ...favorites };
+          delete updatedFavorites[productId];
+          setFavorites(updatedFavorites);
+        } else {
+          // Add to favorites
+          setFavorites({ ...favorites, [productId]: true });
+        }
       }
     });
   };
@@ -519,18 +495,18 @@ const HomePage = () => {
                           style={{ cursor: 'pointer' }}
                         >
                           <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                            <button 
-                              className={`favorite-btn ${favorites[favoriteKey] ? 'active' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(productIndex, product.product_id, 'new');
-                              }}
-                            >
-                              {favorites[favoriteKey] ? 
-                                <span className="heart-filled">♥</span> : 
-                                <span className="heart-outline">♡</span>
-                              }
-                            </button>
+                          <button 
+                          className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(productIndex, product.product_id, 'new');
+                          }}
+                        >
+                          {favorites[product.product_id] ? 
+                            <span className="heart-filled">♥</span> : 
+                            <span className="heart-outline">♡</span>
+                          }
+                        </button>
                             <button 
                               className="cart-btn"
                               onClick={(e) => addToCart(e, product)}
@@ -638,18 +614,18 @@ const HomePage = () => {
                           style={{ cursor: 'pointer' }}
                         >
                           <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                            <button 
-                              className={`favorite-btn ${favorites[favoriteKey] ? 'active' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(productIndex, product.product_id, 'best');
-                              }}
-                            >
-                              {favorites[favoriteKey] ? 
-                                <span className="heart-filled">♥</span> : 
-                                <span className="heart-outline">♡</span>
-                              }
-                            </button>
+                          <button 
+                            className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(productIndex, product.product_id, 'new');
+                            }}
+                          >
+                            {favorites[product.product_id] ? 
+                              <span className="heart-filled">♥</span> : 
+                              <span className="heart-outline">♡</span>
+                            }
+                          </button>
                             <button 
                               className="cart-btn"
                               onClick={(e) => addToCart(e, product)}

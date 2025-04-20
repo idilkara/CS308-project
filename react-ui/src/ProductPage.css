@@ -697,7 +697,7 @@
 }
 
 .cart-notification.success {
-  background-color: #4CAF50;
+  background-color: var(--warm-green-light);
   color: white;
 }
 
