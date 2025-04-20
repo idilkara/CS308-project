@@ -26,6 +26,8 @@ import { useAuth, useSetRole } from "./context/AuthContext";
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState('');
+    const [notification, setNotification] = useState({ message: '', visible: false });
+
 
     const [paymentMethod, setPaymentMethod] = useState({
         cardNumber: '',
@@ -217,6 +219,77 @@ import { useAuth, useSetRole } from "./context/AuthContext";
         return { error: "An unexpected error occurred" };
         }
     };
+
+    const addToCart = async (event, book) => {
+        if (event) {
+          event.stopPropagation();
+        }
+        
+        // Check if item is out of stock
+        if (!book.stock_quantity || book.stock_quantity <= 0) {
+          setNotification({
+            message: "This item is currently out of stock",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+          return { error: "Out of stock" };
+        }
+        
+        try {
+          // User is logged in, add to their cart in the database
+          const headers = {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          };
+          const data = { product_id: book.product_id, quantity: 1 };
+        
+          const response = await fetch("http://localhost/api/shopping/add", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(data),
+          });
+        
+          if (response.ok) {
+            const result = await response.json();
+            console.log("Added to cart:", result);
+            // Show success message
+            setNotification({
+              message: "Added to cart successfully!",
+              visible: true
+            });
+            setTimeout(() => {
+              setNotification({ message: '', visible: false });
+            }, 3000);
+            return result;
+          } else {
+            const errorData = await response.json();
+            console.error("Failed to add to cart:", errorData);
+            setNotification({
+              message: errorData.error || "Failed to add to cart",
+              visible: true
+            });
+            setTimeout(() => {
+              setNotification({ message: '', visible: false });
+            }, 3000);
+            return {
+              error: errorData.error || "Failed to add to cart",
+              status_code: response.status,
+            };
+          }
+        } catch (error) {
+          console.error("Error adding to cart:", error);
+          setNotification({
+            message: "An unexpected error occurred",
+            visible: true
+          });
+          setTimeout(() => {
+            setNotification({ message: '', visible: false });
+          }, 3000);
+          return { error: "An unexpected error occurred" };
+        }
+      };
 
     // view order history
     const fetchOrderHistory = async (token) => {
@@ -839,46 +912,81 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                 )}
                 
                 {activeTab === 'wishlist' && (
-                    <div>
-                        <h2 className="section-title">Your Wishlist</h2>
-                        
-                        {wishlistBooks.length > 0 ? (
-                            <div className="book-card-grid">
-                                {wishlistBooks.map(book => (
-                                    <div key={book.product_id} className="book-card">
-                                        <div className="book-card-inner">
-                                            <div className="book-cover">
-                                                <div className="placeholder-cover"></div>
-                                                <button 
-                                                    className="wishlist-icon filled"
-                                                    onClick={() => removeFromWishlist(book.product_id)}
-                                                    title="Remove from wishlist"
-                                                >
-                                                    ❤️
-                                                </button>
-                                            </div>
-                                            <div className="book-info">
-                                                <h3>{book.name}</h3>
-                                                <p>{book.description}</p>
-                                                <p className="book-price">₹{book.price}</p>
-                                            </div>
-                                          
-                                            <div className="book-actions">
-                                                <button className="add-to-cart-btn">Add to Cart</button>
-                                            </div>
+                <div>
+                    <h2 className="section-title">Your Wishlist</h2>
+                    
+                    {wishlistBooks && wishlistBooks.length > 0 ? (
+                        <div className="grid-container">
+                            {wishlistBooks.map(book => {
+                                const isOutOfStock = !book.stock_quantity || book.stock_quantity <= 0;
+                                
+                                return (
+                                    <div 
+                                        key={book.product_id} 
+                                        className={`grid-item ${isOutOfStock ? 'out-of-stock' : ''}`}
+                                        onClick={(e) => {
+                                            // Prevent navigation if clicking on buttons
+                                            if (e.target.closest('.item-actions')) {
+                                              e.stopPropagation();
+                                              return;
+                                            }
+                                            navigate('/product', { state: { product_id: book.product_id } });
+                                          }}
+                                    >
+                                        {isOutOfStock && <span className="out-of-stock-label">Out of Stock</span>}
+                                        <div className="item-actions">
+                                            <button 
+                                                className="favorite-btn active"
+                                                onClick={() => removeFromWishlist(book.product_id)}
+                                                title="Remove from wishlist"
+                                            >
+                                                <span className="heart-filled">♥</span>
+                                            </button>
+                                            <button 
+                                                className="cart-btn" 
+                                                onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
+                                                disabled={isOutOfStock}
+                                            >
+                                                <span>🛒</span>
+                                            </button>
+                                        </div>
+                                        <div className="grid-item-content">
+                                            <img
+                                                src={`assets/covers/${book.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                                                alt={book.name}
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = "assets/covers/default.png";
+                                                }}
+                                            />
+                                        </div>
+                                        <hr />
+                                        <div className="grid-item-header">
+                                            <h3 className="source-sans-semibold">
+                                                {book.name.length > 27 ? book.name.slice(0, 27) + '...' : book.name}
+                                            </h3>
+                                            <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
+                                            <span className="source-sans-bold">${book.price || "0.00"}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="empty-wishlist">
-                                <p>Your wishlist is empty.</p>
-                                <p>Browse our collections and add books you love to your wishlist!</p>
-                                <button className="browse-button">Browse Books</button>
-                            </div>
-                        )}
-                    </div>
-                )}
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="empty-wishlist">
+                            <p>Your wishlist is empty.</p>
+                            <p>Browse our collections and add books you love to your wishlist!</p>
+                            <button className="browse-button" onClick={() => navigate('/category')}>Browse Books</button>
+                        </div>
+                    )}
+                    
+                    {notification.visible && (
+                        <div className="cart-notification">
+                            {notification.message}
+                        </div>
+                    )}
+                </div>
+            )}
                 
                 {activeTab === 'payment' && renderPaymentMethodsSection()}
                 

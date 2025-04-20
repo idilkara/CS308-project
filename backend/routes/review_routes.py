@@ -43,10 +43,10 @@ def add_review():
 
         # Insert review
         cur.execute("""
-            INSERT INTO reviews (user_id, product_id, rating, comment, approved)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO reviews (user_id, product_id, rating, comment)
+            VALUES (%s, %s, %s, %s)
             RETURNING review_id
-        """, (user_id, product_id, rating, comment, False if comment else True))
+        """, (user_id, product_id, rating, comment))
 
         review_id = cur.fetchone()[0]
         conn.commit()
@@ -70,7 +70,7 @@ def get_reviews(product_id):
         SELECT u.name, r.user_id, r.rating, r.comment , r.review_date
         FROM reviews r
         JOIN users u ON r.user_id = u.user_id
-        WHERE r.product_id = %s AND r.approved = TRUE
+        WHERE r.product_id = %s AND r.status = 'approved'
     """, (product_id,))
 
         reviews = cur.fetchall()
@@ -117,7 +117,7 @@ def approve_review(review_id):
             return jsonify({"error": "You are not authorized to approve this review."}), 403
         # Approve the review
                 
-        cur.execute("UPDATE reviews SET approved = TRUE WHERE review_id = %s", (review_id,))
+        cur.execute("UPDATE reviews SET status = 'approved' WHERE review_id = %s", (review_id,))
 
 
         conn.commit()
@@ -161,87 +161,14 @@ def reject_review(review_id):
             return jsonify({"error": "You are not authorized to approve this review."}), 403
         # Approve the review
                 
-        cur.execute("UPDATE reviews SET rejected = TRUE WHERE review_id = %s", (review_id,))
+        cur.execute("UPDATE reviews SET status = 'rejected' WHERE review_id = %s", (review_id,))
 
 
         conn.commit()
         cur.close()
         conn.close()
 
-        return jsonify({"message": "Review approved successfully!"}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-
-# Endpoint for product managers to view their own reviews
-@review_bp.route("/approved_reviews", methods=["GET"])
-@jwt_required()
-def get_approved_reviews():
-    try:
-        user = get_jwt_identity()
-        if isinstance(user, dict) and user.get("role") != "product_manager":
-            return jsonify({"error": "Only product managers can view their own reviews."}), 403
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment
-            FROM reviews r
-            JOIN products p ON p.product_id = r.product_id
-            WHERE p.product_manager = %s AND r.approved = TRUE
-        """, (user,))
-
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-
-        return jsonify([
-            {
-                "review_id": r[0],
-                "user_id": r[1],
-                "product_id": r[2],
-                "rating": r[3],
-                "comment": r[4]
-            } for r in rows
-        ]), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    
-# Endpoint for product managers to view their own unapproved reviews
-@review_bp.route("/rejected_reviews", methods=["GET"])
-@jwt_required()
-def get_rejected_reviews():
-    try:
-        user = get_jwt_identity()
-        if isinstance(user, dict) and user.get("role") != "product_manager":
-            return jsonify({"error": "Only product managers can view their own reviews."}), 403
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment
-            FROM reviews r
-            JOIN products p ON p.product_id = r.product_id
-            WHERE  p.product_manager = %s AND r.reject = TRUE 
-        """, (user,))
-
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-
-        return jsonify([
-            {
-                "review_id": r[0],
-                "user_id": r[1],
-                "product_id": r[2],
-                "rating": r[3],
-                "comment": r[4]
-            } for r in rows
-        ]), 200
+        return jsonify({"message": "Review rejected successfully!"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -290,10 +217,10 @@ def remove_review(review_id):
 
 
 
-# Endpoint for product managers to view unapproved comments
-@review_bp.route("/unapproved", methods=["GET"])
+# Endpoint for product managers to view their products comments
+@review_bp.route("/pm_reviews", methods=["GET"])
 @jwt_required()
-def get_unapproved_reviews():
+def get_pm_reviews():
 
     pmId = get_jwt_identity()
 
@@ -307,13 +234,12 @@ def get_unapproved_reviews():
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment
+            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment, r.status
             FROM reviews r
             JOIN products p ON p.product_id = r.product_id
-            WHERE p.product_manager = %s AND r.approved = FALSE
+            WHERE p.product_manager = %s 
         """, (pmId,))
      
-
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -324,7 +250,8 @@ def get_unapproved_reviews():
                 "user_id": r[1],
                 "product_id": r[2],
                 "rating": r[3],
-                "comment": r[4]
+                "comment": r[4],
+                "status": r[5]
             } for r in rows
         ]), 200
 
