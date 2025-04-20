@@ -133,14 +133,8 @@ const HomePage = () => {
     fetchBestSellers();
   }, [token]);
 
-  // Replace the wishlist initialization in both useEffects with a single call
-useEffect(() => {
-  // Call this after both newArrivals and bestSellers are set
-  if (newArrivals.length > 0 && bestSellers.length > 0) {
-    fetchWishlist();
-  }
-}, [newArrivals, bestSellers, token]);
-  
+
+
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -175,20 +169,17 @@ useEffect(() => {
         const newFavorites = {};
         
         // Process new arrivals
-        newArrivals.forEach((product, index) => {
-          const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-          if (isInWishlist) {
-            newFavorites[`new-${index}`] = true;
+        newArrivals.forEach(product => {
+          if (wishlistData.some(item => item.product_id === product.product_id)) {
+            newFavorites[`new-${product.product_id}`] = true;
+          }
+        });
+        bestSellers.forEach(product => {
+          if (wishlistData.some(item => item.product_id === product.product_id)) {
+            newFavorites[`best-${product.product_id}`] = true;
           }
         });
         
-        // Process best sellers
-        bestSellers.forEach((product, index) => {
-          const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
-          if (isInWishlist) {
-            newFavorites[`best-${index}`] = true;
-          }
-        });
         
         setFavorites(newFavorites);
       }
@@ -519,7 +510,7 @@ useEffect(() => {
                     .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
                     .map((product, index) => {
                       const productIndex = pageIndex * productsPerPage + index;
-                      const favoriteKey = `new-${productIndex}`;
+                      const favoriteKey = `new-${product.product_id}`;
                       return (
                         <div 
                           key={productIndex} 
@@ -638,7 +629,7 @@ useEffect(() => {
                     .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
                     .map((product, index) => {
                       const productIndex = pageIndex * productsPerPage + index;
-                      const favoriteKey = `best-${productIndex}`;
+                      const favoriteKey = `best-${product.product_id}`;
                       return (
                         <div 
                           key={productIndex} 
