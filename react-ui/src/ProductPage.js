@@ -16,15 +16,15 @@ const ProductPage = () => {
   const [product, setProduct] = useState({
     name: "Loading...",
     author: "Loading...",
-    brand: "",
-    price: "0.00",
-    code: "",
+    categories: [],
     description: "Loading product details...",
-    shippingPolicy: "Loading shipping policy...",
-    rating: 0,
-    reviewCount: 0,
+    distributor_information: "Loading distributor info...",
+    model: "Loading model...",
+    price: "0.00",
+    serial_number: "Loading serial number...",
     stock_quantity: 0,
-    categories: []
+    waiting: false,
+    warranty_status: "Loading warranty status...",
   });
   
   // States for UI management
@@ -484,6 +484,25 @@ const ProductPage = () => {
               <h3 className="section-title">Shipping and Return Policy</h3>
               <p className="section-content">{product.shippingPolicy || "Standard shipping and return policies apply. Contact customer service for details."}</p>
             </div>
+
+            <div className="product-section">
+              <h3 className="section-title">Warranty</h3>
+              <p className="section-content">{product.warranty_status}</p>
+            </div>
+
+            
+            <div className="product-section">
+              <h3 className="section-title">Serial Number</h3>
+              <p className="section-content">{product.serial_number}</p>
+            </div>
+                        
+            <div className="product-section">
+              <h3 className="section-title">Model</h3>
+              <p className="section-content">{product.model}</p>
+            </div>
+
+
+
           </div>
         </div>
         

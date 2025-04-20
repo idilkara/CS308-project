@@ -56,9 +56,9 @@ def get_all_products():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories, 
+        SELECT p.product_id, p.name, p.price, p.description, array_agg(c.name) AS categories,
        p.warranty_status, p.distributor_information, p.sales_manager, 
-       p.product_manager, p.waiting, p.author, p.stock_quantity
+       p.product_manager, p.waiting, p.author, p.stock_quantity,  p.model, p.serial_number
 
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
@@ -101,7 +101,9 @@ def get_all_products():
         "waiting": product[9],
         "author": product[10],
         "stock_quantity": product[11],  # Add this line
-        "average_rating": str(ratings_dict.get(product[0], 0))  # Add this line
+        "average_rating": str(ratings_dict.get(product[0], 0)),
+          "model": product[12],  # Add this line
+          "serial_number": product[13]  # Add this line
     }
     for product in products
 ])
@@ -149,7 +151,7 @@ def get_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting, p.author
+        SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting, p.author, p.serial_number
         FROM products p
         LEFT JOIN productcategories pc ON p.product_id = pc.product_id
         LEFT JOIN categories c ON pc.category_id = c.category_id
@@ -174,7 +176,8 @@ def get_product(product_id):
             "sales_manager": product[9],
             "product_manager": product[10],
             "waiting": product[11],
-            "author": product[12]
+            "author": product[12],
+            "serial_number": product[13]
         })
     else:
         return jsonify({"error": "Product not found"}), 404

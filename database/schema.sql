@@ -43,7 +43,8 @@ CREATE TABLE companymanagers (
 -- 9. A product should have the following properties at the very least: 
 -- ID, name, model, serial number, description, quantity in stocks, price, warranty status, and distributor information
 CREATE TABLE products (
-    product_id SERIAL PRIMARY KEY, -- serial_number VARCHAR(255) UNIQUE NOT NULL,
+    product_id SERIAL PRIMARY KEY, -- 
+    serial_number VARCHAR(255) ,
     name VARCHAR(255) NOT NULL,
     model VARCHAR(255),-- ciltli ciltsiz
     description TEXT,

@@ -166,6 +166,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
             if (response.ok) {
                 const wishlistData = await response.json();
                 console.log("Wishlist fetched successfully:", wishlistData);
+
                 setWishlistBooks(wishlistData); // Update the wishlist state
             } else {
                 const errorData = await response.json();
@@ -175,6 +176,45 @@ import { useAuth, useSetRole } from "./context/AuthContext";
         } catch (error) {
             console.error("Error fetching wishlist:", error);
             alert("An error occurred while fetching the wishlist.");
+        }
+    };
+
+
+    
+    // Remove item from wishlist
+    const removeFromWishlistApi = async (productId) => {
+
+        const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        };
+
+        const data = {
+        product_id: productId
+        };
+
+        try {
+        const response = await fetch("http://localhost/api/wishlist/remove", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log("Removed from wishlist:", result);
+            return result;
+        } else {
+            const errorData = await response.json();
+            console.error("Failed to remove from wishlist:", errorData);
+            return {
+            error: errorData.message || "Failed to remove from wishlist",
+            status_code: response.status,
+            };
+        }
+        } catch (error) {
+        console.error("Error removing from wishlist:", error);
+        return { error: "An unexpected error occurred" };
         }
     };
 
@@ -352,9 +392,13 @@ import { useAuth, useSetRole } from "./context/AuthContext";
     };
     
     // Handle remove from wishlist
-    const removeFromWishlist = (bookId) => {
-        // In a real implementation, you would make an API call here
-        setWishlistBooks(wishlistBooks.filter(book => book.id !== bookId));
+    const removeFromWishlist = async (bookId) => {
+        try {
+            await removeFromWishlistApi(bookId);  // Wait for API to finish
+            fetchWishlist(token);                 // Then refresh the wishlist
+        } catch (err) {
+            console.error("Failed to remove from wishlist", err);
+        }
     };
     
     // Toggle order details expansion
@@ -826,23 +870,24 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                         {wishlistBooks.length > 0 ? (
                             <div className="book-card-grid">
                                 {wishlistBooks.map(book => (
-                                    <div key={book.id} className="book-card">
+                                    <div key={book.product_id} className="book-card">
                                         <div className="book-card-inner">
                                             <div className="book-cover">
                                                 <div className="placeholder-cover"></div>
                                                 <button 
                                                     className="wishlist-icon filled"
-                                                    onClick={() => removeFromWishlist(book.id)}
+                                                    onClick={() => removeFromWishlist(book.product_id)}
                                                     title="Remove from wishlist"
                                                 >
                                                     ❤️
                                                 </button>
                                             </div>
                                             <div className="book-info">
-                                                <h3 className="book-title">{book.title}</h3>
-                                                <p className="book-author">{book.author}</p>
-                                                <p className="book-price">{book.price}</p>
+                                                <h3>{book.name}</h3>
+                                                <p>{book.description}</p>
+                                                <p className="book-price">₹{book.price}</p>
                                             </div>
+                                          
                                             <div className="book-actions">
                                                 <button className="add-to-cart-btn">Add to Cart</button>
                                             </div>

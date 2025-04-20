@@ -11,6 +11,7 @@ const Navbar = () => {
     const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
     const [isUserOpen, setIsUserOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [categooryQuery, setCategoryQuery] = useState("");
     const [allProducts, setAllProducts] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
 
@@ -98,15 +99,22 @@ const Navbar = () => {
                     onMouseLeave={() => setIsCategoriesOpen(false)}
                 >
                     <Link to="/Categories" className="dropdown-trigger">Categories ▾</Link>
-                    <div className={`dropdown-menu ${isCategoriesOpen ? 'show' : ''}`}>
+                    {/* <div className={`dropdown-menu ${isCategoriesOpen ? 'show' : ''}`}>
 
-                        {categories.map((category, index) => (
-                            <Link to ={`/home`} className="dropdown-item">
-                                {category.name}
-                            </Link>
-                        ))}
+                    {categories.map((category, index) => (
+                        <div
+                            key={index}
+                            className="dropdown-item"
+                            onClick={() => {
+                                setCategoryQuery(category.name); // Update the category query
+                                navigate('/category', { state: { searchQuery: '', selectedCategory: category.name } });
+                            }}
+                        >
+                            {category.name}
+                        </div>
+                    ))}
 
-                    </div>
+                    </div> */}
                 </div>
                 {/* Authors Dropdown */}
                 <div
@@ -115,13 +123,23 @@ const Navbar = () => {
                     onMouseLeave={() => setIsAuthorsOpen(false)}
                 >
                     <Link to="/Authors" className="dropdown-trigger">Authors ▾</Link>
-                    <div className={`dropdown-menu ${isAuthorsOpen ? 'show' : ''}`}>
+                    {/* <div className={`dropdown-menu ${isAuthorsOpen ? 'show' : ''}`}>
                         {authors.map((author, index) => (
-                            <Link to={`/home`} className="dropdown-item" key={index}>
-                                {author.author}
-                            </Link>
+                            // <Link to={`/home`} className="dropdown-item" key={index}>
+                            //     {author.author}
+                            // </Link>
+                            <div
+                            key={index}
+                            className="dropdown-item"
+                            onClick={() => {
+                              
+                                navigate('/category', { state: { searchQuery: '', selectedCategory: "", selectedAuthor: author.author} });
+                            }}
+                            >
+                            {author.author}
+                            </div>
                         ))}
-                    </div>
+                    </div> */}
                 </div>
 
                 <a href="#">Best Sellers</a>

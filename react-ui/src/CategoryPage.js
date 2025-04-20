@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
@@ -16,7 +16,8 @@ const CategoryPage = () => {
   const location = useLocation();
   
   const searchQuery = location.state?.searchQuery || ""; // Retrieve searchQuery from state
-
+  const categoryQuery = location.state?.selectedCategory || ""; // Retrieve selectedCategory from state
+  const authorQuery = location.state?.selectedAuthor || ""; // Retrieve selectedAuthor from state
   const [searchKeyWord, setSearchKeyWord] = useState(''); 
   
   console.log("Token from AuthContext:", token);
@@ -24,6 +25,22 @@ const CategoryPage = () => {
         setSearchKeyWord(searchQuery);
     }, [searchQuery]);
 
+    useEffect(() => {
+      if (categoryQuery != "") {
+        console.log("Category from state:", categoryQuery);
+        setActiveCategory(categoryQuery);
+      }
+    }, [categoryQuery]);
+
+    useEffect(() => {
+      if (authorQuery != "") {
+        console.log("author from state:", authorQuery);
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          author: [...prevFilters.author, authorQuery], // Add the author to the filters
+        }));
+      }
+    }, [authorQuery]);
     useEffect(() => {
         console.log("Search keyword updated:", searchKeyWord);
 

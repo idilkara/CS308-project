@@ -12,6 +12,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
+import uuid
 
 
 # Create a new product - product manager does these
@@ -74,7 +75,7 @@ def view_products():
 @jwt_required()
 def create_product():
     userid = get_jwt_identity()
-
+    serial_number = str(uuid.uuid4())
     #chedck role
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -114,9 +115,9 @@ def create_product():
         
         # Insert the new product
         cursor.execute("""
-            INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager, author)
-            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING product_id;
-        """, (name, model, description, stock_quantity, distributor_information, userid, author))
+            INSERT INTO products (name, model, description, stock_quantity, distributor_information, product_manager, author, serial_number)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING product_id;
+        """, (name, model, description, stock_quantity, distributor_information, userid, author, serial_number))
         product_id = cursor.fetchone()[0]
         
         # Process categories and insert them into productcategories
