@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     # Step 4: Update the status of order items
     print("Updating order item #1 to 'in-transit'...")
-    update_response = deliver_orders_pm(pm_token, 1, "in-transit")
+    update_response = deliver_orders_pm(pm_token, 1, "delivered")
     print("Update response:", update_response)
 
     print("Updating order item #2 to 'delivered'...")

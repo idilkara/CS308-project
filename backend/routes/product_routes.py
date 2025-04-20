@@ -67,6 +67,20 @@ def get_all_products():
         GROUP BY p.product_id;
     """)
     products = cursor.fetchall()
+
+
+    # Get the ratings for each product
+    cursor.execute("""
+        SELECT p.product_id, AVG(r.rating) AS average_rating
+        FROM products p
+        LEFT JOIN reviews r ON p.product_id = r.product_id
+        GROUP BY p.product_id;
+    """)
+    ratings = cursor.fetchall()
+    logging.debug(f"Ratings fetched: {ratings}")
+    ratings_dict = {rating[0]: (rating[1] if rating[1] is not None else 0) for rating in ratings}
+
+
     cursor.close()
     conn.close()
 
@@ -86,7 +100,8 @@ def get_all_products():
         "product_manager": product[8],
         "waiting": product[9],
         "author": product[10],
-        "stock_quantity": product[11]  # Add this line
+        "stock_quantity": product[11],  # Add this line
+        "average_rating": str(ratings_dict.get(product[0], 0))  # Add this line
     }
     for product in products
 ])

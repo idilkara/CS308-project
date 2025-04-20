@@ -88,8 +88,8 @@ if __name__ == "__main__":
 
     # 
     print("Deleting review...")
-    delete_response = delete_review(pm_token, review_id)
-    print("Delete response:", delete_response)
+    # #delete_response = delete_review(pm_token, review_id)
+    # print("Delete response:", delete_response)
     print("Fetching reviews after deletion...")
     reviews_after_deletion = get_reviews(product_id)
     print("Reviews after deletion:")

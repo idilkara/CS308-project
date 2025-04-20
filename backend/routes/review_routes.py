@@ -27,7 +27,6 @@ def add_review():
         cur = conn.cursor()
 
         # Check if product was purchased and delivered
-
         cur.execute("""
             SELECT oi.status FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
