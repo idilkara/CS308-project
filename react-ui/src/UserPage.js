@@ -413,15 +413,14 @@ import { useAuth, useSetRole } from "./context/AuthContext";
     // Filter orders based on the selected tab
     const getFilteredOrders = () => {
         // Use the real order history if available, otherwise return an empty array
-        const orders = orderHistory.length > 0 ? orderHistory : [];
-    
+        const orders = orderHistory || [];
+      
         if (orderTab === 'all') return orders;
-        if (orderTab === 'ongoing') return orders.filter(order => order.status === 'ongoing');
-        if (orderTab === 'returns') return orders.filter(order => order.status === 'returned');
-        if (orderTab === 'cancellations') return orders.filter(order => order.status === 'cancelled');
+        if (orderTab === 'processing') return orders.filter(order => order.status === 'processing');
+        if (orderTab === 'in-transit') return orders.filter(order => order.status === 'in-transit');
+        if (orderTab === 'delivered') return orders.filter(order => order.status === 'delivered');
         return orders;
-    };
-
+      };
     // Payment methods functions
     
     // Handle input change for new card form
@@ -750,115 +749,91 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                        
                         <h2 className="section-title">My Orders</h2>
                         <div className="tabs">
-                            <button 
-                                className={orderTab === 'all' ? 'active' : ''} 
-                                onClick={() => setOrderTab('all')}
-                            >
-                                All Orders
-                            </button>
-                            <button 
-                                className={orderTab === 'ongoing' ? 'active' : ''} 
-                                onClick={() => setOrderTab('ongoing')}
-                            >
-                                Ongoing Orders
-                            </button>
-                            <button 
-                                className={orderTab === 'returns' ? 'active' : ''} 
-                                onClick={() => setOrderTab('returns')}
-                            >
-                                Returns
-                            </button>
-                            <button 
-                                className={orderTab === 'cancellations' ? 'active' : ''} 
-                                onClick={() => setOrderTab('cancellations')}
-                            >
-                                Cancellations
-                            </button>
+                        <button 
+                            className={orderTab === 'all' ? 'active' : ''} 
+                            onClick={() => setOrderTab('all')}
+                        >
+                            All Orders
+                        </button>
+                        <button 
+                            className={orderTab === 'processing' ? 'active' : ''} 
+                            onClick={() => setOrderTab('processing')}
+                        >
+                            Processing
+                        </button>
+                        <button 
+                            className={orderTab === 'in-transit' ? 'active' : ''} 
+                            onClick={() => setOrderTab('in-transit')}
+                        >
+                            In Transit
+                        </button>
+                        <button 
+                            className={orderTab === 'delivered' ? 'active' : ''} 
+                            onClick={() => setOrderTab('delivered')}
+                        >
+                            Delivered
+                        </button>
                         </div>
                         
                         <div id="orders">
-                            {filteredOrders.length > 0 ? (
-                                filteredOrders.map(order => (
-                                    <div key={order.id} className="order-container">
-                                        <div className="order" data-status={order.status}>
-                                            <div className="details">
-                                                <p className="status">
-                                                    {order.status === 'delivered' && 'Delivered'}
-                                                    {order.status === 'ongoing' && 'In Progress'}
-                                                    {order.status === 'returned' && 'Returned'}
-                                                    {order.status === 'cancelled' && 'Cancelled'}
-                                                </p>
-                                                <p><strong>Order No:</strong> {order.id}</p>
-                                                <p><strong>Date:</strong> {order.date}</p>
-                                                {order.returnReason && <p><strong>Return Reason:</strong> {order.returnReason}</p>}
-                                                {order.cancellationReason && <p><strong>Cancellation Reason:</strong> {order.cancellationReason}</p>}
-                                            </div>
-                                            <p className="order-price"><strong>Price:</strong> {order.price}</p>
-                                            <button 
-                                                onClick={() => toggleOrderDetails(order.id)}
-                                                className={expandedOrderId === order.id ? "view-details-active" : ""}
-                                            >
-                                                {expandedOrderId === order.id ? "Hide Details" : "View Order Details"}
-                                            </button>
-                                        </div>
-                                        
-                                        {/* Order Details Dropdown */}
-                                        {expandedOrderId === order.id && (
-                                            <div className="order-details-dropdown">
-                                                <div className="order-details-header">
-                                                    <h3>Order Items</h3>
+                        {filteredOrders.length > 0 ? (
+                        filteredOrders.map(order => (
+                            <div key={order.order_id} className="order-container">
+                            <div className="order" data-status={order.status}>
+                                <div className="details">
+                                <p className="status">
+                                    {order.status === 'processing' && 'Processing'}
+                                    {order.status === 'in-transit' && 'In Transit'}
+                                    {order.status === 'delivered' && 'Delivered'}
+                                </p>
+                                <p><strong>Order No:</strong> {order.order_id}</p>
+                                <p><strong>Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
+                                </div>
+                                <p className="order-price"><strong>Price:</strong> ${order.total_price}</p>
+                                <button 
+                                onClick={() => toggleOrderDetails(order.order_id)}
+                                className={expandedOrderId === order.order_id ? "view-details-active" : ""}
+                                >
+                                {expandedOrderId === order.order_id ? "Hide Details" : "View Order Details"}
+                                </button>
+                            </div>
+                            
+                            {/* Order Details Dropdown */}
+                            {expandedOrderId === order.order_id && (
+                            <div className="order-details-dropdown">
+                                <div className="order-details-header">
+                                    <h3>Order Items</h3>
+                                </div>
+                                <div className="order-items-container">
+                                    {order.items.map(item => {
+                                        const imageSrc = `assets/covers/${item.name ? item.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`;
+                                        const capitalizedStatus = item.orderitem_status.charAt(0).toUpperCase() + item.orderitem_status.slice(1);
+
+                                        return (
+                                            <div key={item.orderitem_id} className="order-item">
+                                                <div className="item-image-container">
+                                                    <img src={imageSrc} alt={item.name} className="item-image" />
                                                 </div>
-                                                {/* <div className="order-items-container">
-                                                    {OrderDetails[order.id].map(item => (
-                                                        <div key={item.id} className="order-item">
-                                                            <div className="item-image-container">
-                                                                <div className="item-placeholder-cover"></div>
-                                                            </div>
-                                                            <div className="item-details">
-                                                                <h4 className="item-title">{item.title}</h4>
-                                                                <p className="item-author">{item.author}</p>
-                                                                <div className="item-price-qty">
-                                                                    <span className="item-price">{item.price}</span>
-                                                                    <span className="item-quantity">Qty: {item.quantity}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div> */}
-                                                <div className="order-summary">
-                                                    <div className="summary-item">
-                                                        <span>Subtotal:</span>
-                                                        <span>{order.price}</span>
+                                                <div className="item-details">
+                                                    <h4 className="item-title">{item.name}</h4>
+                                                    <div className="item-price-qty">
+                                                        <span className="item-price">${item.price}</span>
+                                                        <span className="item-quantity">Qty: {item.quantity}</span>
+                                                        <span className="item-status">Status: {capitalizedStatus}</span>
                                                     </div>
-                                                    <div className="summary-item">
-                                                        <span>Shipping:</span>
-                                                        <span>$4.99</span>
-                                                    </div>
-                                                    <div className="summary-item">
-                                                        <span>Tax:</span>
-                                                        <span>${(parseFloat(order.price.replace('$', '')) * 0.08).toFixed(2)}</span>
-                                                    </div>
-                                                    <div className="summary-item">
-                                                        <span>Total:</span>
-                                                        <span>{order.price}</span>
-                                                    </div>
-                                                </div>
-                                                {/* Shipping information */}
-                                                <div className="shipping-info">
-                                                    <h4>Shipping Address</h4>
-                                                    <p>
-                                                        {userData.name}<br />
-                                                        {userData.address}<br />
-                                                  
-                                                    </p>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No orders found in this category.</p>
-                            )}
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                            </div>
+                        ))
+                        ) : (
+                        <p>No orders found in this category.</p>
+                        )}
                         </div>
                     </div>
                 )}
