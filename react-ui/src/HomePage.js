@@ -132,6 +132,14 @@ const HomePage = () => {
     };
     fetchBestSellers();
   }, [token]);
+
+  // Replace the wishlist initialization in both useEffects with a single call
+useEffect(() => {
+  // Call this after both newArrivals and bestSellers are set
+  if (newArrivals.length > 0 && bestSellers.length > 0) {
+    fetchWishlist();
+  }
+}, [newArrivals, bestSellers, token]);
   
   // Fetch categories
   useEffect(() => {
@@ -149,25 +157,45 @@ const HomePage = () => {
   
   // Fetch wishlist data
   const fetchWishlist = async (token) => {
-    try {
-      const response = await fetch("http://localhost/api/wishlist/view", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-      if (response.ok) {
-        const wishlistData = await response.json();
-        return wishlistData;
-      } else {
-        console.error("Failed to fetch wishlist");
-        return null;
+    if (!token) return;
+  
+  try {
+    const response = await fetch("http://localhost/api/wishlist/view", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
       }
-    } catch (error) {
-      console.error("Error fetching wishlist:", error);
-      return null;
+    });
+    
+    if (response.ok) {
+      const wishlistData = await response.json();
+      if (Array.isArray(wishlistData)) {
+        // Create a map of product_id to favorite status
+        const newFavorites = {};
+        
+        // Process new arrivals
+        newArrivals.forEach((product, index) => {
+          const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
+          if (isInWishlist) {
+            newFavorites[`new-${index}`] = true;
+          }
+        });
+        
+        // Process best sellers
+        bestSellers.forEach((product, index) => {
+          const isInWishlist = wishlistData.some(item => item.product_id === product.product_id);
+          if (isInWishlist) {
+            newFavorites[`best-${index}`] = true;
+          }
+        });
+        
+        setFavorites(newFavorites);
+      }
     }
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+  }
   };
   
   // Add to wishlist function
@@ -182,111 +210,67 @@ const HomePage = () => {
       }, 3000);
       return { error: "Authentication required" };
     }
-
+  
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
-
+  
     const data = {
       product_id: productId
     };
-
+  
     try {
       const response = await fetch("http://localhost/api/wishlist/add", {
         method: "POST",
         headers,
         body: JSON.stringify(data),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
-        setNotification({
-          message: "Added to wishlist!",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
         return result;
       } else {
         const errorData = await response.json();
-        setNotification({
-          message: errorData.message || "Failed to add to wishlist",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
-        return {
-          error: errorData.message || "Failed to add to wishlist"
-        };
+        return { error: errorData.message || "Failed to add to wishlist" };
       }
     } catch (error) {
-      setNotification({
-        message: "An unexpected error occurred",
-        visible: true
-      });
-      setTimeout(() => {
-        setNotification({ message: '', visible: false });
-      }, 3000);
+      console.error("Error adding to wishlist:", error);
       return { error: "An unexpected error occurred" };
     }
   };
-
-  // Remove from wishlist function
+  
+  // Update removeFromWishlist function - remove notification code  
   const removeFromWishlist = async (productId) => {
     if (!token) {
       return { error: "Authentication required" };
     }
-
+  
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
-
+  
     const data = {
       product_id: productId
     };
-
+  
     try {
       const response = await fetch("http://localhost/api/wishlist/remove", {
         method: "POST",
         headers,
         body: JSON.stringify(data),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
-        setNotification({
-          message: "Removed from wishlist!",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
         return result;
       } else {
         const errorData = await response.json();
-        setNotification({
-          message: errorData.message || "Failed to remove from wishlist",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
-        return {
-          error: errorData.message || "Failed to remove from wishlist"
-        };
+        return { error: errorData.message || "Failed to remove from wishlist" };
       }
     } catch (error) {
-      setNotification({
-        message: "An unexpected error occurred",
-        visible: true
-      });
-      setTimeout(() => {
-        setNotification({ message: '', visible: false });
-      }, 3000);
+      console.error("Error removing from wishlist:", error);
       return { error: "An unexpected error occurred" };
     }
   };
@@ -382,19 +366,16 @@ const HomePage = () => {
   // Toggle favorite status
   const toggleFavorite = (index, productId, section) => {
     const key = `${section}-${index}`;
-    if (favorites[key]) {
-      removeFromWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [key]: false });
-        }
-      });
-    } else {
-      addToWishlist(productId).then((result) => {
-        if (!result.error) {
-          setFavorites({ ...favorites, [key]: true });
-        }
-      });
-    }
+    const currentStatus = favorites[key];
+    
+    // Call the appropriate API function based on current status
+    const apiFunction = currentStatus ? removeFromWishlist : addToWishlist;
+    
+    apiFunction(productId).then((result) => {
+      if (!result.error) {
+        setFavorites({ ...favorites, [key]: !currentStatus });
+      }
+    });
   };
   
   // Banner navigation functions
