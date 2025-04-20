@@ -138,6 +138,7 @@ CREATE TABLE reviews (
     comment TEXT,
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     approved BOOLEAN DEFAULT FALSE,
+    rejected BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );

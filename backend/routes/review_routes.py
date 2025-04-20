@@ -129,6 +129,125 @@ def approve_review(review_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
+#endpoint to reject review
+@review_bp.route("/reject/<int:review_id>", methods=["PUT"])
+@jwt_required()
+def reject_review(review_id):
+    try:
+        user = get_jwt_identity()
+        if isinstance(user, dict) and user.get("role") != "product_manager":
+            return jsonify({"error": "Only product managers can approve comments."}), 403
+
+        # check if the 
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        #join product table and review table - and check if its product_managerId matches the product manager id
+        cur.execute("""
+            SELECT p.product_manager FROM products p
+            JOIN reviews r ON p.product_id = r.product_id
+            WHERE r.review_id = %s
+        """, (review_id,))
+        result = cur.fetchone()
+
+        if not result:
+            return jsonify({"error": "Review not found."}), 404
+        product_manager_id = result[0]
+        
+        logging.info(f"Product Manager ID: {product_manager_id}")
+        logging.info(f"User ID: {user}")
+
+        if int(user) != int(product_manager_id):
+            return jsonify({"error": "You are not authorized to approve this review."}), 403
+        # Approve the review
+                
+        cur.execute("UPDATE reviews SET rejected = TRUE WHERE review_id = %s", (review_id,))
+
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Review approved successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# Endpoint for product managers to view their own reviews
+@review_bp.route("/approved_reviews", methods=["GET"])
+@jwt_required()
+def get_approved_reviews():
+    try:
+        user = get_jwt_identity()
+        if isinstance(user, dict) and user.get("role") != "product_manager":
+            return jsonify({"error": "Only product managers can view their own reviews."}), 403
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment
+            FROM reviews r
+            JOIN products p ON p.product_id = r.product_id
+            WHERE p.product_manager = %s AND r.approved = TRUE
+        """, (user,))
+
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        return jsonify([
+            {
+                "review_id": r[0],
+                "user_id": r[1],
+                "product_id": r[2],
+                "rating": r[3],
+                "comment": r[4]
+            } for r in rows
+        ]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+# Endpoint for product managers to view their own unapproved reviews
+@review_bp.route("/rejected_reviews", methods=["GET"])
+@jwt_required()
+def get_rejected_reviews():
+    try:
+        user = get_jwt_identity()
+        if isinstance(user, dict) and user.get("role") != "product_manager":
+            return jsonify({"error": "Only product managers can view their own reviews."}), 403
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment
+            FROM reviews r
+            JOIN products p ON p.product_id = r.product_id
+            WHERE  p.product_manager = %s AND r.reject = TRUE 
+        """, (user,))
+
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        return jsonify([
+            {
+                "review_id": r[0],
+                "user_id": r[1],
+                "product_id": r[2],
+                "rating": r[3],
+                "comment": r[4]
+            } for r in rows
+        ]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+
 # Endpoint for product managers to remove comments
 @review_bp.route("/remove/<int:review_id>", methods=["DELETE"])
 @jwt_required()

@@ -269,7 +269,6 @@ const ProductManager = () => {
 
   //ORDERS API CALLS
 
-
   const viewOrdersPM = async (token) => {
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -328,6 +327,7 @@ const ProductManager = () => {
   };
 
 // REVIEW API CALLS
+
 
 
 // React versions of the review management API calls
@@ -403,13 +403,34 @@ const ProductManager = () => {
       "Content-Type": "application/json",
     };
     try {
-      const response = await fetch("http://localhost/api/reviews/approved", {
+      const response = await fetch("http://localhost/api/reviews/approved_reviews", {
         method: "GET",
         headers,
       });
 
       const json = await response.json();
       console.log("Approved reviews JSON:", json);
+      return json;
+
+    } catch (error) {
+      console.error("Error fetching approved reviews:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  const viewRejectedReviews = async (token) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    try {
+      const response = await fetch("http://localhost/api/reviews/rejected_review", {
+        method: "GET",
+        headers,
+      });
+
+      const json = await response.json();
+      console.log("Rejected reviews JSON:", json);
       return json;
 
     } catch (error) {
@@ -433,6 +454,25 @@ const ProductManager = () => {
 
     } catch (error) {
       console.error("Error approving review:", error);
+      return { error: "An unexpected error occurred" };
+    }
+  };
+
+  //reject rev
+  const rejectReview = async (token, reviewId) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    try {
+      const response = await fetch(`http://localhost/api/reviews/reject/${reviewId}`, {
+        method: "PUT",
+        headers,
+      });
+      return await response.json();
+
+    } catch (error) {
+      console.error("Error rejecting review:", error);
       return { error: "An unexpected error occurred" };
     }
   };
@@ -591,6 +631,11 @@ const ProductManager = () => {
           let unapproved = await viewUnapprovedReviews(token);
           let approved = await viewApprovedReviews(token);
 
+          let rejected = await viewRejectedReviews(token);
+
+
+          console.log("Fetched rejected:", rejected);
+
           console.log("Fetched unapproved:", unapproved);
           console.log("Fetched approved:", approved);
 
@@ -738,7 +783,7 @@ const ProductManager = () => {
 
   const handleRejectComment = async (commentId) => {
     try {
-      const result = await deleteReview(token, commentId);
+      const result = await rejectReview(token, commentId);
 
       if (result && !result.error) {
         // After deleting, remove comment from the list

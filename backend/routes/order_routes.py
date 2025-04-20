@@ -26,9 +26,12 @@ def view_orders():
     try:
         # Get all orders for the user
         cur.execute("""
-            SELECT o.order_id, o.order_date, o.total_price, o.status, oi.product_id,  oi.quantity, oi.price, orderitem_id
+            SELECT o.order_id, o.order_date, o.total_price, o.status, 
+                oi.product_id, oi.quantity, oi.price, oi.orderitem_id,
+                p.name, p.author, p.distributor_information
             FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
+            JOIN products p ON oi.product_id = p.product_id
             WHERE o.user_id = %s
             ORDER BY o.order_date DESC
         """, (user_id,))
@@ -56,6 +59,9 @@ def view_orders():
                 "quantity": order[5],
                 "price": order[6],
                 "orderitem_id": order[7],
+                "name": order[8],  # Assuming you want to include the product name as well
+                "author": order[9],  # Assuming you want to include the product author as well
+                "distributor": order[10]  # Assuming you want to include the product publisher as well
             })
         if current_order is not None:
             order_list.append(current_order)
