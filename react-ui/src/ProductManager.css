@@ -1050,3 +1050,21 @@ textarea.pm-form-control {
     color: var(--secondary-text-color);
     font-style: italic;
 }
+
+
+.sortable {
+    cursor: pointer;
+    color: #444; /* or a theme color */
+  }
+  
+  .sorted-asc,
+  .sorted-desc {
+    font-weight: bold;
+    color: #007bff; /* blue for visibility */
+  }
+  
+  .sort-indicator {
+    margin-left: 4px;
+    font-size: 0.85em;
+    color: #007bff;
+  }

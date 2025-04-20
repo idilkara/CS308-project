@@ -28,7 +28,7 @@ def view_orders():
         cur.execute("""
             SELECT o.order_id, o.order_date, o.total_price, o.status, 
                 oi.product_id, oi.quantity, oi.price, oi.orderitem_id,
-                p.name, p.author, p.distributor_information, oi.status
+                p.name, p.author, p.distributor_information, oi.status, o.delivery_address
             FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
             JOIN products p ON oi.product_id = p.product_id
@@ -52,7 +52,8 @@ def view_orders():
                     "order_date": order[1],
                     "total_price": order[2],
                     "status": order[3],
-                    "items": []
+                    "items": [],
+                    "delivery_address": order[12]  # Assuming this is the delivery address
                 }
             current_order["items"].append({
                 "product_id": order[4],

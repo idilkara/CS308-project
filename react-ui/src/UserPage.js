@@ -861,6 +861,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                                 </p>
                                 <p><strong>Order No:</strong> {order.order_id}</p>
                                 <p><strong>Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
+                                <p><strong>Delivery Address:</strong> {order.delivery_address}</p>
                                 </div>
                                 <p className="order-price"><strong>Price:</strong> ${order.total_price}</p>
                                 <button 

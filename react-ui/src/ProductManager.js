@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
 import { useAuth } from './context/AuthContext';
+import Navbar from "./components/Navbar.jsx";
 
 const ProductManager = () => {
 
@@ -62,21 +63,14 @@ const ProductManager = () => {
     console.log("Active section changed to:", activeSection);
   }, [activeSection]);
 
-  // State for the new product form
   const [newProduct, setNewProduct] = useState({
     name: '',
     author: '',
-    cover_img_url: '',
     model: '',
     description: '',
     stock_quantity: '',
     price: '',
-    categories: [],
-    discount: {
-      discount_percentage: '',
-      start_date: '',
-      end_date: ''
-    }
+    categories: []
   });
 
   // State for order management
@@ -622,23 +616,11 @@ const ProductManager = () => {
 
   // Handle input changes for product details
   const handleInputChange = (e) => {
-
     const { name, value } = e.target;
-    if (name.includes('discount.')) {
-      const discountField = name.split('.')[1];
-      setNewProduct({
-        ...newProduct,
-        discount: {
-          ...newProduct.discount,
-          [discountField]: value
-        }
-      });
-    } else {
-      setNewProduct({
-        ...newProduct,
-        [name]: value
-      });
-    }
+    setNewProduct(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   //  Manage Stocks
@@ -767,11 +749,11 @@ const ProductManager = () => {
     setNewProduct({
       name: '',
       author: '',
-      cover_img_url: '',
+      // cover_img_url: '',
       model: '',
       description: '',
       stock_quantity: '',
-      price: '',
+      // price: '',
       categories: [],
       discount: {
         discount_percentage: '',
@@ -780,49 +762,43 @@ const ProductManager = () => {
       }
     });
   };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate the form data
+  
     const requiredFields = [
-      'name', 'author', 'cover_img_url', 'stock_quantity', 'price'
+      'name',
+      'model',
+      'description',
+      'stock_quantity',
+      'author'
     ];
-
+  
     const missingFields = requiredFields.filter(field => !newProduct[field]);
-
+  
     if (missingFields.length > 0) {
       alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
     }
+      const selectedCategoryNames = availableCategories
+    .filter(cat => newProduct.categories.includes(cat.id))
+    .map(cat => cat.name);
 
-    // Check if dates are valid when discount is specified
-    if (newProduct.discount.discount_percentage &&
-        (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
-      alert('Please specify both start and end dates for the discount');
-      return;
-    }
-
-    // Format the data for API submission
+  
     const productData = {
-      ...newProduct,
+      name: newProduct.name,
+      model: newProduct.model,
+      description: newProduct.description,
       stock_quantity: parseInt(newProduct.stock_quantity, 10),
-      price: parseFloat(newProduct.price),
-      distributor_information: "Distributor Placeholder",
-      discount: newProduct.discount.discount_percentage
-          ? {
-            ...newProduct.discount,
-            discount_percentage: parseFloat(newProduct.discount.discount_percentage)
-          }
-          : null
+      distributor_information: newProduct.distributor_information || "Distributor Placeholder",
+      categories:  selectedCategoryNames  || [],
+      author: newProduct.author
     };
-
+  
     console.log('Product ready for submission:', productData);
-
+  
     try {
       const result = await createProduct(token, productData);
-
+  
       if (result && !result.error) {
         alert('Product added successfully!');
         resetForm();
@@ -834,44 +810,31 @@ const ProductManager = () => {
       alert('An unexpected error occurred while adding the product.');
     }
   };
-
+  
   // Placeholder categories (you would fetch these from your database)
   const availableCategories = [
     { id: 1, name: 'Fiction' },
     { id: 2, name: 'Non-Fiction' },
     { id: 3, name: 'Sci-fi' },
     { id: 4, name: 'Fantasy' },
-    { id: 5, name: 'Fiction' },
-    { id: 6, name: 'Non-Fiction' },
-    { id: 7, name: 'Sci-fi' },
-    { id: 8, name: 'Fantasy' },
-    { id: 9, name: 'Fiction' },
-    { id: 10, name: 'Non-Fiction' },
-    { id: 11, name: 'Scifi' },
-    { id: 12, name: 'Fantasy' },
-    { id: 13, name: 'Fiction' },
-    { id: 14, name: 'Non-Fiction' },
-    { id: 15, name: 'Sci-fi' },
-    { id: 16, name: 'Fantasy' }
   ];
 
-  // Handle category selection
   const handleCategoryToggle = (categoryId) => {
-    if (newProduct.categories.includes(categoryId)) {
-      setNewProduct({
-        ...newProduct,
-        categories: newProduct.categories.filter(id => id !== categoryId)
-      });
-    } else {
-      setNewProduct({
-        ...newProduct,
-        categories: [...newProduct.categories, categoryId]
-      });
-    }
+    setNewProduct(prev => {
+      const categories = prev.categories.includes(categoryId)
+        ? prev.categories.filter(id => id !== categoryId)
+        : [...prev.categories, categoryId];
+  
+      return {
+        ...prev,
+        categories
+      };
+    });
   };
 
   return (
       <div className="container product-manager">
+         <Navbar />
         <h1 className="source-sans-bold pm-section-title">Product Manager</h1>
 
         {/* Navigation Tabs */}
@@ -937,36 +900,7 @@ const ProductManager = () => {
                         placeholder="Enter author name"
                     />
                   </div>
-
-                  {/* Cover Image URL field */}
-                  <div className="pm-form-group">
-                    <label className="source-sans-regular" htmlFor="cover_img_url">Cover Image URL *</label>
-                    <input
-                        type="url"
-                        id="cover_img_url"
-                        name="cover_img_url"
-                        value={newProduct.cover_img_url}
-                        onChange={handleInputChange}
-                        required
-                        className="pm-form-control"
-                        placeholder="Enter cover image URL"
-                    />
-                    {newProduct.cover_img_url && (
-                        <div className="cover-preview">
-                          <p className="source-sans-light preview-label">Preview:</p>
-                          <img
-                              src={newProduct.cover_img_url}
-                              alt="Cover preview"
-                              className="cover-image-preview"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = "https://via.placeholder.com/150x200?text=Invalid+URL";
-                              }}
-                          />
-                        </div>
-                    )}
-                  </div>
-
+        
                   <div className="pm-form-group">
                     <label className="source-sans-regular" htmlFor="model">Model</label>
                     <input
@@ -1009,7 +943,7 @@ const ProductManager = () => {
                       />
                     </div>
 
-                    <div className="pm-form-group half">
+                    {/* <div className="pm-form-group half">
                       <label className="source-sans-regular" htmlFor="price">Price ($) *</label>
                       <input
                           type="number"
@@ -1023,8 +957,8 @@ const ProductManager = () => {
                           className="pm-form-control"
                           placeholder="Enter price"
                       />
-                    </div>
-                  </div>
+                    </div>*/}
+                  </div> 
 
                   <div className="pm-form-group">
                     <label className="source-sans-regular">Product Categories</label>
@@ -1042,52 +976,6 @@ const ProductManager = () => {
                             </label>
                           </div>
                       ))}
-                    </div>
-                  </div>
-
-                  <div className="pm-discount-section">
-                    <h3 className="source-sans-semibold">Discount Information (Optional)</h3>
-
-                    <div className="pm-form-group">
-                      <label className="source-sans-regular" htmlFor="discount_percentage">Discount Percentage (%)</label>
-                      <input
-                          type="number"
-                          id="discount_percentage"
-                          name="discount.discount_percentage"
-                          value={newProduct.discount.discount_percentage}
-                          onChange={handleInputChange}
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          className="pm-form-control"
-                          placeholder="Enter discount percentage"
-                      />
-                    </div>
-
-                    <div className="pm-form-row">
-                      <div className="pm-form-group half">
-                        <label className="source-sans-regular" htmlFor="start_date">Start Date</label>
-                        <input
-                            type="date"
-                            id="start_date"
-                            name="discount.start_date"
-                            value={newProduct.discount.start_date}
-                            onChange={handleInputChange}
-                            className="pm-form-control"
-                        />
-                      </div>
-
-                      <div className="pm-form-group half">
-                        <label className="source-sans-regular" htmlFor="end_date">End Date</label>
-                        <input
-                            type="date"
-                            id="end_date"
-                            name="discount.end_date"
-                            value={newProduct.discount.end_date}
-                            onChange={handleInputChange}
-                            className="pm-form-control"
-                        />
-                      </div>
                     </div>
                   </div>
 
@@ -1192,11 +1080,11 @@ const ProductManager = () => {
                               </thead>
                               <tbody>
                               {getFilteredAndSortedProducts().map(product => (
-                                  <tr key={product.id} className={product.stock <= 5 ? 'low-stock' : ''}>
+                                  <tr key={product.procut_id} className={product.stock_quantity <= 5 ? 'low-stock' : ''}>
                                     <td>{product.name}</td>
                                     <td>{product.author}</td>
                                     <td className="stock-column">
-                                      {editStockId === product.id ? (
+                                      {editStockId === product.product_id ? (
                                           <input
                                               type="number"
                                               value={newStockValue}
@@ -1206,19 +1094,19 @@ const ProductManager = () => {
                                               autoFocus
                                           />
                                       ) : (
-                                          <span className={`stock-value ${product.stock <= 5 ? 'low-stock-text' : ''}`}>
-                                  {product.stock}
+                                          <span className={`stock-value ${product.stock_quantity <= 5 ? 'low-stock-text' : ''}`}>
+                                  {product.stock_quantity}
                                 </span>
                                       )}
                                     </td>
                                     <td>${product.price.toFixed(2)}</td>
                                     <td>{product.lastUpdated}</td>
                                     <td>
-                                      {editStockId === product.id ? (
+                                      {editStockId === product.product_id ? (
                                           <div className="stock-edit-actions">
                                             <button
                                                 className="pm-btn-save-stock"
-                                                onClick={() => handleStockUpdate(product.id)}
+                                                onClick={() => handleStockUpdate(product.product_id)}
                                             >
                                               Save
                                             </button>

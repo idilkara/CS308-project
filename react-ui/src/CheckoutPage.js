@@ -30,8 +30,8 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
-    shipping: 4.99,
-    tax: 0,
+    // shipping: 4.99,
+    // tax: 0,
     total: 0
   });
 
@@ -91,16 +91,16 @@ const CheckoutPage = () => {
   // Calculate summary whenever cart items change
   useEffect(() => {
     const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0);
-    const taxRate = 0.08; // 8% tax rate
-    const tax = subtotal * taxRate;
-    const shipping = subtotal > 50 ? 0 : 4.99; // Free shipping for orders over $50
-    const total = subtotal + tax + shipping;
+    // const taxRate = 0.08; // 8% tax rate
+    // const tax = subtotal * taxRate;
+    // const shipping = subtotal > 50 ? 0 : 4.99; // Free shipping for orders over $50
+    const total = subtotal ;
 
     setOrderSummary({
-      subtotal,
-      shipping,
-      tax,
-      total
+      subtotal: subtotal,
+      // shipping: shipping,
+      // tax: tax,
+      total: total
     });
   }, [cartItems]);
 
@@ -375,7 +375,7 @@ const placeOrder = async (e) => {
           <p>Billing address same as shipping</p>
         </div>
       </div>
-      <div className="confirmation-summary">
+      {/* <div className="confirmation-summary">
         <h3>Order Summary</h3>
         <div className="summary-items">
           {cartItems.map((item, index) => (
@@ -384,30 +384,22 @@ const placeOrder = async (e) => {
                 <p className="summary-item-name">{item.name}</p>
                 <p className="summary-item-info">Qty: {item.quantity}</p>
               </div>
-              <p className="summary-item-price">${(item.price * item.quantity).toFixed(2)}</p>
+              <p className="summary-item-price">${(item.price * item.quantity)}</p>
             </div>
           ))}
         </div>
         <div className="summary-totals">
           <div className="summary-row">
             <span>Subtotal</span>
-            <span>${orderSummary.subtotal.toFixed(2)}</span>
+            <span>${orderSummary.subtotal}</span>
           </div>
-          <div className="summary-row">
-            <span>Shipping</span>
-            <span>{orderSummary.shipping === 0 ? 'Free' : `$${orderSummary.shipping.toFixed(2)}`}</span>
-
-          </div>
-          <div className="summary-row">
-            <span>Tax</span>
-            <span>${orderSummary.tax.toFixed(2)}</span>
-          </div>
+     
           <div className="summary-row total">
             <span>Total</span>
             <span>${orderSummary.total.toFixed(2)}</span>
           </div>
         </div>
-      </div>
+      </div> */}
       <PdfViewer pdfUrl={pdfUrl} />
       <div className="confirmation-actions">
         <button className="continue-shopping-btn" onClick={handleContinueShopping}>Continue Shopping</button>
@@ -476,20 +468,27 @@ const placeOrder = async (e) => {
           {cartItems.map((item, index) => (
             <div key={index} className="summary-item">
                               <div className="item-image">
-                <img 
-                  src={item.image} 
-                  alt={item.name}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = bookCover;
-                  }} 
-                />
+
+                                if (item.image) {
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name}
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = bookCover;
+                                    }} 
+                                  />
+                                } else {
+                                  <img src={bookCover} alt="Default Book Cover" />
+                                }
+              
+                        
               </div>
               <div className="item-details">
                 <p className="item-name">{item.name}</p>
                 <p className="item-author">{item.author}</p>
                 <div className="item-price-qty">
-                  <p className="item-price">${(item.price).toFixed(2)}</p>
+                  <p className="item-price">${item.price}</p>
                   <p className="item-qty">Qty: {item.quantity}</p>
                 </div>
               </div>
@@ -500,19 +499,19 @@ const placeOrder = async (e) => {
         <div className="summary-totals">
           <div className="summary-row">
             <span>Subtotal</span>
-            <span>${orderSummary.subtotal.toFixed(2)}</span>
+            <span>${orderSummary.subtotal}</span>
           </div>
-          <div className="summary-row">
+          {/* <div className="summary-row">
             <span>Shipping</span>
             <span>{orderSummary.shipping === 0 ? 'Free' : `$${orderSummary.shipping.toFixed(2)}`}</span>
           </div>
           <div className="summary-row">
             <span>Tax (8%)</span>
             <span>${orderSummary.tax.toFixed(2)}</span>
-          </div>
+          </div> */}
           <div className="summary-row total">
             <span>Total</span>
-            <span>${orderSummary.total.toFixed(2)}</span>
+            <span>${orderSummary.total}</span>
           </div>
         </div>
         

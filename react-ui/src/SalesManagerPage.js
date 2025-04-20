@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './SalesManagerPage.css';
 import { useAuth } from './context/AuthContext';
 import Chart from 'chart.js/auto';
+import Navbar from "./components/Navbar.jsx";
 
 const SalesManager = () => {
   const { token } = useAuth();
@@ -118,26 +119,7 @@ const SalesManager = () => {
     }
   };
 
-  // const updatePrice = async (productId, price, cost) => {
-  //   try {
-  //     // Simulate API call
-  //     console.log(`Updating product ${productId} with price: ${price}, cost: ${cost}`);
-  //
-  //     // Update local state
-  //     setNewProducts(prevProducts =>
-  //       prevProducts.map(product =>
-  //         product.id === productId
-  //           ? {...product, price, cost, status: "Priced"}
-  //           : product
-  //       )
-  //     );
-  //
-  //     return { success: true };
-  //   } catch (error) {
-  //     console.error("Error updating price:", error);
-  //     return { error: "An unexpected error occurred" };
-  //   }
-  // };
+
 
   const updatePrice = async (token, productId, price) => {
     const headers = {
@@ -606,7 +588,7 @@ const SalesManager = () => {
   };
 
   const startEditPrice = (product) => {
-    setEditPriceId(product.id);
+    setEditPriceId(product.product_id);
     setNewPrice(product.price ? product.price.toString() : '');
     setNewCost(product.cost ? product.cost.toString() : '');
   };
@@ -619,10 +601,10 @@ const SalesManager = () => {
 
     // For cost, default to 50% of price if not specified
     const finalCost = newCost === '' || isNaN(newCost) ? parseFloat(newPrice) * 0.5 : parseFloat(newCost);
-
+    console.log(`id ot the product to update price : ${id}`);
     const result = await updatePrice(token, id, parseFloat(newPrice));
 
-    if (result.success) {
+    if (result.ok) {
       setEditPriceId(null);
       setNewPrice('');
       setNewCost('');
@@ -667,6 +649,7 @@ const SalesManager = () => {
 
   return (
       <div className="container sales-manager">
+         <Navbar />
         <h1 className="source-sans-bold sm-section-title">Sales Manager</h1>
 
         {/* Navigation Tabs */}
@@ -729,13 +712,13 @@ const SalesManager = () => {
                         </thead>
                         <tbody>
                         {newProducts.map(product => (
-                            <tr key={product.id}>
-                              <td>{product.id}</td>
+                            <tr key={product.product_id}>
+                              <td>{product.product_id}</td>
                               <td>{product.name}</td>
                               <td>{product.author}</td>
                               <td>{product.stock}</td>
                               <td className="price-column">
-                                {editPriceId === product.id ? (
+                                {editPriceId === product.product_id ? (
                                     <input
                                         type="number"
                                         className="sm-price-input"
@@ -751,15 +734,15 @@ const SalesManager = () => {
                                 )}
                               </td>
                               <td className="cost-column">
-                                {editPriceId === product.id ? (
-                                    <input
+                                {editPriceId === product.product_id ? (
+                                    <div
                                         type="number"
                                         className="sm-cost-input"
                                         value={newCost}
                                         onChange={handleCostInputChange}
                                         min="0.01"
                                         step="0.01"
-                                        placeholder="50% of price if empty"
+                                        placeholder="50% of price"
                                     />
                                 ) : product.cost ? (
                                     `$${product.cost}`
@@ -768,11 +751,11 @@ const SalesManager = () => {
                                 )}
                               </td>
                               <td>
-                                {editPriceId === product.id ? (
+                                {editPriceId === product.product_id ? (
                                     <div className="stock-edit-actions">
                                       <button
                                           className="sm-btn-save"
-                                          onClick={() => handlePriceUpdate(product.id)}
+                                          onClick={() => handlePriceUpdate(product.product_id)}
                                       >
                                         Save
                                       </button>

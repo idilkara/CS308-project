@@ -89,7 +89,7 @@ def get_waiting_products():
 
 
     cursor.execute("""
-        SELECT product_id, name, model, description, stock_quantity, price, warranty_status, distributor_information, sales_manager, product_manager, waiting
+        SELECT product_id, name, model, description, stock_quantity, price, warranty_status, distributor_information, sales_manager, product_manager, waiting, author
         FROM products
         WHERE waiting = TRUE;
     """)
@@ -109,7 +109,8 @@ def get_waiting_products():
             "distributor_information": product[7],
             "sales_manager": product[8],
             "product_manager": product[9],
-            "waiting": product[10]
+            "waiting": product[10],
+            "author": product[11]
         }
         for product in products
     ])
