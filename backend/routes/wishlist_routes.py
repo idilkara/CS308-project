@@ -16,7 +16,7 @@ def view_wishlist():
     try:
         # Get all items in the user's wishlist
         cur.execute("""
-            SELECT p.product_id, p.name, p.description, p.price 
+            SELECT p.product_id, p.name, p.description, p.price , p.author , p.distributor_information , p.stock_quantity
             FROM wishlists w
             JOIN wishlistproducts wp ON w.wishlist_id = wp.wishlist_id
             JOIN products p ON wp.product_id = p.product_id
@@ -36,7 +36,10 @@ def view_wishlist():
                 "product_id": item[0],
                 "name": item[1],
                 "description": item[2],
-                "price": item[3]
+                "price": item[3],
+                "author": item[4],
+                "distributor_information": item[5],
+                "stock_quantity": item[6]
             }
             for item in wishlist_items
         ]

@@ -123,12 +123,13 @@ const ProductPage = () => {
       if (res.ok) {
         const allProducts = await res.json();
         
-        // Find products in the same category, excluding current product
+        // Find products in the same category, excluding current product and out-of-stock items
         const similar = allProducts
           .filter(p => 
             p.product_id !== product_id && 
             p.categories && 
-            p.categories.includes(category)
+            p.categories.includes(category) &&
+            p.stock_quantity > 0  // Only include in-stock items
           )
           .slice(0, 5); // Limit to 5 products
           
@@ -183,6 +184,11 @@ const ProductPage = () => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
+    }
+
+    if (product.stock_quantity <= 0) {
+      showNotification("Sorry, this item is out of stock", "error");
+      return;
     }
     
     try {
@@ -355,24 +361,28 @@ const ProductPage = () => {
       <div className="product-container">
         <div className="product-details-container">
           <div className="product-gallery">
-            <div className="main-image">
-              <div 
-                className={`favorite-btn ${inWishlist ? 'active' : ''}`}
-                onClick={toggleWishlist}
-              >
-                <span className={inWishlist ? "heart-filled" : "heart-outline"}>
-                  {inWishlist ? "❤" : "♡"}
-                </span>
-              </div>
-              <img 
-                src={getProductImage()} 
-                alt={product.name} 
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = bookCover;
-                }}
-              />
-            </div>
+          <div className="main-image">
+          {product.stock_quantity <= 0 && (
+            <div className="out-of-stock-label">Out of Stock</div>
+          )}
+          <div 
+            className={`favorite-btn ${inWishlist ? 'active' : ''}`}
+            onClick={toggleWishlist}
+          >
+            <span className={inWishlist ? "heart-filled" : "heart-outline"}>
+              {inWishlist ? "❤" : "♡"}
+            </span>
+          </div>
+          <img 
+            src={getProductImage()} 
+            alt={product.name} 
+            className={product.stock_quantity <= 0 ? 'out-of-stock-img' : ''}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = bookCover;
+            }}
+          />
+        </div>
             {/* Optional: Add thumbnail images here if available */}
           </div>
           
@@ -494,33 +504,37 @@ const ProductPage = () => {
         <div className="similar-products-section">
           <h2 className="section-heading">Similar Products</h2>
           <div className="similar-products-grid">
-            {similarProducts.length > 0 ? (
-              similarProducts.map((similarProduct, index) => (
-                <div 
-                  key={index} 
-                  className="product-card"
-                  onClick={() => navigate('/product', { state: { product_id: similarProduct.product_id } })}
-                >
-                  <div className="product-card-image">
-                    <img 
-                      src={`assets/covers/${similarProduct.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                      alt={similarProduct.name}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = bookCover;
-                      }}
-                    />
-                  </div>
-                  <div className="product-card-brand">{similarProduct.author || "Unknown Author"}</div>
-                  <div className="product-card-name">{similarProduct.name || "Unknown Title"}</div>
-                  <div className="product-card-price">${parseFloat(similarProduct.price).toFixed(2)}</div>
-                </div>
-              ))
-            ) : (
-              <div className="no-similar-products">
-                No similar products found
+          {similarProducts.length > 0 ? (
+          similarProducts.map((similarProduct, index) => (
+            <div 
+              key={index} 
+              className={`product-card ${similarProduct.stock_quantity <= 0 ? 'out-of-stock' : ''}`}
+              onClick={() => navigate('/product', { state: { product_id: similarProduct.product_id } })}
+            >
+              <div className="product-card-image">
+                {similarProduct.stock_quantity <= 0 && (
+                  <div className="out-of-stock-label">Out of Stock</div>
+                )}
+                <img 
+                  src={`assets/covers/${similarProduct.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                  alt={similarProduct.name}
+                  className={similarProduct.stock_quantity <= 0 ? 'out-of-stock-img' : ''}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = bookCover;
+                  }}
+                />
               </div>
-            )}
+              <div className="product-card-brand">{similarProduct.author || "Unknown Author"}</div>
+              <div className="product-card-name">{similarProduct.name || "Unknown Title"}</div>
+              <div className="product-card-price">${parseFloat(similarProduct.price).toFixed(2)}</div>
+            </div>
+          ))
+        ) : (
+          <div className="no-similar-products">
+            No similar products found
+          </div>
+        )}
           </div>
         </div>
         
