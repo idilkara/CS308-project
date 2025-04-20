@@ -23,7 +23,7 @@ const ProductPage = () => {
     shippingPolicy: "Loading shipping policy...",
     rating: 0,
     reviewCount: 0,
-    stock: 0,
+    stock_quantity: 0,
     categories: []
   });
   
@@ -423,12 +423,12 @@ const ProductPage = () => {
             
             {/* Stock indicator */}
             <div className="product-stock">
-              <span className={`stock-indicator ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                {product.stock > 0 ? '●' : '○'}
+              <span className={`stock-indicator ${product.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                {product.stock_quantity > 0 ? '●' : '○'}
               </span>
               <span className="stock-text">
-                {product.stock > 0 
-                  ? `${product.stock} items in stock` 
+                {product.stock_quantity > 0 
+                  ? `${product.stock_quantity} items in stock` 
                   : 'Out of stock'}
               </span>
             </div>
@@ -444,13 +444,13 @@ const ProductPage = () => {
                 <input 
                   type="number" 
                   min="1" 
-                  max={product.stock || 100}
+                  max={product.stock_quantity || 100}
                   value={quantity} 
                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 />
                 <button 
-                  onClick={() => setQuantity(prev => Math.min(product.stock || 100, prev + 1))}
-                  disabled={quantity >= (product.stock || 100)}
+                  onClick={() => setQuantity(prev => Math.min(product.stock_quantity || 100, prev + 1))}
+                  disabled={quantity >= (product.stock_quantity || 100)}
                 >
                   +
                 </button>
@@ -459,7 +459,7 @@ const ProductPage = () => {
               <button 
                 className="add-to-cart-btn" 
                 onClick={addToCart}
-                disabled={product.stock <= 0}
+                disabled={product.stock_quantity <= 0}
               >
                 Add to Cart
               </button>
