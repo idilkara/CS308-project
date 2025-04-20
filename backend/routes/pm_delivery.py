@@ -24,46 +24,64 @@ def view_orders():
     cur = conn.cursor()
 
     try:
-
+        # Check if the user is a product manager
         cur.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
-        user_role = cur.fetchone()[0]       
+        user_role = cur.fetchone()[0]
         if user_role != "product_manager":
-            raise ValueError("Unauthorized access")
-        
+            return jsonify({"error": "Unauthorized access"}), 403
+
         # Fetch all orders related to the product manager's products
         cur.execute("""
-            SELECT u.user_id, o.delivery_address, o.order_id, o.order_date, o.status, p.product_id, op.quantity, op.price, p.name, p.model
+            SELECT o.order_id, o.order_date, o.total_price, o.status, 
+                   oi.product_id, oi.quantity, oi.price, oi.orderitem_id,
+                   p.name, p.model, o.delivery_address, oi.status
             FROM userorders o
-            JOIN users u ON o.user_id = u.user_id  -- Join users table on user_id
-            JOIN orderitems op ON o.order_id = op.order_id  -- Join orderitems table on order_id
-            JOIN products p ON op.product_id = p.product_id  -- Join products table on product_id
-            WHERE p.product_manager = %s  -- Filter by the product_manager
-
+            JOIN orderitems oi ON o.order_id = oi.order_id
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE p.product_manager = %s
+            ORDER BY o.order_date DESC
         """, (user_id,))
+
         orders = cur.fetchall()
 
-        cur.close()
-        conn.close()
+        if not orders:
+            return jsonify({"message": "No orders found"}), 200
 
-        orders_list = []
+        # Group orders and format the response
+        order_list = []
+        current_order = None
         for order in orders:
-            order_dict = {
-                "user_id": order[0],
-                "delivery_address": order[1],
-                "userorder_id": order[2],
-                "order_date": order[3],
-                "status": order[4],
-                "product_id": order[5],
-                "quantity": order[6],
-                "price": order[7],
+            if current_order is None or current_order["order_id"] != order[0]:
+                if current_order is not None:
+                    order_list.append(current_order)
+                current_order = {
+                    "order_id": order[0],
+                    "order_date": order[1],
+                    "total_price": order[2],
+                    "status": order[3],
+                    "delivery_address": order[10],
+                    "items": []
+                }
+            current_order["items"].append({
+                "product_id": order[4],
+                "quantity": order[5],
+                "price": order[6],
+                "orderitem_id": order[7],
                 "product_name": order[8],
-                "product_model": order[9]
-            }
-            orders_list.append(order_dict)
+                "product_model": order[9],
+                "orderitem_status": order[11]  # Assuming this is the status of the order item
+            })
+        if current_order is not None:
+            order_list.append(current_order)
 
-        return jsonify(orders_list), 200
+        return jsonify(order_list), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+    finally:
+        cur.close()
+        conn.close()
     
 @pm_delivery_bp.route("/update_status/<int:orderproduct_id>", methods=["PUT"])
 @jwt_required()

@@ -442,30 +442,35 @@ const ProductManager = () => {
     const fetchDeliveries = async () => {
       if (activeSection === 'orders') {
         setIsLoading(true);
-
+  
         try {
           const result = await viewOrdersPM(token);
-
+  
           if (result && !result.error) {
             const ordersArray = Array.isArray(result) ? result : result.orders;
-
-            const mappedDeliveries = (ordersArray || []).map(item => ({
-              id: item.userorder_id || item.orderitem_id || item.id, // fallback
-              orderId: item.userorder_id || item.orderitem_id,
-              customer: item.delivery_address || `User ${item.user_id}`,  // Using delivery address if available
-              product: item.product_name,
-              date: new Date(item.order_date).toLocaleDateString(),  // 🧽 Format clean date
-              status: item.status
-            }));
-
+  
+            const mappedDeliveries = (ordersArray || []).flatMap(order => 
+              (order.items || []).map(item => ({
+                id: item.orderitem_id,
+                orderId: order.order_id,
+                customer: order.delivery_address || `User ${order.user_id}`,
+                product: item.product_name,
+                model: item.product_model,
+                quantity: item.quantity,
+                price: item.price,
+                date: new Date(order.order_date).toLocaleDateString(),
+                status: item.orderitem_status
+              }))
+            );
+  
             setDeliveries(mappedDeliveries);
-
+  
             const initialStatus = {};
             mappedDeliveries.forEach(delivery => {
               initialStatus[delivery.id] = delivery.status;
             });
             setSelectedStatus(initialStatus);
-
+  
           } else {
             alert(result.error || 'Failed to fetch orders');
           }
@@ -477,9 +482,10 @@ const ProductManager = () => {
         }
       }
     };
-
+  
     fetchDeliveries();
   }, [activeSection, token]);
+  
 
 
   // Handle status change for deliveries
@@ -532,25 +538,6 @@ const ProductManager = () => {
     fetchComments();
   }, [activeSection, token]);
 
-  // // Handle save changes for deliveries
-  // const handleSaveStatus = (deliveryId) => {
-  //   // Find the delivery
-  //   const delivery = deliveries.find(d => d.id === deliveryId);
-  //
-  //   // In a real app, you would make an API call here
-  //   console.log(`Updating delivery ${deliveryId} (Order: ${delivery.orderId}) status to: ${selectedStatus[deliveryId]}`);
-  //
-  //   // Update the delivery status in the local state
-  //   setDeliveries(prevDeliveries =>
-  //     prevDeliveries.map(d =>
-  //       d.id === deliveryId ? {...d, status: selectedStatus[deliveryId]} : d
-  //     )
-  //   );
-  //
-  //   // Show feedback
-  //   alert(`Status updated for Order ${delivery.orderId}`);
-  // };
-
   // Handle save changes for deliveries
   const handleSaveStatus = async (deliveryId) => {
     const delivery = deliveries.find(d => d.id === deliveryId);
@@ -581,30 +568,6 @@ const ProductManager = () => {
     }
   };
 
-
-  // // Handle comment approval
-  // const handleApproveComment = (commentId) => {
-  //   // In a real app, you would make an API call here
-  //   setComments(prevComments =>
-  //     prevComments.map(comment =>
-  //       comment.id === commentId ? {...comment, status: "approved"} : comment
-  //     )
-  //   );
-  //
-  //   alert(`Comment #${commentId} has been approved and is now visible to users.`);
-  // };
-  //
-  // // Handle comment rejection
-  // const handleRejectComment = (commentId) => {
-  //   // In a real app, you would make an API call here
-  //   setComments(prevComments =>
-  //     prevComments.map(comment =>
-  //       comment.id === commentId ? {...comment, status: "rejected"} : comment
-  //     )
-  //   );
-  //
-  //   alert(`Comment #${commentId} has been rejected and will not be visible to users.`);
-  // };
 
   const handleApproveComment = async (commentId) => {
     try {
@@ -818,49 +781,6 @@ const ProductManager = () => {
     });
   };
 
-  // // Handle form submission
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //
-  //   // Validate the form data
-  //   const requiredFields = [
-  //     'name', 'author', 'cover_img_url', 'stock_quantity', 'price'
-  //   ];
-  //
-  //   const missingFields = requiredFields.filter(field => !newProduct[field]);
-  //
-  //   if (missingFields.length > 0) {
-  //     alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
-  //     return;
-  //   }
-  //
-  //   // Check if dates are valid when discount is specified
-  //   if (newProduct.discount.discount_percentage &&
-  //      (!newProduct.discount.start_date || !newProduct.discount.end_date)) {
-  //     alert('Please specify both start and end dates for the discount');
-  //     return;
-  //   }
-  //
-  //   // Format the data for API submission
-  //   const productData = {
-  //     ...newProduct,
-  //     stock_quantity: parseInt(newProduct.stock_quantity, 10),
-  //     price: parseFloat(newProduct.price),
-  //     discount: newProduct.discount.discount_percentage
-  //       ? {
-  //           ...newProduct.discount,
-  //           discount_percentage: parseFloat(newProduct.discount.discount_percentage)
-  //         }
-  //       : null
-  //   };
-  //
-  //   console.log('Product ready for submission:', productData);
-  //
-  //   // Here you would typically send the data to your backend API
-  //   // For now, just simulate success
-  //   resetForm();
-  //   alert('Product added successfully!');
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1350,78 +1270,87 @@ const ProductManager = () => {
 
           {/* Manage Orders Section with Deliveries */}
           {activeSection === 'orders' && (
-              <div className="pm-orders-section">
-                <h2 className="source-sans-semibold">Manage Orders</h2>
+  <div className="pm-orders-section">
+    <h2 className="source-sans-semibold">Manage Orders</h2>
 
-                {isLoading ? (
-                    <div className="pm-loading">
-                      <p className="source-sans-regular">Loading deliveries data...</p>
-                    </div>
-                ) : (
-                    <>
-                      <div className="pm-deliveries-header">
-                        <h3 className="source-sans-semibold">Delivery Management</h3>
-                        <p className="source-sans-light">Update the status of customer deliveries</p>
-                      </div>
+    {isLoading ? (
+      <div className="pm-loading">
+        <p className="source-sans-regular">Loading deliveries data...</p>
+      </div>
+    ) : (
+      <>
+        <div className="pm-deliveries-header">
+          <h3 className="source-sans-semibold">Delivery Management</h3>
+          <p className="source-sans-light">Update the status of customer deliveries</p>
+        </div>
 
-                      {deliveries.length === 0 ? (
-                          <p className="source-sans-regular">No deliveries found.</p>
-                      ) : (
-                          <div className="pm-deliveries-table-container">
-                            <table className="pm-deliveries-table">
-                              <thead>
-                              <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Product</th>
-                                <th>Order Date</th>
-                                <th>Current Status</th>
-                                <th>Update Status</th>
-                                <th>Actions</th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {deliveries.map(delivery => (
-                                  <tr key={delivery.id}>
-                                    <td>{delivery.orderId}</td>
-                                    <td>{delivery.customer}</td>
-                                    <td>{delivery.product}</td>
-                                    <td>{delivery.date}</td>
-                                    <td>
-                              <span className={`status-badge status-${delivery.status.toLowerCase()}`}>
-                                {delivery.status}
-                              </span>
-                                    </td>
-                                    <td>
-                                      <select
-                                          value={selectedStatus[delivery.id]}
-                                          onChange={(e) => handleStatusChange(delivery.id, e.target.value)}
-                                          className="pm-status-select"
-                                      >
-                                        {statusOptions.map(option => (
-                                            <option key={option} value={option}>{option}</option>
-                                        ))}
-                                      </select>
-                                    </td>
-                                    <td>
-                                      <button
-                                          className="pm-btn-action"
-                                          onClick={() => handleSaveStatus(delivery.id)}
-                                          disabled={selectedStatus[delivery.id] === delivery.status}
-                                      >
-                                        Save
-                                      </button>
-                                    </td>
-                                  </tr>
-                              ))}
-                              </tbody>
-                            </table>
-                          </div>
-                      )}
-                    </>
-                )}
-              </div>
-          )}
+        {deliveries.length === 0 ? (
+          <p className="source-sans-regular">No deliveries found.</p>
+        ) : (
+          <div className="pm-deliveries-table-container">
+            <table className="pm-deliveries-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Product</th>
+                  <th>Model</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Order Date</th>
+                  <th>Current Status</th>
+                  <th>Update Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deliveries.map(delivery => (
+                  <tr key={delivery.id}>
+                    <td>{delivery.orderId}</td>
+                    <td>{delivery.customer}</td>
+                    <td>{delivery.product}</td>
+                    <td>{delivery.model}</td>
+                    <td>{delivery.quantity}</td>
+                    <td>${delivery.price}</td>
+                    <td>{delivery.date}</td>
+                    <td>
+                      <span className={`status-badge status-${delivery.status.toLowerCase()}`}>
+                        {delivery.status}
+                      </span>
+                    </td>
+                    <td>
+                      <select
+                        value={selectedStatus[delivery.id]}
+                        onChange={(e) => handleStatusChange(delivery.id, e.target.value)}
+                        className="pm-status-select"
+                      >
+                        {statusOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        className="pm-btn-action"
+                        onClick={() => handleSaveStatus(delivery.id)}
+                        disabled={selectedStatus[delivery.id] === delivery.status}
+                      >
+                        Save
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
+
 
           {/* Manage Comments Section */}
           {activeSection === 'comments' && (
@@ -1517,7 +1446,6 @@ const ProductManager = () => {
                             {comment.status.charAt(0).toUpperCase() + comment.status.slice(1)}
                           </span>
                                   </div>
-
                                   <div className="pm-comment-actions">
                                     {comment.status === 'pending' && (
                                         <>
