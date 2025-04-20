@@ -27,6 +27,7 @@ def add_review():
         cur = conn.cursor()
 
         # Check if product was purchased and delivered
+
         cur.execute("""
             SELECT oi.status FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
@@ -66,16 +67,18 @@ def get_reviews(product_id):
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT user_id, rating, comment FROM reviews 
-            WHERE product_id = %s AND approved = TRUE
-        """, (product_id,))
+        SELECT u.name, r.user_id, r.rating, r.comment , r.review_date
+        FROM reviews r
+        JOIN users u ON r.user_id = u.user_id
+        WHERE r.product_id = %s AND r.approved = TRUE
+    """, (product_id,))
 
         reviews = cur.fetchall()
         cur.close()
         conn.close()
 
         return jsonify([
-            {"user_id": r[0], "rating": r[1], "comment": r[2]} for r in reviews
+            {"name": r[0], "user_id": r[1], "rating": r[2], "comment": r[3], "date": r[4]} for r in reviews
         ]), 200
 
     except Exception as e:

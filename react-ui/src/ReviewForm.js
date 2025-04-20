@@ -9,11 +9,49 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
+   // Placeholder for actual permission check
   const { token } = useAuth();
   console.log(token);
   console.log(product_id);
   // SUBMIT REVIEW API
+
+  // TODO : DONT ALLOW TO SUBMIT REVIEW IF USER IS NOT LOGGED IN
+
+  // get username from token
+
+    const getUserInfo = async (token) => {
+      try {
+          const response = await fetch("http://localhost/api/users/userinfo", {
+              method: "GET",
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          });
+
+          if (!response.ok) {
+              throw new Error("Invalid token");
+          }
+
+          const data = await response.json();
+          console.log("User data fetched successfully:", data);
+
+       
+         setName (data.name); // Set the username in the state
+         console.log("Username set successfully:", data.name);
+
+      
+          return data; // Return the fetched data
+      } catch (error) {
+          console.error("Error fetching user data:", error);
+          
+          throw error; // Re-throw the error if needed
+      }
+  };
+
+
+  if(token != null) {
+    getUserInfo(token)
+  }
 
   const addReview = async (token, product_id, rating, comment) => {
     const headers = {
@@ -61,7 +99,7 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
     setHoverRating(0);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -84,31 +122,51 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
 
     setIsSubmitting(true);
 
-    // Create review object
-    const newReview = {
-      id: Date.now(), // Temporary ID for demo
-      rating,
-      text: comment,
-      userName: name,
-      date: new Date().toISOString()
-    };
+    // Check if token exists
+    if (!token) {
+      setError('You must be logged in to submit a review');
+      setIsSubmitting(false);
+      return;
+    }
 
-    // Submit the review (would be an API call in a real app)
-    setTimeout(() => {
+    try {
+      // Submit to API
+      const result = await addReview(token, product_id, rating, comment);
+      
+      if (result.error) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Create review object for local display
+      const newReview = {
+        id: result.id || Date.now(), // Use API ID if available
+        rating,
+        text: comment,
+        userName: name,
+        date: new Date().toISOString()
+      };
+
+      // Call the parent component's handler
       onSubmitReview(newReview);
       
       // Reset form
       setRating(0);
       setComment('');
-      setName('');
-      setIsSubmitting(false);
+      // setName('');
       setSuccess('Thank you for your review!');
       
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccess('');
       }, 3000);
-    }, 500);
+    } catch (err) {
+      setError('Failed to submit review. Please try again.');
+      console.error('Review submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -137,15 +195,8 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
         </div>
         
         <div className="form-group">
-          <label htmlFor="reviewName">Your Name</label>
-          <input
-            type="text"
-            id="reviewName"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
-            required
-          />
+          {/* <label htmlFor="reviewName">Your Name</label> */}
+          You are logged in as {name}
         </div>
         
         <div className="form-group">

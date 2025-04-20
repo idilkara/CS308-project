@@ -113,6 +113,7 @@ const ProductPage = () => {
 
     fetchProduct();
     fetchReviews();
+
   }, [product_id]);
 
   // Fetch similar products based on category
@@ -153,6 +154,7 @@ const ProductPage = () => {
       
       if (response.ok) {
         const reviewsData = await response.json();
+        console.log("Fetched reviews data:", reviewsData);
         setReviews(reviewsData);
         
         // Calculate review statistics
@@ -277,26 +279,6 @@ const ProductPage = () => {
 
   // Add a new review
   const handleReviewSubmit = (newReview) => {
-    // Add the new review to the reviews array
-    const updatedReviews = [newReview, ...reviews];
-    setReviews(updatedReviews);
-    
-    // Update review statistics
-    const totalReviews = updatedReviews.length;
-    let ratingSum = 0;
-    const distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
-    
-    updatedReviews.forEach(review => {
-      ratingSum += review.rating;
-      distribution[review.rating] = (distribution[review.rating] || 0) + 1;
-    });
-    
-    setReviewStats({
-      averageRating: totalReviews > 0 ? Math.round(ratingSum / totalReviews * 10) / 10 : 0,
-      totalReviews,
-      distribution
-    });
-    
     showNotification("Your review has been submitted!", "success");
   };
 
@@ -593,9 +575,12 @@ const ProductPage = () => {
             </div>
           </div>
           
-          {/* Review Form */}
-          <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id} />
-          
+            {/* Review Form */}
+            {token !== null ? (
+              <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id} />
+            ) : (
+              <div>You need to log in to write a review.</div>
+            )}
           {/* Reviews list */}
           <div className="comments-container">
             {sortedReviews.length > 0 ? (
@@ -605,10 +590,10 @@ const ProductPage = () => {
                     <div className="comment-user-info">
                       <div className="comment-avatar">
                         {/* User initial or icon */}
-                        {review.userName?.charAt(0) || "U"}
+                        {review.name?.charAt(0) || "U"}
                       </div>
                       <div className="comment-user-details">
-                        <div className="comment-user-name">{review.userName || "Anonymous"}</div>
+                        <div className="comment-user-name">{review.name || "Anonymous"}</div>
                         <div className="comment-date">
                           {new Date(review.date || review.created_at).toLocaleDateString()}
                         </div>
@@ -618,7 +603,7 @@ const ProductPage = () => {
                       {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
                     </div>
                   </div>
-                  <p className="comment-text">{review.text || review.content}</p>
+                  <p className="comment-text">{review.comment || "No review content"}</p>
                 </div>
               ))
             ) : (

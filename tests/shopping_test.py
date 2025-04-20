@@ -129,9 +129,9 @@ if __name__ == "__main__":
             f.write(pdf_data)
         print(f"PDF saved as {filename}")
 
-    # Example usage:
-    pdf = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
-    save_pdf(pdf.content)
+    # # Example usage:
+    # pdf = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
+    # save_pdf(pdf.content)
 
     # Step 7: View order history
     print("Viewing order history...")

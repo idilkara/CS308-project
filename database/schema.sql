@@ -136,6 +136,7 @@ CREATE TABLE reviews (
     product_id INT,
     rating INT CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     approved BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
