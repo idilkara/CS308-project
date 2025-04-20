@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from "lucide-react";
 
 import { Link , useNavigate } from 'react-router-dom';
 import { BsBag, BsPersonCircle, BsBarChartLineFill } from "react-icons/bs";
 
 import { searchProducts } from "../utils/SearchUtils";
 import { useAuth } from "../context/AuthContext";
+
+
 
 const Navbar = () => {
     const [isAuthorsOpen, setIsAuthorsOpen] = useState(false);
@@ -166,6 +169,8 @@ const Navbar = () => {
                     }}
                 />
                 <div
+                    style={{ marginTop: "10px", cursor: "pointer" }}
+
                     className="search-button"
                     onClick={() => {
                         // if (searchQuery.trim() === "") {
@@ -176,7 +181,8 @@ const Navbar = () => {
                         navigate("/category", { state: { searchQuery } });
                     }}
                 >
-                    Search
+                    <Search className="w-5 h-5" />
+
                 </div>
         
 
