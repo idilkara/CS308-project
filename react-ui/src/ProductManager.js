@@ -362,7 +362,7 @@ const ProductManager = () => {
         id: product.product_id,
         name: product.name,
         author: product.author,
-        stock: product.stock_quantity,
+        stock_quantity: product.stock_quantity,
         price: 0, // Backend currently doesn't return price, default to 0
         lastUpdated: new Date().toISOString().split('T')[0]
       })));
@@ -634,7 +634,7 @@ const ProductManager = () => {
 
   // Load stock data when the "stocks" section is active
   useEffect(() => {
-    if (activeSection === 'stocks') {
+    if (activeSection === 'stock_quantity') {
       fetchProductsForStock();
     }
   }, [activeSection, token]);
@@ -658,7 +658,7 @@ const ProductManager = () => {
         setStockProducts(prevProducts =>
             prevProducts.map(product =>
                 product.id === id
-                    ? { ...product, stock: parseInt(newStockValue), lastUpdated: new Date().toISOString().split('T')[0] }
+                    ? { ...product, stock_quantity: parseInt(newStockValue), lastUpdated: new Date().toISOString().split('T')[0] }
                     : product
             )
         );
@@ -684,7 +684,7 @@ const ProductManager = () => {
 // Start editing stock for a product
   const startEditStock = (product) => {
     setEditStockId(product.id);
-    setNewStockValue(product.stock.toString());
+    setNewStockValue(product.stock_quantity.toString());
   };
 
 // Filter products by name
@@ -727,8 +727,8 @@ const ProductManager = () => {
         case 'author':
           comparison = a.author.localeCompare(b.author);
           break;
-        case 'stock':
-          comparison = a.stock - b.stock;
+        case 'stock_quantity':
+          comparison = a.stock_quantity - b.stock_quantity;
           break;
         case 'price':
           comparison = a.price - b.price;
@@ -848,8 +848,8 @@ const ProductManager = () => {
             Add Product
           </button>
           <button
-              className={`pm-tab source-sans-semibold ${activeSection === 'stocks' ? 'active' : ''}`}
-              onClick={() => setActiveSection('stocks')}
+              className={`pm-tab source-sans-semibold ${activeSection === 'stock_quantity' ? 'active' : ''}`}
+              onClick={() => setActiveSection('stock_quantity')}
           >
             Manage Stocks
           </button>
@@ -998,7 +998,7 @@ const ProductManager = () => {
           )}
 
           {/* Manage Stocks Section */}
-          {activeSection === 'stocks' && (
+          {activeSection === 'stock_quantity' && (
               <div className="pm-stocks-section">
                 <h2 className="source-sans-semibold">Manage Stocks</h2>
 
@@ -1051,11 +1051,11 @@ const ProductManager = () => {
                                   )}
                                 </th>
                                 <th
-                                    className={`sortable ${stockSortField === 'stock' ? `sorted-${stockSortDirection}` : ''}`}
-                                    onClick={() => handleSortChange('stock')}
+                                    className={`sortable ${stockSortField === 'stock_quantity' ? `sorted-${stockSortDirection}` : ''}`}
+                                    onClick={() => handleSortChange('stock_quantity')}
                                 >
                                   Current Stock
-                                  {stockSortField === 'stock' && (
+                                  {stockSortField === 'stock_quantity' && (
                                       <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
                                   )}
                                 </th>
@@ -1143,15 +1143,15 @@ const ProductManager = () => {
                         </div>
                         <div className="summary-card total-inventory">
                           <h4>Total Items in Stock</h4>
-                          <p>{stockProducts.reduce((total, product) => total + product.stock, 0)}</p>
+                          <p>{stockProducts.reduce((total, product) => total + product.stock_quantity, 0)}</p>
                         </div>
                         <div className="summary-card low-stock-items">
                           <h4>Low Stock Items</h4>
-                          <p>{stockProducts.filter(product => product.stock <= 5).length}</p>
+                          <p>{stockProducts.filter(product => product.stock_quantity <= 5).length}</p>
                         </div>
                         <div className="summary-card inventory-value">
                           <h4>Total Inventory Value</h4>
-                          <p>${stockProducts.reduce((total, product) => total + (product.stock * product.price), 0).toFixed(2)}</p>
+                          <p>${stockProducts.reduce((total, product) => total + (product.stock_quantity * product.price), 0).toFixed(2)}</p>
                         </div>
                       </div>
                     </>
