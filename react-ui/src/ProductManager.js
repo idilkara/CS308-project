@@ -335,6 +335,8 @@ const ProductManager = () => {
         method: "GET",
         headers,
       });
+
+      
       if (response.ok) {
         const result = await response.json();
         console.log("Products fetched successfully:", result);
@@ -833,8 +835,10 @@ const ProductManager = () => {
   };
 
   return (
+    <>
+    <Navbar />
       <div className="container product-manager">
-         <Navbar />
+         
         <h1 className="source-sans-bold pm-section-title">Product Manager</h1>
 
         {/* Navigation Tabs */}
@@ -1027,6 +1031,7 @@ const ProductManager = () => {
                           <p className="source-sans-regular pm-no-products">No products found in inventory.</p>
                       ) : (
                           <div className="pm-stocks-table-container">
+
                             <table className="pm-stocks-table">
                               <thead>
                               <tr>
@@ -1075,12 +1080,12 @@ const ProductManager = () => {
                                       <span className="sort-indicator">{stockSortDirection === 'asc' ? '↑' : '↓'}</span>
                                   )}
                                 </th>
-                                <th>Actions</th>
+                                <th className= {`sortable`}> Actions</th>
                               </tr>
                               </thead>
                               <tbody>
                               {getFilteredAndSortedProducts().map(product => (
-                                  <tr key={product.procut_id} className={product.stock_quantity <= 5 ? 'low-stock' : ''}>
+                                  <tr key={product.product_id} className={product.stock_quantity <= 5 ? 'low-stock' : ''}>
                                     <td>{product.name}</td>
                                     <td>{product.author}</td>
                                     <td className="stock-column">
@@ -1132,6 +1137,7 @@ const ProductManager = () => {
                             </table>
                           </div>
                       )}
+                      
 
                       <div className="pm-stocks-summary">
                         <div className="summary-card total-products">
@@ -1378,6 +1384,8 @@ const ProductManager = () => {
           )}
         </div>
       </div>
+
+    </>
   );
 };
 

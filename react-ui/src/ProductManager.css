@@ -894,11 +894,12 @@ textarea.pm-form-control {
 }
 
 .pm-stocks-table th.sortable {
+    background-color: var(--warm-green-light);
     cursor: pointer;
 }
 
 .pm-stocks-table th.sortable:hover {
-    background-color: var(--warm-green-light);
+    background-color: var(--warm-green-lighter);
 }
 
 .pm-stocks-table th .sort-indicator {

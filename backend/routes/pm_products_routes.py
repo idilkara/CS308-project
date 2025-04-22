@@ -53,13 +53,14 @@ def view_products():
         for product in products:
             product_list.append({
                 "product_id": product[0],
-                "name": product[1],
-                "model": product[2],
-                "description": product[3],
-                "stock_quantity": product[4],
-                "distributor_information": product[5],
-                "product_manager": product[6],
-                "author": product[7]
+                "name": product[2],
+                "model": product[3],
+                "description": product[4],
+                "stock_quantity": product[5],
+                "distributor_information": product[7],
+                "product_manager": product[9],
+                "author": product[10],
+                "serial_no": product[1]
             })
 
         return jsonify(product_list), 200

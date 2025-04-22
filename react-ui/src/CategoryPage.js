@@ -870,6 +870,7 @@ const toggleFavorite = (productId) => {
               })
             ) : (
               <div className="grid-container no-results-active">
+                  <div> </div>
                   <div className="no-results">
                     <h3>No books match your current filters</h3>
                     <p>Try adjusting your filter criteria or clear filters to see more results.</p>
@@ -886,6 +887,8 @@ const toggleFavorite = (productId) => {
                       Clear All Filters
                     </button>
                   </div>
+                  
+
                 </div>
               )}
             </div>
