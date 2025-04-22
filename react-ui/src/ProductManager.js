@@ -335,8 +335,6 @@ const ProductManager = () => {
         method: "GET",
         headers,
       });
-
-      
       if (response.ok) {
         const result = await response.json();
         console.log("Products fetched successfully:", result);
@@ -1031,7 +1029,6 @@ const ProductManager = () => {
                           <p className="source-sans-regular pm-no-products">No products found in inventory.</p>
                       ) : (
                           <div className="pm-stocks-table-container">
-
                             <table className="pm-stocks-table">
                               <thead>
                               <tr>

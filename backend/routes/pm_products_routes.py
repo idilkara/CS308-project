@@ -57,10 +57,11 @@ def view_products():
                 "model": product[3],
                 "description": product[4],
                 "stock_quantity": product[5],
-                "distributor_information": product[7],
-                "product_manager": product[9],
-                "author": product[10],
-                "serial_no": product[1]
+                "distributor_information": product[8],
+                "product_manager": product[10],
+                "author": product[11],
+                "serial_no": product[1],
+                "price": product[6]
             })
 
         return jsonify(product_list), 200
