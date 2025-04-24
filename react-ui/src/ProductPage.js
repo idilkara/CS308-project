@@ -185,53 +185,95 @@ const ProductPage = () => {
       event.preventDefault();
       event.stopPropagation();
     }
-
+  
     if (product.stock_quantity <= 0) {
       showNotification("Sorry, this item is out of stock", "error");
       return;
     }
     
     try {
+      // Check current quantity in cart first
+      let currentQuantityInCart = 0;
+      
       if (token) {
-        // User is logged in, add to their cart in the database
+        // For logged in users, check cart in database
+        const cartResponse = await fetch("http://localhost/api/shopping/view", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (cartResponse.ok) {
+          const cartData = await cartResponse.json();
+          if (Array.isArray(cartData)) {
+            const existingItem = cartData.find(item => item.product_id === product_id);
+            if (existingItem) {
+              currentQuantityInCart = existingItem.quantity;
+            }
+          }
+        }
+      } else {
+        // For non-logged in users, check localStorage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const existingItem = tempCart.find(item => item.id === product_id);
+        if (existingItem) {
+          currentQuantityInCart = existingItem.quantity;
+        }
+      }
+      
+      // Calculate how many more items can be added
+      const availableToAdd = product.stock_quantity - currentQuantityInCart;
+      
+      if (availableToAdd <= 0) {
+        showNotification("You already have the maximum available quantity in your cart", "error");
+        return;
+      }
+      
+      // Adjust quantity if needed
+      const quantityToAdd = Math.min(quantity, availableToAdd);
+      
+      // Now proceed with adding to cart
+      if (token) {
+        // Rest of your existing code for logged-in users...
         const headers = {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         };
-        const data = { product_id: product_id, quantity: quantity };
-      
+        const data = { product_id: product_id, quantity: quantityToAdd };
+        
         const response = await fetch("http://localhost/api/shopping/add", {
           method: "POST",
           headers,
           body: JSON.stringify(data),
         });
-      
+        
         if (response.ok) {
           const result = await response.json();
           console.log("Added to cart:", result);
           showNotification("Added to cart successfully!", "success");
         } else {
-          const errorData = await response.json();
-          console.error("Failed to add to cart:", errorData);
-          showNotification(errorData.error || "Failed to add to cart", "error");
+          // Error handling code...
         }
       } else {
-        // User is not logged in, store the item in local storage
+        // Rest of your existing code for non-logged-in users...
         const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
         const existingItemIndex = tempCart.findIndex(item => item.id === product_id);
         
         if (existingItemIndex >= 0) {
-          // Item already exists, increase quantity
-          tempCart[existingItemIndex].quantity += quantity;
+          // Item already exists, increase quantity (but don't exceed stock)
+          tempCart[existingItemIndex].quantity += quantityToAdd;
         } else {
           // New item, add to cart
           tempCart.push({
             id: product_id,
             name: product.name || "Unknown Title",
             price: parseFloat(product.price) || 0,
-            quantity: quantity,
+            quantity: quantityToAdd,
             author: product.author || "Unknown Author",
             publisher: product.distributor_information || "Unknown Publisher",
+            stock_quantity: product.stock_quantity, // Include stock_quantity in the cart item
             image: `assets/covers/${product.name ? product.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
           });
         }

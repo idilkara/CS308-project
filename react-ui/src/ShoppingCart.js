@@ -53,6 +53,7 @@ const ShoppingCart = () => {
               publisher: item.distributor_information || "Unknown Publisher",
               price: parseFloat(item.price) || 0,
               quantity: item.quantity,
+              stock_quantity: item.stock_quantity, // Add this line
               image: `assets/covers/${item.name.replace(/\s+/g, '').toLowerCase()}.png`
             }));
             setCartItems(formattedItems);
@@ -88,7 +89,13 @@ const ShoppingCart = () => {
   // Function to update quantity of an item
   const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return; // Don't allow quantities less than 1
+    const currentItem = cartItems.find(item => item.id === itemId);
+    if (!currentItem) return;
     
+    // Don't allow quantities greater than stock
+    if (newQuantity > currentItem.stock_quantity) {
+      newQuantity = currentItem.stock_quantity;
+    }
     try {
       if (token) {
         // Get current quantity
