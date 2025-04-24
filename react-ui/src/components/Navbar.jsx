@@ -168,22 +168,8 @@ const Navbar = () => {
                         }
                     }}
                 />
-                <div
-                    style={{ marginTop: "10px", cursor: "pointer" }}
-
-                    className="search-button"
-                    onClick={() => {
-                        // if (searchQuery.trim() === "") {
-                        //     console.log("Search query is empty. Navigation canceled.");
-                        //     return;
-                        // }
-                        console.log("Search clicked with query:", searchQuery);
-                        navigate("/category", { state: { searchQuery } });
-                    }}
-                >
-                    <Search className="w-5 h-5" />
-
-                </div>
+                
+                
         
 
                 {searchResults.length > 0 && (
@@ -207,61 +193,94 @@ const Navbar = () => {
             </div>
 
 
+            
             <div className="icons">
-      
+            {/* Search button */}
+            <div 
+                className="search-button"
+                onClick={() => {
+                console.log("Search clicked with query:", searchQuery);
+                navigate("/category", { state: { searchQuery } });
+                }}
+                style={{ cursor: "pointer" }}
+            >
+                <Search className="w-5 h-5" />
+            </div>
+            
+            {/* Shopping bag/manager icon */}
             {role === "product_manager" ? (
-                    <Link to="/productmanager">
-                        <BsBarChartLineFill className="icon" />
-                    </Link>
-                ) : role === "sales_manager" ? (
-                    <Link to="/salesmanager">
-                        <BsBarChartLineFill className="icon" />
-                    </Link>
-                ) : (
-                    <Link to="/cart">
-                        <BsBag className="icon" />
-                    </Link>
-                )}
+                <Link to="/productmanager">
+                <BsBarChartLineFill className="icon" />
+                </Link>
+            ) : role === "sales_manager" ? (
+                <Link to="/salesmanager">
+                <BsBarChartLineFill className="icon" />
+                </Link>
+            ) : (
+                <Link to="/cart">
+                <BsBag className="icon" />
+                </Link>
+            )}
 
-
-                {/* UER Dropdown */}
-                <div
-                    className="dropdown"
-                    onMouseEnter={() => setIsUserOpen(true)}
-                    onMouseLeave={() => setIsUserOpen(false)}
+            {/* User dropdown with inline styles */}
+            <div
+                className="dropdown"
+                style={{ 
+                position: 'relative',
+                display: 'inline-block'
+                }}
+                onMouseEnter={() => setIsUserOpen(true)}
+                onMouseLeave={() => setIsUserOpen(false)}
+            >
+                <Link to="/user" className="dropdown-trigger">
+                <BsPersonCircle className="icon" />
+                </Link>
+                <div 
+                className={`dropdown-menu ${isUserOpen ? 'show' : ''}`}
+                style={{
+                    position: 'absolute',
+                    
+                    top: '100%',
+                    backgroundColor: 'white',
+                    border: '1px solid #000',
+                    minWidth: '100px',
+                    padding: '8px 0',
+                    zIndex: 100,
+                    display: isUserOpen ? 'block' : 'none',
+                    transform: 'translateX(-50%)', // This moves the menu left by half its width
+                    
+                    left: '50%' 
+                }}
                 >
-
-                    <Link to="/user" className="dropdown-trigger"><BsPersonCircle className="icon" /></Link>
-                    <div className={`dropdown-menu ${isUserOpen ? 'show' : ''}`}>
-                        {isUserLoggedIn ? (
-                            <div style={{ marginRight: '10px' }}>
-                            <Link to={`/user`} className="dropdown-item">
-                                Profile Page
-                            </Link>
-                            <Link to={`/login`} className="dropdown-item" onClick={handleLogout} >
-                                Log Out 
-                            </Link>
-                            </div>
-                        ) : (       
-                            <div>                     
-                            <Link to ={`/login`} className="dropdown-item">
-                                Log In
-                            </Link>
-                            <Link to={`/register`} className="dropdown-item">
-                                Register
-                            </Link>
-                            </div>  
-                        )}
-
-
-
-                    </div>
+                {isUserLoggedIn ? (
+                    <>
+                    <Link to={`/user`} className="dropdown-item">
+                        Profile Page
+                    </Link>
+                    <Link to={`/login`} className="dropdown-item" onClick={handleLogout}>
+                        Log Out 
+                    </Link>
+                    </>
+                ) : (       
+                    <>                     
+                    <Link to={`/login`} className="dropdown-item">
+                        Log In
+                    </Link>
+                    <Link to={`/register`} className="dropdown-item">
+                        Register
+                    </Link>
+                    </>  
+                )}
                 </div>
-
-                
+            </div>
             </div>
         </header>
     );
 };
 
+
+
 export default Navbar;
+
+
+
