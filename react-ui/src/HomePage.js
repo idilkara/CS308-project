@@ -34,6 +34,18 @@ const HomePage = () => {
     visible: false
   });
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      message,
+      visible: true,
+      type
+    });
+    
+    setTimeout(() => {
+      setNotification({ message: '', visible: false, type });
+    }, 3000);
+  };
+
   // Banner state
   const [bannerIndex, setBannerIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -160,13 +172,7 @@ const HomePage = () => {
   // Add to wishlist function
   const addToWishlist = async (productId) => {
     if (!token) {
-      setNotification({
-        message: "Please log in to add items to wishlist",
-        visible: true
-      });
-      setTimeout(() => {
-        setNotification({ message: '', visible: false });
-      }, 3000);
+      showNotification("Please log in to add items to wishlist", "error");
       return { error: "Authentication required" };
     }
   
@@ -235,92 +241,119 @@ const HomePage = () => {
   };
   
   // Add to cart function
-  const addToCart = async (event, book) => {
-    if (event) {
-      event.stopPropagation();
+  // Replace the existing addToCart function in HomePage with this one
+const addToCart = async (event, book) => {
+  if (event) {
+    event.stopPropagation();
+  }
+  
+  // Check if item is out of stock
+  if (!book.stock_quantity || book.stock_quantity <= 0) {
+    showNotification("Sorry, this item is out of stock", "error");
+    return { error: "Out of stock" };
+  }
+  
+  try {
+    // Check current quantity in cart first
+    let currentQuantityInCart = 0;
+    
+    if (token) {
+      // For logged in users, check cart in database
+      const cartResponse = await fetch("http://localhost/api/shopping/view", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (cartResponse.ok) {
+        const cartData = await cartResponse.json();
+        if (Array.isArray(cartData)) {
+          const existingItem = cartData.find(item => item.product_id === book.product_id);
+          if (existingItem) {
+            currentQuantityInCart = existingItem.quantity;
+          }
+        }
+      }
+    } else {
+      // For non-logged in users, check localStorage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const existingItem = tempCart.find(item => item.id === book.product_id);
+      if (existingItem) {
+        currentQuantityInCart = existingItem.quantity;
+      }
     }
     
-    try {
-      if (token) {
-        // User is logged in, add to their cart in the database
-        const headers = {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        };
-        const data = { product_id: book.product_id, quantity: 1 };
-      
-        const response = await fetch("http://localhost/api/shopping/add", {
-          method: "POST",
-          headers,
-          body: JSON.stringify(data),
-        });
-      
-        if (response.ok) {
-          const result = await response.json();
-          setNotification({
-            message: "Added to cart successfully!",
-            visible: true
-          });
-          setTimeout(() => {
-            setNotification({ message: '', visible: false });
-          }, 3000);
-          return result;
-        } else {
-          const errorData = await response.json();
-          setNotification({
-            message: errorData.error || "Failed to add to cart",
-            visible: true
-          });
-          setTimeout(() => {
-            setNotification({ message: '', visible: false });
-          }, 3000);
-          return {
-            error: errorData.error || "Failed to add to cart"
-          };
-        }
-      } else {
-        // User is not logged in, store the item in local storage
-        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-        const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
-        
-        if (existingItemIndex >= 0) {
-          // Item already exists, increase quantity
-          tempCart[existingItemIndex].quantity += 1;
-        } else {
-          // New item, add to cart
-          tempCart.push({
-            id: book.product_id,
-            name: getBookName(book),
-            price: parseFloat(book.price) || 0,
-            quantity: 1,
-            author: book.author || "Unknown Author",
-            publisher: book.distributor_information || "Unknown Publisher",
-            image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
-          });
-        }
-        
-        localStorage.setItem('tempCart', JSON.stringify(tempCart));
-        setNotification({
-          message: "Added to cart successfully!",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
-        return { success: true };
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      setNotification({
-        message: "An unexpected error occurred",
-        visible: true
-      });
-      setTimeout(() => {
-        setNotification({ message: '', visible: false });
-      }, 3000);
-      return { error: "An unexpected error occurred" };
+    // Calculate how many more items can be added
+    const availableToAdd = book.stock_quantity - currentQuantityInCart;
+    
+    if (availableToAdd <= 0) {
+      showNotification("You already have the maximum available quantity in your cart", "error");
+      return { error: "Maximum quantity reached" };
     }
-  };
+    
+    // Continue with adding to cart
+    if (token) {
+      // User is logged in, add to their cart in the database
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      const data = { product_id: book.product_id, quantity: 1 };
+      
+      const response = await fetch("http://localhost/api/shopping/add", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(data),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Added to cart:", result);
+        showNotification("Added to cart successfully!", "success");
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to add to cart:", errorData);
+        showNotification("Failed to add to cart.", "error");
+        return {
+          error: errorData.error || "Failed to add to cart",
+          status_code: response.status,
+        };
+      }
+    } else {
+      // User is not logged in, store the item in local storage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
+      
+      if (existingItemIndex >= 0) {
+        // Item already exists, increase quantity
+        tempCart[existingItemIndex].quantity += 1;
+      } else {
+        // New item, add to cart
+        tempCart.push({
+          id: book.product_id,
+          name: getBookName(book),
+          price: parseFloat(book.price) || 0,
+          quantity: 1,
+          author: book.author || "Unknown Author",
+          publisher: book.distributor_information || "Unknown Publisher",
+          stock_quantity: book.stock_quantity, // Add stock_quantity to track availability
+          image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
+        });
+      }
+      
+      localStorage.setItem('tempCart', JSON.stringify(tempCart));
+      showNotification("Added to cart successfully!", "success");
+      return { success: true };
+    }
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    showNotification("An unexpected error occurred.", "error");
+    return { error: "An unexpected error occurred" };
+  }
+};
   
   // Toggle favorite status
   const toggleFavorite = (index, productId, section) => {
@@ -698,10 +731,10 @@ const HomePage = () => {
         
         {/* Notification */}
         {notification.visible && (
-          <div className="cart-notification">
-            {notification.message}
-          </div>
-        )}
+  <div className={`cart-notification ${notification.type}`}>
+    {notification.message}
+  </div>
+)}
       </div>
       <Footer />
     </div>

@@ -90,8 +90,22 @@ const CategoryPage = () => {
   const [categories, setCategories] = useState([]);
   const [notification, setNotification] = useState({
     message: '',
-    visible: false
+    visible: false,
+    type: 'success' // Add this field with default 'success'
   });
+
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      message,
+      visible: true,
+      type
+    });
+    
+    setTimeout(() => {
+      setNotification({ message: '', visible: false, type });
+    }, 3000);
+  };
   
 
   // Price range state
@@ -253,24 +267,60 @@ const CategoryPage = () => {
   };
 
 // Consolidated addToCart function for CategoryPage
+// Modify the existing addToCart function in CategoryPage
 const addToCart = async (event, book) => {
   if (event) {
-    event.stopPropagation(); // Stop the event from propagating to the parent div
+    event.stopPropagation();
   }
   
   // Check if item is out of stock
   if (!book.stock_quantity || book.stock_quantity <= 0) {
-    setNotification({
-      message: "This item is currently out of stock",
-      visible: true
-    });
-    setTimeout(() => {
-      setNotification({ message: '', visible: false });
-    }, 3000);
+    showNotification("Sorry, this item is out of stock", "error");
     return { error: "Out of stock" };
   }
   
   try {
+    // Check current quantity in cart first
+    let currentQuantityInCart = 0;
+    
+    if (token) {
+      // For logged in users, check cart in database
+      const cartResponse = await fetch("http://localhost/api/shopping/view", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (cartResponse.ok) {
+        const cartData = await cartResponse.json();
+        if (Array.isArray(cartData)) {
+          const existingItem = cartData.find(item => item.product_id === book.product_id);
+          if (existingItem) {
+            currentQuantityInCart = existingItem.quantity;
+          }
+        }
+      }
+    } else {
+      // For non-logged in users, check localStorage
+      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+      const existingItem = tempCart.find(item => item.id === book.product_id);
+      if (existingItem) {
+        currentQuantityInCart = existingItem.quantity;
+      }
+    }
+    
+    // Calculate how many more items can be added
+    const availableToAdd = book.stock_quantity - currentQuantityInCart;
+    
+    if (availableToAdd <= 0) {
+      showNotification("You already have the maximum available quantity in your cart", "error");
+      
+      return { error: "Maximum quantity reached" };
+    }
+    
+    // Continue with the existing code for adding to cart
     if (token) {
       // User is logged in, add to their cart in the database
       const headers = {
@@ -278,35 +328,24 @@ const addToCart = async (event, book) => {
         "Content-Type": "application/json",
       };
       const data = { product_id: book.product_id, quantity: 1 };
-    
+      
       const response = await fetch("http://localhost/api/shopping/add", {
         method: "POST",
         headers,
         body: JSON.stringify(data),
       });
-    
+      
       if (response.ok) {
+        // Rest of your existing success handling code
         const result = await response.json();
         console.log("Added to cart:", result);
-        // Show success message
-        setNotification({
-          message: "Added to cart successfully!",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
+        showNotification("Added to cart successfully!", "success");
         return result;
       } else {
+        // Rest of your existing error handling code
         const errorData = await response.json();
         console.error("Failed to add to cart:", errorData);
-        setNotification({
-          message: errorData.error || "Failed to add to cart",
-          visible: true
-        });
-        setTimeout(() => {
-          setNotification({ message: '', visible: false });
-        }, 3000);
+        showNotification("Failed to add to cart.", "error");
         return {
           error: errorData.error || "Failed to add to cart",
           status_code: response.status,
@@ -329,29 +368,18 @@ const addToCart = async (event, book) => {
           quantity: 1,
           author: book.author || "Unknown Author",
           publisher: book.distributor_information || "Unknown Publisher",
+          stock_quantity: book.stock_quantity, // Add this to track stock quantity in local storage
           image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
         });
       }
       
       localStorage.setItem('tempCart', JSON.stringify(tempCart));
-      setNotification({
-        message: "Added to cart successfully!",
-        visible: true
-      });
-      setTimeout(() => {
-        setNotification({ message: '', visible: false });
-      }, 3000);
+      showNotification("Added to cart successfully!", "success");
       return { success: true };
     }
   } catch (error) {
     console.error("Error adding to cart:", error);
-    setNotification({
-      message: "An unexpected error occurred",
-      visible: true
-    });
-    setTimeout(() => {
-      setNotification({ message: '', visible: false });
-    }, 3000);
+    showNotification("An unexpected error occured.", "error");
     return { error: "An unexpected error occurred" };
   }
 };
@@ -896,10 +924,10 @@ const toggleFavorite = (productId) => {
         </div>
       </div>
       {notification.visible && (
-        <div className="cart-notification">
-          {notification.message}
-        </div>
-      )}
+  <div className={`cart-notification ${notification.type}`}>
+    {notification.message}
+  </div>
+)}
     
     </div>
   );

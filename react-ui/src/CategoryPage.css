@@ -292,6 +292,16 @@ body {
     z-index: 1000;
     animation: slideIn 0.3s forwards;
   }
+
+  .cart-notification.error {
+    background-color: #f44336 !important;
+    color: white !important;
+  }
+  
+  .cart-notification.success {
+    background-color: var(--warm-green-light) !important; /* Fallback color if variable not defined */
+    color: white !important;
+  }
   
   @keyframes slideIn {
     from {
