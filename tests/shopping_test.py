@@ -2,6 +2,8 @@ from config import BASEURL as BASE_URL, HEADERS
 import requests
 import json
 from auth_test import login 
+from invoice import send_invoice_email  
+
 
 
 def add_to_cart(token, product_id, quantity):
@@ -114,7 +116,7 @@ if __name__ == "__main__":
     print("Clearing the cart...")
     clear_cart(customer_token)
     print("Cart cleared successfully!")
-
+"""
     # Step 6: Add products again and create an order
     print("Adding products to cart again...")
     add_to_cart(customer_token, product_id=4, quantity=2)
@@ -133,7 +135,42 @@ if __name__ == "__main__":
     # pdf = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
     # save_pdf(pdf.content)
 
+
+    # Step 6.5: Get invoice and send it by email (mock)
+    print("Fetching invoice PDF and sending email...")
+    pdf_response = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
+    save_pdf(pdf_response.content, "invoice.pdf")                    # Save the PDF locally
+
+    
+    send_invoice_email("testreceiver@example.com", "invoice.pdf")     # Send the email
+    print("Mock email sent successfully!")
+
+
     # Step 7: View order history
     print("Viewing order history...")
     orders = view_orders(customer_token)
     print("Order history:", orders)
+
+"""
+print("Adding products to cart again...")
+add_to_cart(customer_token, product_id=1, quantity=2)  # Güvenli ürün ID
+
+print("Viewing cart after adding products...")
+cart = view_cart(customer_token)
+print("Cart contents after adding:", cart)
+
+print("Creating an order...")
+order = create_order(customer_token)
+print("Order created:", order)
+
+if "invoice_id" not in order:
+    print("Order creation failed. Cannot proceed to fetch invoice.")
+    exit()
+
+# Step 6.5: Get invoice and send it by email (mock)
+print("Fetching invoice PDF and sending email...")
+pdf_response = get_invoice(customer_token, order["invoice_id"])  # Fetch the PDF
+save_pdf(pdf_response.content, "invoice.pdf")                    # Save the PDF locally
+
+send_invoice_email("testreceiver@example.com", "invoice.pdf")     # Send the email
+print("Mock email sent successfully!")
