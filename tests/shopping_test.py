@@ -60,6 +60,19 @@ def save_pdf(pdf_data, filename="invoice.pdf"):
         f.write(pdf_data)
     print(f"PDF saved as {filename}")
 
+def update_user_profile(token):
+    """Kullanıcının payment method ve home address bilgilerini ayarlar."""
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {
+        "payment_method": "Credit Card",
+        "home_address": "Test Mahallesi, Test Sokak No:1, İstanbul"
+    }
+    response = requests.put(f"{BASE_URL}/user/update_profile", json=data, headers=headers)
+    if response.status_code == 200:
+        print("User profile updated successfully!")
+    else:
+        print(f"Failed to update user profile: {response.status_code}, {response.text}")
+
 if __name__ == "__main__":
     # Step 1: Login
     customer_login1 = login("customer@example.com", "password")
@@ -70,21 +83,24 @@ if __name__ == "__main__":
         exit()
     print("Customer logged in successfully!")
 
-    # Step 2: Add products to cart
-    print("Adding products to cart...")
-    add_to_cart(customer_token, product_id=1, quantity=2)
+    # Step 2: Update user profile (payment method + address)
+    update_user_profile(customer_token)
 
-    # Step 3: View cart
+    # Step 3: Add products to cart
+    print("Adding products to cart...")
+    add_to_cart(customer_token, product_id=4, quantity=2)
+
+    # Step 4: View cart
     print("Viewing cart...")
     cart = view_cart(customer_token)
     print("Cart contents:", cart)
 
-    # Step 4: Create order
+    # Step 5: Create order
     print("Creating an order...")
     order = create_order(customer_token)
     print("Order created:", order)
 
-    # Step 5: Generate invoice
+    # Step 6: Generate invoice
     print("Generating invoice...")
     invoice_response = generate_invoice(customer_token)
     print("Invoice response:", invoice_response)
@@ -95,12 +111,12 @@ if __name__ == "__main__":
 
     invoice_id = invoice_response["invoice_id"]
 
-    # Step 6: Download invoice PDF
+    # Step 7: Download invoice PDF
     print("Fetching invoice PDF...")
     pdf_response = get_invoice(customer_token, invoice_id)
     save_pdf(pdf_response.content, f"invoice_{invoice_id}.pdf")
 
-    # Step 7: Send invoice email (Mock Server through endpoint)
+    # Step 8: Send invoice email (Mock Server through endpoint)
     print("Sending invoice email through endpoint...")
     email_response = send_invoice_email_request(
         customer_token,
@@ -113,8 +129,9 @@ if __name__ == "__main__":
     else:
         print(f"Failed to send invoice email: {email_response.json()}")
 
-    # Step 8: View order history
+    # Step 9: View order history
     print("Viewing order history...")
     orders = view_orders(customer_token)
     print("Order history:", orders)
+
 

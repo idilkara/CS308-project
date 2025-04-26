@@ -77,7 +77,7 @@ def generate_invoice():
     order_id, total_price, status, delivery_address = order
 
     cur.execute("""
-        INSERT INTO invoices (user_id, total_amount, delivery_address, payment_status)
+        INSERT INTO invoices (user_id, total_price, delivery_address, payment_status)
         VALUES (%s, %s, %s, %s) RETURNING invoice_id
     """, (user_id, total_price, delivery_address, 'paid'))
     invoice_id = cur.fetchone()[0]
