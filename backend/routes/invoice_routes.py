@@ -118,5 +118,27 @@ def generate_invoice():
     }), 200
 
 
+#  Sending email with invoice
+@invoice_bp.route("/send_invoice_email", methods=["POST"])
+@jwt_required()
+def send_invoice_email_endpoint():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    to_email = data.get("to_email")
+    file_path = data.get("file_path")
+
+    if not to_email or not file_path:
+        return jsonify({"error": "Missing 'to_email' or 'file_path' field in request"}), 400
+
+    try:
+        send_invoice_email(to_email, file_path)
+        logging.info(f"Invoice email sent successfully to {to_email} by user {user_id}")
+        return jsonify({"message": f"Invoice email sent successfully to {to_email}."}), 200
+    except Exception as e:
+        logging.error(f"Failed to send invoice email: {e}")
+        return jsonify({"error": f"Failed to send email: {str(e)}"}), 500
+
+
 
 
