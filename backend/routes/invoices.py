@@ -16,7 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
-
+from email.mime.text import MIMEText
 
 
 ### INVOICE FUNCTIONS
@@ -195,17 +195,21 @@ def generate_invoice_pdf_asBytes(invoice_id, user_name, deliveryAddress, items):
     return buffer.read()
 
 
-# E-posta Gönderme Fonksiyonu
+# E-posta Gönderme Fonksiyonu (Mock Server ile)
 def send_invoice_email(to_email, file_path):
-    from_email = "your-email@example.com"
-    password = "your-email-password"
-    subject = "Your Invoice"
-
+    from_email = "mockmail@example.com"  # İstediğin bir sahte adres
+    subject = "Your Invoice (Mock)"
+    
+    # E-posta mesajı oluştur
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
 
+    body = "Please find attached your invoice. (This is a mock email.)"
+    msg.attach(MIMEBase('text', 'plain'))  # E-mail body boş kalmasın diye
+    
+    # PDF dosyasını ekle
     part = MIMEBase('application', 'octet-stream')
     with open(file_path, 'rb') as file:
         part.set_payload(file.read())
@@ -213,8 +217,10 @@ def send_invoice_email(to_email, file_path):
     part.add_header('Content-Disposition', f"attachment; filename={file_path}")
     msg.attach(part)
 
-    with smtplib.SMTP('smtp.example.com', 587) as server:
-        server.starttls()
-        server.login(from_email, password)
+    # Mock SMTP Server ayarları (örneğin MailHog)
+    with smtplib.SMTP('localhost', 1025) as server:
+        # Gerçek SMTP sunucularında starttls() ve login gerekir
+        # Mock server'da gerek yok!
         server.sendmail(from_email, to_email, msg.as_string())
+
 
