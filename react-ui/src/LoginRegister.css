@@ -276,3 +276,17 @@
     font-family: 'Source Sans 3', sans-serif;
     font-weight: 600;
 }
+
+.auth-success {
+    width: 100%;
+    background-color: #d4edda;
+    color: #155724;
+    font-size: 14px;
+    text-align: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--main-text-color);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+}
