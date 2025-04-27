@@ -445,7 +445,19 @@ const placeOrder = async (e) => {
           <div className="payment-form">
           <h2>Payment Information</h2>
           <div className="payment-display">
-            <p><strong>Card:</strong> **** **** **** {paymentInfo.cardNumber.slice(-4)}</p>
+            <p>
+              <strong>Card:</strong> 
+                {showCardNumber 
+                  ? paymentInfo.cardNumber 
+                  : `**** **** **** ${paymentInfo.cardNumber.slice(-4)}`}
+                <button 
+                  type="button" 
+                  onClick={() => setShowCardNumber(!showCardNumber)} 
+                  className="toggle-visibility-btn"
+                >
+                  {showCardNumber ? 'Hide' : 'Show'}
+                </button>
+            </p>
             <p><strong>Name on Card:</strong> {paymentInfo.cardName}</p>
             <p><strong>Expires:</strong> {paymentInfo.expMonth}/{paymentInfo.expYear}</p>
           </div>
