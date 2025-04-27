@@ -461,40 +461,36 @@ const placeOrder = async (e) => {
         )}
       </div>
 
-      <div className="order-summary">
-        <h2>Order Summary</h2>
-        
-        <div className="summary-items">
-          {cartItems.map((item, index) => (
-            <div key={index} className="summary-item">
-                              <div className="item-image">
-
-                                if (item.image) {
-                                  <img 
-                                    src={item.image} 
-                                    alt={item.name}
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = bookCover;
-                                    }} 
-                                  />
-                                } else {
-                                  <img src={bookCover} alt="Default Book Cover" />
-                                }
-              
-                        
-              </div>
-              <div className="item-details">
-                <p className="item-name">{item.name}</p>
-                <p className="item-author">{item.author}</p>
-                <div className="item-price-qty">
-                  <p className="item-price">${item.price}</p>
-                  <p className="item-qty">Qty: {item.quantity}</p>
+        <div className="order-summary">
+          <h2>Order Summary</h2>
+          <div className="summary-items">
+            {cartItems.map((item, index) => (
+              <div key={index} className="summary-item">
+                <div className="item-image">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = bookCover;
+                      }}
+                    />
+                  ) : (
+                    <img src={bookCover} alt="Default Book Cover" />
+                  )}
+                </div>
+                <div className="item-details">
+                  <p className="item-name">{item.name}</p>
+                  <p className="item-author">{item.author}</p>
+                  <div className="item-price-qty">
+                    <p className="item-price">${item.price}</p>
+                    <p className="item-qty">Qty: {item.quantity}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
         
         <div className="summary-totals">
           <div className="summary-row">

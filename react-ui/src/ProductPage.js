@@ -145,7 +145,7 @@ const ProductPage = () => {
     if (!product_id) return;
     
     try {
-      // This URL seems incorrect in your original code - replace with correct endpoint
+     
       const response = await fetch(`http://localhost/api/reviews/product/${product_id}`, {
         method: "GET",
         headers: {

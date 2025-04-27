@@ -46,7 +46,7 @@ sm_token = sm_login.get("access_token")
 # create products
 
 products = [
-    ("The Catcher in the Rye", "JD-001", "A novel about teenage rebellion.", 15, "Penguin Books", "J.D. Salinger", ["Classic", "Fiction"]),
+    ("The Catcher in the Rye", "JD-001", "A novel about teenage rebellion.", 1, "Penguin Books", "J.D. Salinger", ["Classic", "Fiction"]),
     ("To Kill a Mockingbird", "TK-002", "A novel about racial injustice.", 20, "HarperCollins", "Harper Lee", ["Classic", "Drama"]),
     ("1984", "OR-003", "A dystopian novel about surveillance.", 25, "Secker & Warburg", "George Orwell", ["Dystopian", "Science Fiction"]),
     ("Moby-Dick", "MD-004", "A novel about a man's obsession with a whale.", 0, "Harper & Brothers", "Herman Melville", ["Classic", "Adventure"]),
