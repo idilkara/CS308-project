@@ -117,6 +117,25 @@ def create_order():
 
         # Generate invoices and invoice pdfs
         invoice_id = generate_invoices(userorder_id, payment_id)
+
+        # Kullanıcının email adresini çek
+        cur.execute("""
+            SELECT email FROM users WHERE user_id = %s
+        """, (user_id,))
+        user_email_row = cur.fetchone()
+
+        if user_email_row and user_email_row[0]:
+            user_email = user_email_row[0]
+
+            # Database'den invoice PDF'ini çek
+            cur.execute("SELECT pdf_file FROM invoices WHERE invoice_id = %s", (invoice_id,))
+            invoice_row = cur.fetchone()
+
+            if invoice_row and invoice_row[0]:
+                pdf_data = invoice_row[0]
+                send_invoice_email(user_email, pdf_data)  # Hemen gönderiyoruz!
+
+
         # Empty the shopping cart
         cur.execute("DELETE FROM shoppingcartproducts WHERE cart_id = (SELECT cart_id FROM shoppingcart WHERE user_id = %s)", (user_id,))
 
