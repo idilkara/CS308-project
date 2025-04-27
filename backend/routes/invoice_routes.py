@@ -7,6 +7,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import Response
 
+import base64
+
+
 # Once payment is made and confirmed by the (mock-up) banking entity, 
 # an invoice must be shown on the screen and 
 # a PDF copy of the invoice should be emailed to the user.
