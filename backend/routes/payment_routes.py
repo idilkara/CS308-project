@@ -300,7 +300,7 @@ def generate_invoices(orderID, paymentID):
     return USERINVOIDCEID
 
 
-
+"""
 # Sending email with invoice
 @payment_bp.route("/send_invoice_email", methods=["POST"])
 @jwt_required()
@@ -322,6 +322,39 @@ def send_invoice_email_endpoint():
         logging.error(f"Failed to send invoice email: {e}")
         return jsonify({"error": f"Failed to send email: {str(e)}"}), 500
 
-    
+    """
 
+@payment_bp.route("/send_invoice_email", methods=["POST"])
+@jwt_required()
+def send_invoice_email_endpoint():
+    user_id = get_jwt_identity()
+    data = request.get_json()
 
+    to_email = data.get("to_email")
+    invoice_id = data.get("invoice_id")
+
+    if not to_email or not invoice_id:
+        return jsonify({"error": "Missing 'to_email' or 'invoice_id' field in request"}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Database'den PDF blob datasını çek
+        cur.execute("SELECT pdf_file FROM invoices WHERE invoice_id = %s", (invoice_id,))
+        row = cur.fetchone()
+
+        if not row or not row[0]:
+            return jsonify({"error": "Invoice PDF not found"}), 404
+        
+        pdf_data = row[0]
+
+        # Mail gönder
+        send_invoice_email(to_email, pdf_data)
+
+        logging.info(f"Invoice email sent successfully to {to_email} by user {user_id}")
+        return jsonify({"message": f"Invoice email sent successfully to {to_email}."}), 200
+
+    except Exception as e:
+        logging.error(f"Failed to send invoice email: {e}")
+        return jsonify({"error": f"Failed to send email: {str(e)}"}), 500
