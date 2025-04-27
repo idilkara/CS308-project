@@ -132,8 +132,8 @@ const CheckoutPage = () => {
             const formattedItems = data.map(item => ({
               id: item.product_id,
               name: item.name,
-              author: item.author || "Unknown Author",
-              publisher: item.distributor_information || "Unknown Publisher",
+              author: item.author,
+              publisher: item.distributor_information,
               price: parseFloat(item.price) || 0,
               quantity: item.quantity,
               image: `assets/covers/${item.name.replace(/\s+/g, '').toLowerCase()}.png`

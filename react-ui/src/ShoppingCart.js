@@ -49,8 +49,8 @@ const ShoppingCart = () => {
             const formattedItems = data.map(item => ({
               id: item.product_id,
               name: item.name,
-              author: item.author || "Unknown Author",
-              publisher: item.distributor_information || "Unknown Publisher",
+              author: item.author ,
+              publisher: item.distributor_information,
               price: parseFloat(item.price) || 0,
               quantity: item.quantity,
               stock_quantity: item.stock_quantity, // Add this line
@@ -327,10 +327,7 @@ return (
         </div>
         
         <div className="cart-summary">
-          <div className="coupon-section">
-            <input type="text" placeholder="Coupon/Gift Card Code" className="coupon-input source-sans-regular" />
-            <button className="apply-coupon source-sans-semibold">Apply</button>
-          </div>
+          
           
           <div className="total-section">
             <div className="total-row grand-total">
