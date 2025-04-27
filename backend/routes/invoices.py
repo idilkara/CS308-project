@@ -227,7 +227,7 @@ def send_invoice_email(to_email, file_path):
 """
 # E-posta Gönderme Fonksiyonu (Blob veriyle)
 def send_invoice_email(to_email, pdf_data):
-    from_email = "mockmail@example.com"
+    from_email = "orders@odysseybooks.com"
     subject = "Your Invoice (Mock)"
 
     # E-posta mesajı oluştur
