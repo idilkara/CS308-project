@@ -652,7 +652,7 @@ const ProductPage = () => {
           {/* Review summary */}
           <div className="review-summary">
             <div className="review-average">
-              <h3>{reviewStats.averageRating.toFixed(1)}</h3>
+              <h3>{reviewStats.averageRating}</h3>
               <div className="stars-large">
                 {"★".repeat(Math.floor(reviewStats.averageRating))}
                 {reviewStats.averageRating % 1 >= 0.5 ? "½" : ""}
