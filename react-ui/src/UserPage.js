@@ -549,9 +549,9 @@ import { useAuth, useSetRole } from "./context/AuthContext";
             <div className="payment-methods-list">
                 {paymentMethod && paymentMethod.cardNumber != '' ? (
                     <div className="payment-method-card default-card">
-                        <div className="card-header">
+                        {/* <div className="card-header">
                             <div className="default-badge">Default</div>
-                        </div>
+                        </div> */}
                         <div className="card-details">
                             <div className="card-number">
                                {paymentMethod.cardNumber}
@@ -561,14 +561,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                             </div>
                         </div>
 
-                        <div className="card-actions">
-                            <button 
-                                className="delete-btn"
-                                onClick={deletePaymentMethod}
-                            >
-                                Remove
-                            </button>
-                        </div>
+
                     </div>
                 ) : (
                     <div className="empty-payment-methods">

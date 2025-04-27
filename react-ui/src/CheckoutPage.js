@@ -361,7 +361,7 @@ const placeOrder = async (e) => {
       <h2>Thank You for Your Order!</h2>
       <p>Your order has been successfully placed.</p>
       <p className="order-number">Order Number: <strong>{orderNumber}</strong></p>
-      <p>We've sent a confirmation email with order details and tracking information to <strong>{shippingInfo.email}</strong>.</p>
+      <p>We've sent a confirmation email with order details to <strong>{shippingInfo.email}</strong>.</p>
       <div className="confirmation-details">
         <div className="confirmation-section">
           <h3>Shipping Information</h3>
@@ -461,40 +461,38 @@ const placeOrder = async (e) => {
         )}
       </div>
 
-      <div className="order-summary">
-        <h2>Order Summary</h2>
-        
-        <div className="summary-items">
-          {cartItems.map((item, index) => (
-            <div key={index} className="summary-item">
-                              <div className="item-image">
+      
+      
+<div className="order-summary">
+  <h2>Order Summary</h2>
 
-                                if (item.image) {
-                                  <img 
-                                    src={item.image} 
-                                    alt={item.name}
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = bookCover;
-                                    }} 
-                                  />
-                                } else {
-                                  <img src={bookCover} alt="Default Book Cover" />
-                                }
-              
-                        
-              </div>
-              <div className="item-details">
-                <p className="item-name">{item.name}</p>
-                <p className="item-author">{item.author}</p>
-                <div className="item-price-qty">
-                  <p className="item-price">${item.price}</p>
-                  <p className="item-qty">Qty: {item.quantity}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+  <div className="summary-items">
+    {cartItems.map((item, index) => (
+      <div key={index} className="summary-item">
+        <div className="item-image">
+          <img 
+            src={item.image ? item.image : bookCover}
+            alt={item.name || "Default Book Cover"}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = bookCover;
+            }} 
+          />
         </div>
+        <div className="item-details">
+          <p className="item-name">{item.name}</p>
+          <p className="item-author">{item.author || "Unknown Author"}</p>
+          <div className="item-price-qty">
+            <p className="item-price">${item.price}</p>
+            <p className="item-qty">Qty: {item.quantity}</p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+
+
         
         <div className="summary-totals">
           <div className="summary-row">

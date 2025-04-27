@@ -338,6 +338,7 @@ const ProductManager = () => {
       if (response.ok) {
         const result = await response.json();
         console.log("Products fetched successfully:", result);
+
         return result;
       } else {
         const errorData = await response.json();
@@ -363,7 +364,7 @@ const ProductManager = () => {
         name: product.name,
         author: product.author,
         stock_quantity: product.stock_quantity,
-        price: 0, // Backend currently doesn't return price, default to 0
+        price: product.price,
         lastUpdated: new Date().toISOString().split('T')[0]
       })));
     }
@@ -1101,7 +1102,8 @@ const ProductManager = () => {
                                 </span>
                                       )}
                                     </td>
-                                    <td>${product.price.toFixed(2)}</td>
+                                    <td>  
+                                    ${product.price }</td>
                                     <td>{product.lastUpdated}</td>
                                     <td>
                                       {editStockId === product.product_id ? (

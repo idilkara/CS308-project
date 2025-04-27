@@ -325,12 +325,15 @@ return (
             <FaTrash /> Clear Cart
           </button>
         </div>
-        
+       
         <div className="cart-summary">
+
+          {/*  
+          
           <div className="coupon-section">
             <input type="text" placeholder="Coupon/Gift Card Code" className="coupon-input source-sans-regular" />
             <button className="apply-coupon source-sans-semibold">Apply</button>
-          </div>
+          </div> */}
           
           <div className="total-section">
             <div className="total-row grand-total">
