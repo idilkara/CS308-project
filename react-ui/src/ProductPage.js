@@ -75,7 +75,8 @@ const ProductPage = () => {
 
   // Fetch product details
   useEffect(() => {
-    const fetchProduct = async () => {
+    
+    const fetchProduct2 = async () => {
       if (!product_id) {
         setError("Product ID is missing.");
         setLoading(false);
@@ -94,6 +95,11 @@ const ProductPage = () => {
           const productData = await response.json();
           setProduct(productData);
           console.log("Fetched product data:", productData);
+
+          setReviewStats(prevStats => ({
+            ...prevStats,
+            averageRating: parseFloat(productData.average_rating || 0)
+          }));
           
           // Fetch similar products based on categories
           if (productData.categories && productData.categories.length > 0) {
@@ -111,7 +117,7 @@ const ProductPage = () => {
       }
     };
 
-    fetchProduct();
+    fetchProduct2();
     fetchReviews();
 
   }, [product_id]);
@@ -139,6 +145,48 @@ const ProductPage = () => {
       console.error("Failed to fetch similar products", error);
     }
   };
+  
+  const fetchProduct = async () => {
+    if (!product_id) {
+      setError("Product ID is missing.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost/api/products/product/info/${product_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const productData = await response.json();
+        setProduct(productData);
+        console.log("Fetched product data:", productData);
+
+        setReviewStats(prevStats => ({
+          ...prevStats,
+          averageRating: parseFloat(productData.average_rating || 0)
+        }));
+        
+        // Fetch similar products based on categories
+        if (productData.categories && productData.categories.length > 0) {
+          fetchSimilarProducts(productData.categories[0]);
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to fetch product information.");
+      }
+    } catch (err) {
+      console.error("Error fetching product information:", err);
+      setError("An unexpected error occurred while fetching product information.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Fetch product reviews
   const fetchReviews = async () => {
@@ -169,7 +217,8 @@ const ProductPage = () => {
         });
         
         setReviewStats({
-          averageRating: totalReviews > 0 ? Math.round(ratingSum / totalReviews * 10) / 10 : 0,
+         // averageRating: parseFloat(product.average_rating || 0),
+          // averageRating: totalReviews > 0 ? Math.round(ratingSum / totalReviews * 10) / 10 : 0,
           totalReviews,
           distribution
         });
@@ -328,6 +377,7 @@ const ProductPage = () => {
   // Add a new review
   const handleReviewSubmit = (newReview) => {
     showNotification("Your review has been submitted!", "success");
+    fetchProduct(); // Refresh product details to include new review
   };
 
   // Show notification
@@ -612,7 +662,7 @@ const ProductPage = () => {
             </div>
             
             <div className="review-distribution">
-              {[5, 4, 3, 2, 1].map(stars => (
+              {/* {[5, 4, 3, 2, 1].map(stars => (
                 <div key={stars} className="rating-bar">
                   <span>{stars} stars</span>
                   <div className="progress-bar">
@@ -627,13 +677,13 @@ const ProductPage = () => {
                   </div>
                   <span>{reviewStats.distribution[stars] || 0}</span>
                 </div>
-              ))}
+              ))} */}
             </div>
           </div>
           
             {/* Review Form */}
             {token !== null ? (
-              <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id} />
+              <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id}  />
             ) : (
               <div>You need to log in to write a review.</div>
             )}

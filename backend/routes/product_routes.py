@@ -159,6 +159,18 @@ def get_product(product_id):
         GROUP BY p.product_id;
     """, (product_id,))
     product = cursor.fetchone()
+
+
+    # Get the ratings for the product
+    cursor.execute("""
+        SELECT AVG(r.rating) AS average_rating
+        FROM reviews r
+        WHERE r.product_id = %s;
+    """, (product_id,))
+    rating = cursor.fetchone()
+    logging.debug(f"Rating fetched: {rating}")
+    average_rating = rating[0] if rating and rating[0] is not None else 0
+
     cursor.close()
     conn.close()
 
@@ -177,7 +189,8 @@ def get_product(product_id):
             "product_manager": product[10],
             "waiting": product[11],
             "author": product[12],
-            "serial_number": product[13]
+            "serial_number": product[13],
+            "average_rating": str(average_rating)
         })
     else:
         return jsonify({"error": "Product not found"}), 404

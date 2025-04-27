@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 
-const ReviewForm = ({ onSubmitReview, product_id }) => {
+const ReviewForm = ({ onSubmitReview, product_id, fetchProductInfo  }) => {
+
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
@@ -16,6 +17,7 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
   // SUBMIT REVIEW API
 
   // TODO : DONT ALLOW TO SUBMIT REVIEW IF USER IS NOT LOGGED IN
+
 
   // get username from token
 
@@ -110,15 +112,12 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
       return;
     }
 
-    if (!comment.trim()) {
-      setError('Please enter a comment');
-      return;
-    }
+    // if (!comment.trim()) {
+    //   setError('Please enter a comment');
+    //   return;
+    // }
 
-    if (!name.trim()) {
-      setError('Please enter your name');
-      return;
-    }
+
 
     setIsSubmitting(true);
 
@@ -207,7 +206,7 @@ const ReviewForm = ({ onSubmitReview, product_id }) => {
             onChange={(e) => setComment(e.target.value)}
             placeholder="Share your thoughts about this product..."
             rows="5"
-            required
+           
           ></textarea>
         </div>
         
