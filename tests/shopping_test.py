@@ -1,3 +1,5 @@
+
+""""
 import requests
 import json
 from auth_test import login
@@ -61,7 +63,7 @@ def save_pdf(pdf_data, filename="invoice.pdf"):
     print(f"PDF saved as {filename}")
 
 def update_user_profile(token):
-    """Kullanıcının payment method ve home address bilgilerini ayarlar."""
+
     headers = {"Authorization": f"Bearer {token}", **HEADERS}
     data = {
         "payment_method": "Credit Card",
@@ -134,4 +136,106 @@ if __name__ == "__main__":
     orders = view_orders(customer_token)
     print("Order history:", orders)
 
+"""
+import requests
+from auth_test import login
+from config import BASEURL as BASE_URL, HEADERS
 
+def add_to_cart(token, product_id, quantity):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {"product_id": product_id, "quantity": quantity}
+    return requests.post(f"{BASE_URL}/shopping/add", json=data, headers=headers)
+
+def update_user_profile(token):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {
+        "payment_method": "Credit Card",
+        "home_address": "Test Mahallesi, Test Sokak No:1, İstanbul"
+    }
+    return requests.put(f"{BASE_URL}/user/update_profile", json=data, headers=headers)
+
+def create_order(token):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    return requests.post(f"{BASE_URL}/payment/create_order", headers=headers)
+
+def get_invoice(token, invoice_id):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    return requests.get(f"{BASE_URL}/invoice/get_invoice_pdf/{invoice_id}", headers=headers)
+
+def send_invoice_email(token, to_email, file_path):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {
+        "to_email": to_email,
+        "file_path": file_path
+    }
+    return requests.post(f"{BASE_URL}/payment/send_invoice_email", json=data, headers=headers)
+
+def save_pdf(pdf_data, filename):
+    with open(filename, "wb") as f:
+        f.write(pdf_data)
+    print(f"PDF saved as {filename}")
+
+def send_invoice_email(token, to_email, invoice_id):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    data = {
+        "to_email": to_email,
+        "invoice_id": invoice_id  # artık file_path değil, invoice_id yolluyorsun
+    }
+    return requests.post(f"{BASE_URL}/payment/send_invoice_email", json=data, headers=headers)
+
+
+
+if __name__ == "__main__":
+    # Step 1: Login
+    login_response = login("customer@example.com", "password")
+    customer_token = login_response.get("access_token")
+
+    if not customer_token:
+        print("❌ Failed to login.")
+        exit()
+    print("✅ Logged in!")
+
+  
+
+
+    # Step 3: Add product to cart
+    add_response = add_to_cart(customer_token, product_id=4, quantity=1)
+    if add_response.status_code == 200:
+        print("✅ Product added to cart.")
+    else:
+        print("❌ Failed to add product.")
+        exit()
+
+    # Step 4: Create order (which creates invoice automatically)
+    order_response = create_order(customer_token)
+    if order_response.status_code != 200:
+        print("❌ Failed to create order.")
+        exit()
+    
+    order_data = order_response.json()
+    invoice_id = order_data.get("invoice_id")
+    if not invoice_id:
+        print("❌ No invoice ID returned.")
+        exit()
+    
+    print(f"✅ Order created, Invoice ID: {invoice_id}")
+
+    # Step 5: Get invoice PDF
+    invoice_response = get_invoice(customer_token, invoice_id)
+    if invoice_response.status_code == 200:
+        invoice_file = f"invoice_{invoice_id}.pdf"
+        save_pdf(invoice_response.content, invoice_file)
+    else:
+        print("❌ Failed to fetch invoice PDF.")
+        exit()
+
+    
+    # Step 6: Send invoice email using the payment/send_invoice_email endpoint
+    email_response = send_invoice_email(customer_token, "customer@example.com", invoice_id)
+
+
+
+    if email_response.status_code == 200:
+        print("✅ Invoice email sent successfully!")
+    else:
+        print(f"❌ Failed to send invoice email: {email_response.text}")

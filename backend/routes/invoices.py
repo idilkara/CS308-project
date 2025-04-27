@@ -17,6 +17,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
 from email.mime.text import MIMEText
+from email import encoders
 
 
 ### INVOICE FUNCTIONS
@@ -194,7 +195,7 @@ def generate_invoice_pdf_asBytes(invoice_id, user_name, deliveryAddress, items):
     # Return binary PDF data
     return buffer.read()
 
-
+"""
 # E-posta Gönderme Fonksiyonu (Mock Server ile)
 def send_invoice_email(to_email, file_path):
     from_email = "mockmail@example.com"  # İstediğin bir sahte adres
@@ -223,4 +224,29 @@ def send_invoice_email(to_email, file_path):
         # Mock server'da gerek yok!
         server.sendmail(from_email, to_email, msg.as_string())
 
+"""
+# E-posta Gönderme Fonksiyonu (Blob veriyle)
+def send_invoice_email(to_email, pdf_data):
+    from_email = "mockmail@example.com"
+    subject = "Your Invoice (Mock)"
 
+    # E-posta mesajı oluştur
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    # Body ekle
+    body = MIMEText("Please find attached your invoice. (This is a mock email.)", 'plain')
+    msg.attach(body)
+
+    # PDF dosyasını ekle
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload(pdf_data)  # ARTIK file_path değil, doğrudan pdf_data (bytes)
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', 'attachment; filename="invoice.pdf"')
+    msg.attach(part)
+
+    # MailHog üzerinden gönder
+    with smtplib.SMTP('mailhog', 1025) as server:
+        server.sendmail(from_email, to_email, msg.as_string())
