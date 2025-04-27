@@ -19,6 +19,7 @@ services:
     restart: always
     depends_on:
       - db
+      - mailhog
     env_file: .env
     ports:
       - "5001:5000"
@@ -49,6 +50,16 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - app_network
+
+  mailhog:   
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP server
+      - "8025:8025"   # Web UI
     networks:
       - app_network
 

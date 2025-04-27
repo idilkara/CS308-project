@@ -7,6 +7,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import Response
 
+import base64
+
+
 # Once payment is made and confirmed by the (mock-up) banking entity, 
 # an invoice must be shown on the screen and 
 # a PDF copy of the invoice should be emailed to the user.
@@ -77,7 +80,7 @@ def generate_invoice():
     order_id, total_price, status, delivery_address = order
 
     cur.execute("""
-        INSERT INTO invoices (user_id, total_amount, delivery_address, payment_status)
+        INSERT INTO invoices (user_id, total_price, delivery_address, payment_status)
         VALUES (%s, %s, %s, %s) RETURNING invoice_id
     """, (user_id, total_price, delivery_address, 'paid'))
     invoice_id = cur.fetchone()[0]
@@ -116,6 +119,28 @@ def generate_invoice():
         "invoice_id": invoice_id,
         "pdf_base64": encoded_pdf
     }), 200
+
+
+#  Sending email with invoice
+@invoice_bp.route("/send_invoice_email", methods=["POST"])
+@jwt_required()
+def send_invoice_email_endpoint():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    to_email = data.get("to_email")
+    file_path = data.get("file_path")
+
+    if not to_email or not file_path:
+        return jsonify({"error": "Missing 'to_email' or 'file_path' field in request"}), 400
+
+    try:
+        send_invoice_email(to_email, file_path)
+        logging.info(f"Invoice email sent successfully to {to_email} by user {user_id}")
+        return jsonify({"message": f"Invoice email sent successfully to {to_email}."}), 200
+    except Exception as e:
+        logging.error(f"Failed to send invoice email: {e}")
+        return jsonify({"error": f"Failed to send email: {str(e)}"}), 500
 
 
 

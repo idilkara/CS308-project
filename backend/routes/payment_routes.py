@@ -5,6 +5,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 import logging as log
 from .invoices import generate_invoice_pdf, send_invoice_email, generate_invoice_pdf_asBytes
+import logging
+
 
 #4. They, however, should login before placing an order and making a payment.
 #  Upon logging in, any products previously added to their cart should be retained.
@@ -299,6 +301,26 @@ def generate_invoices(orderID, paymentID):
 
 
 
+# Sending email with invoice
+@payment_bp.route("/send_invoice_email", methods=["POST"])
+@jwt_required()
+def send_invoice_email_endpoint():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    to_email = data.get("to_email")
+    file_path = data.get("file_path")
+
+    if not to_email or not file_path:
+        return jsonify({"error": "Missing 'to_email' or 'file_path' field in request"}), 400
+
+    try:
+        send_invoice_email(to_email, file_path)
+        logging.info(f"Invoice email sent successfully to {to_email} by user {user_id}")
+        return jsonify({"message": f"Invoice email sent successfully to {to_email}."}), 200
+    except Exception as e:
+        logging.error(f"Failed to send invoice email: {e}")
+        return jsonify({"error": f"Failed to send email: {str(e)}"}), 500
 
     
 
