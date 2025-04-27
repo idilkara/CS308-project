@@ -943,13 +943,13 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                                             >
                                                 <span className="heart-filled">♥</span>
                                             </button>
-                                            <button 
+                                            {/* <button 
                                                 className="cart-btn" 
                                                 onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
                                                 disabled={isOutOfStock}
                                             >
                                                 <span>🛒</span>
-                                            </button>
+                                            </button> */}
                                         </div>
                                         <div className="grid-item-content">
                                             <img

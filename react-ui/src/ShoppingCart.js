@@ -56,6 +56,7 @@ const ShoppingCart = () => {
               stock_quantity: item.stock_quantity, // Add this line
               image: `assets/covers/${item.name.replace(/\s+/g, '').toLowerCase()}.png`
             }));
+
             setCartItems(formattedItems);
           } else {
             // Empty cart or message received
@@ -90,11 +91,17 @@ const ShoppingCart = () => {
   const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return; // Don't allow quantities less than 1
     const currentItem = cartItems.find(item => item.id === itemId);
+
+    console.log("Current item:", currentItem);
+    console.log("New quantity:", newQuantity);
+    console.log("Current item stock quantity:", currentItem.stock_quantity);
     if (!currentItem) return;
-    
+    let booleanValue = false;
     // Don't allow quantities greater than stock
     if (newQuantity > currentItem.stock_quantity) {
+      console.log(`Cannot add more than ${currentItem.stock_quantity} items to the cart.`);
       newQuantity = currentItem.stock_quantity;
+      
     }
     try {
       if (token) {
@@ -104,7 +111,10 @@ const ShoppingCart = () => {
         
         const currentQty = currentItem.quantity;
         const difference = newQuantity - currentQty;
-        
+
+        console.log("Current item quantity:", currentQty);
+        console.log("Difference:", difference);
+
         // If increasing quantity, use "add" endpoint
         if (difference > 0) {
           await fetch("http://localhost/api/shopping/add", {
@@ -133,7 +143,7 @@ const ShoppingCart = () => {
             })
           });
         }
-        
+        console.log("Quantity updated successfully");
         // Update local state to reflect the change immediately
         const updatedItems = cartItems.map(item => 
           item.id === itemId ? { ...item, quantity: newQuantity } : item
@@ -219,41 +229,6 @@ const ShoppingCart = () => {
     }
   };
 
-  const transferTempCartToUser = async (userToken) => {
-    try {
-      // Get items from temporary cart
-      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      
-      if (tempCart.length === 0) {
-        console.log("No items in temporary cart to transfer");
-        return;
-      }
-  
-      // Add each item to the user's cart
-      for (const item of tempCart) {
-        await fetch("http://localhost/api/shopping/add", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${userToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            product_id: item.id,
-            quantity: item.quantity
-          })
-        });
-      }
-      
-      // Clear the temporary cart after successful transfer
-      localStorage.setItem('tempCart', JSON.stringify([]));
-      console.log("Transferred temporary cart items to user account");
-      
-      // Fetch the updated cart
-      fetchCart();
-    } catch (error) {
-      console.error("Error transferring temp cart to user account:", error);
-    }
-  };
 
 
 return (
