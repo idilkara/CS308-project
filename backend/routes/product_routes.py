@@ -150,6 +150,9 @@ def get_products_by_category(category_id):
 def get_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    product_id = int(product_id)
+    logging.debug(f"Received {request.method} request at /product/info/{product_id}")
     cursor.execute("""
         SELECT p.product_id, p.name, p.model, p.description, p.stock_quantity, p.price, array_agg(c.name) AS categories, p.warranty_status, p.distributor_information, p.sales_manager, p.product_manager, p.waiting, p.author, p.serial_number
         FROM products p

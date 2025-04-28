@@ -59,7 +59,10 @@ const Login = () => {
         // For each item in the temp cart, check stock quantity first
         for (const item of tempCart) {
             // First fetch the product to check its stock quantity
-            const stockResponse = await fetch(`http://localhost/api/products/${item.id}`, {
+            const itemId = parseInt(item.id, 10);
+            console.log(`Checking stock for item ${item.id}...`);
+
+            const stockResponse = await fetch(`http://localhost/api/products/product/info/${itemId}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${userToken}`,
@@ -87,9 +90,10 @@ const Login = () => {
                     continue;
                 }
             }
-            
+            console.log(`Stock for item ${item.id}: ${stockQuantity}`);
             // Only add the item if quantity is greater than 0
-            if (item.quantity > 0) {
+            if (item.quantity > 0 && item.quantity < stockQuantity) {
+                console.log(`Adding ${item.quantity} of item ${item.id} to user cart...`);
                 const addResponse = await fetch("http://localhost/api/shopping/add", {
                     method: "POST",
                     headers: {

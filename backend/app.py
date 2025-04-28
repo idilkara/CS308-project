@@ -26,7 +26,7 @@ from routes.review_routes import review_bp
 app = Flask(__name__)
 
 # JWT Secret Key (Auth Blueprint için)
-app.config["JWT_SECRET_KEY"] = "supersecretkey"
+app.config["JWT_SECRET_KEY"] = "supersecretkey" 
 # JWT Secret Key
 jwt = JWTManager(app)
 
