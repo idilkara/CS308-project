@@ -561,14 +561,14 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                             </div>
                         </div>
 
-                        <div className="card-actions">
+                        {/* <div className="card-actions">
                             <button 
                                 className="delete-btn"
                                 onClick={deletePaymentMethod}
                             >
                                 Remove
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                 ) : (
                     <div className="empty-payment-methods">

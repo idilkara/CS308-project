@@ -92,7 +92,7 @@ const Login = () => {
             }
             console.log(`Stock for item ${item.id}: ${stockQuantity}`);
             // Only add the item if quantity is greater than 0
-            if (item.quantity > 0 && item.quantity < stockQuantity) {
+            if (item.quantity > 0 && item.quantity <= stockQuantity) {
                 console.log(`Adding ${item.quantity} of item ${item.id} to user cart...`);
                 const addResponse = await fetch("http://localhost/api/shopping/add", {
                     method: "POST",

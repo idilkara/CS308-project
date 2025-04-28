@@ -369,11 +369,11 @@ const placeOrder = async (e) => {
           <p>{shippingInfo.address}</p>
 
         </div>
-        <div className="confirmation-section">
+        {/* <div className="confirmation-section">
           <h3>Payment Information</h3>
           <p>Credit Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
           <p>Billing address same as shipping</p>
-        </div>
+        </div> */}
       </div>
       {/* <div className="confirmation-summary">
         <h3>Order Summary</h3>
@@ -446,8 +446,8 @@ const placeOrder = async (e) => {
           <h2>Payment Information</h2>
           <div className="payment-display">
             <p><strong>Card:</strong> **** **** **** {paymentInfo.cardNumber.slice(-4)}</p>
-            <p><strong>Name on Card:</strong> {paymentInfo.cardName}</p>
-            <p><strong>Expires:</strong> {paymentInfo.expMonth}/{paymentInfo.expYear}</p>
+            {/* <p><strong>Name on Card:</strong> {paymentInfo.cardName}</p>
+            <p><strong>Expires:</strong> {paymentInfo.expMonth}/{paymentInfo.expYear}</p> */}
           </div>
           <div className="form-actions">
             <button type="button" className="place-order-btn" onClick={placeOrder} disabled={loading}>

@@ -503,7 +503,7 @@ const ProductPage = () => {
             
             <h1 className="product-name">{product.name}</h1>
             <div className="product-price">${parseFloat(product.price).toFixed(2)}</div>
-            <div className="product-code">Product Code: {product.product_id}</div>
+            <div className="product-code">Product Id: {product.product_id}</div>
             
             {/* Stock indicator */}
             <div className="product-stock">
@@ -584,6 +584,12 @@ const ProductPage = () => {
               <h3 className="section-title">Model</h3>
               <p className="section-content">{product.model}</p>
             </div>
+
+            <div className="product-section">
+              <h3 className="section-title">Distributor</h3>
+              <p className="section-content">{product.distributor_information}</p>
+            </div>
+
 
 
 
@@ -709,7 +715,7 @@ const ProductPage = () => {
                       {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
                     </div>
                   </div>
-                  <p className="comment-text">{review.comment || "No review content"}</p>
+                  <p className="comment-text">{review.comment || " "}</p>
                 </div>
               ))
             ) : (
