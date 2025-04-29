@@ -51,6 +51,7 @@ const CheckoutPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [showCardNumber, setShowCardNumber] = useState(false);
 
   // Fetch cart on component mount
   useEffect(() => {

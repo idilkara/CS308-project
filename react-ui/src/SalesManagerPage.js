@@ -785,66 +785,161 @@ const SalesManager = () => {
 
           {/* Discounts Section */}
           {activeSection === 'discounts' && (
-              <div className="discounts-section">
-                <h2 className="source-sans-semibold">Manage Discounts</h2>
-                <p>Apply promotional discounts to selected products.</p>
+            <div className="discounts-section">
+              <h2 className="source-sans-semibold section-title">Manage Discounts</h2>
+              <p className="section-description">Create promotional campaigns by applying discounts to selected products.</p>
 
+              <div className="discount-form-container">
                 <form onSubmit={handleDiscountSubmit} className="sm-discount-form">
+                  <div className="form-header">
+                    <h3 className="source-sans-semibold">New Discount Campaign</h3>
+                  </div>
+                  
                   <div className="sm-form-row">
                     <div className="sm-form-group">
-                      <label>Discount Rate (%)</label>
+                      <label className="form-label">Discount Rate (%)</label>
                       <input
-                          type="number"
-                          value={discountRate}
-                          onChange={(e) => setDiscountRate(e.target.value)}
-                          min="1"
-                          max="90"
-                          required
+                        type="number"
+                        value={discountRate}
+                        onChange={(e) => setDiscountRate(e.target.value)}
+                        min="1"
+                        max="90"
+                        required
+                        className="form-input"
+                        placeholder="Enter percentage (1-90)"
                       />
                     </div>
                     <div className="sm-form-group">
-                      <label>Start Date</label>
+                      <label className="form-label">Start Date</label>
                       <input
-                          type="date"
-                          value={discountStartDate}
-                          onChange={(e) => setDiscountStartDate(e.target.value)}
-                          required
+                        type="date"
+                        value={discountStartDate}
+                        onChange={(e) => setDiscountStartDate(e.target.value)}
+                        required
+                        className="form-input"
                       />
                     </div>
                     <div className="sm-form-group">
-                      <label>End Date</label>
+                      <label className="form-label">End Date</label>
                       <input
-                          type="date"
-                          value={discountEndDate}
-                          onChange={(e) => setDiscountEndDate(e.target.value)}
-                          required
+                        type="date"
+                        value={discountEndDate}
+                        onChange={(e) => setDiscountEndDate(e.target.value)}
+                        required
+                        className="form-input"
                       />
                     </div>
                   </div>
 
-                  <button type="submit" className="sm-btn-apply-discount">Apply Discount</button>
+                  <div className="products-selection-header">
+                    <h4 className="source-sans-semibold">Select Products for Discount</h4>
+                    <p className="selection-count">
+                      {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                    </p>
+                  </div>
+
+                  <div className="search-filter">
+                    <input 
+                      type="text" 
+                      placeholder="Search products..." 
+                      className="product-search"
+                      onChange={(e) => {/* Add product filtering logic */}}
+                    />
+                    <select className="category-filter">
+                      <option value="">All Categories</option>
+                      <option value="fiction">Fiction</option>
+                      <option value="non-fiction">Non-Fiction</option>
+                      {/* Add more categories */}
+                    </select>
+                  </div>
+
+                  <button type="submit" className="discount-submit-btn">
+                    Apply Discount to Selected Products
+                  </button>
                 </form>
 
-                <div className="sm-product-selection">
-                  <h3>Select Products for Discount</h3>
+                <div className="product-selection-container">
                   <div className="sm-product-grid">
                     {allProducts.map(product => (
-                        <div
-                            key={product.product_id}
-                            className={`sm-product-card ${selectedProducts.includes(product.product_id) ? 'selected' : ''} ${product.discounted ? 'discounted' : ''}`}
-                            onClick={() => !product.discounted && handleProductSelection(product.product_id)}
-                        >
-                          <h4>{product.name}</h4>
-                          <p>By {product.author}</p>
-                          <p className="sm-product-price">${parseFloat(product.price).toFixed(2)}</p>
+                      <div
+                        key={product.product_id}
+                        className={`sm-product-card ${selectedProducts.includes(product.product_id) ? 'selected' : ''} ${product.discounted ? 'discounted' : ''}`}
+                        onClick={() => !product.discounted && handleProductSelection(product.product_id)}
+                      >
+                        <div className="product-image">
+                          <img
+                            src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                            alt={product.name}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "assets/covers/default.png";
+                            }}
+                          />
                           {product.discounted && (
-                              <span className="sm-discount-badge">On Sale</span>
+                            <span className="discount-badge">On Sale</span>
                           )}
                         </div>
+                        <div className="product-details">
+                          <h4 className="product-title">{product.name}</h4>
+                          <p className="product-author">By {product.author}</p>
+                          <p className="product-price">${parseFloat(product.price).toFixed(2)}</p>
+                        </div>
+                        {selectedProducts.includes(product.product_id) && (
+                          <div className="selected-indicator">✓</div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
+
+              {/* Active Discounts Section */}
+              <div className="active-discounts-section">
+                <h3 className="source-sans-semibold">Active Discount Campaigns</h3>
+                <div className="active-discounts-table-container">
+                  <table className="active-discounts-table">
+                    <thead>
+                      <tr>
+                        <th>Campaign</th>
+                        <th>Discount</th>
+                        <th>Products</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Sample active discount rows - replace with real data */}
+                      <tr>
+                        <td>Summer Sale</td>
+                        <td>25%</td>
+                        <td>5 products</td>
+                        <td>2025-06-01</td>
+                        <td>2025-06-30</td>
+                        <td><span className="status-active">Active</span></td>
+                        <td>
+                          <button className="action-btn view-btn">View</button>
+                          <button className="action-btn cancel-btn">Cancel</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>New Releases</td>
+                        <td>15%</td>
+                        <td>3 products</td>
+                        <td>2025-05-15</td>
+                        <td>2025-05-31</td>
+                        <td><span className="status-upcoming">Upcoming</span></td>
+                        <td>
+                          <button className="action-btn view-btn">View</button>
+                          <button className="action-btn edit-btn">Edit</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Reports Section */}
