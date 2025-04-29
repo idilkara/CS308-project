@@ -647,6 +647,51 @@ const SalesManager = () => {
     alert(`Printing invoice ${invoiceId}...`);
   };
 
+  const handlePresetPeriod = (period) => {
+    const today = new Date();
+    let startDateValue, endDateValue;
+    
+    switch (period) {
+      case 'today':
+        startDateValue = today.toISOString().split('T')[0];
+        endDateValue = today.toISOString().split('T')[0];
+        break;
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        startDateValue = yesterday.toISOString().split('T')[0];
+        endDateValue = yesterday.toISOString().split('T')[0];
+        break;
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        startDateValue = weekStart.toISOString().split('T')[0];
+        endDateValue = today.toISOString().split('T')[0];
+        break;
+      case 'month':
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        startDateValue = monthStart.toISOString().split('T')[0];
+        endDateValue = today.toISOString().split('T')[0];
+        break;
+      case 'quarter':
+        const quarterMonth = Math.floor(today.getMonth() / 3) * 3;
+        const quarterStart = new Date(today.getFullYear(), quarterMonth, 1);
+        startDateValue = quarterStart.toISOString().split('T')[0];
+        endDateValue = today.toISOString().split('T')[0];
+        break;
+      default:
+        return;
+    }
+    
+    setStartDate(startDateValue);
+    setEndDate(endDateValue);
+    
+    // Optionally fetch data immediately after setting the dates
+    setTimeout(() => {
+      fetchInvoices();
+    }, 100);
+  };
+
   return (
       <div className="container sales-manager">
          <Navbar />
@@ -944,95 +989,212 @@ const SalesManager = () => {
 
           {/* Reports Section */}
           {activeSection === 'reports' && (
-              <div className="reports-section">
-                <h2 className="source-sans-semibold">Sales Reports & Invoices</h2>
-
-                <div className="sm-date-selector">
-                  <div className="sm-form-group">
-                    <label>Start Date</label>
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
+            <div className="reports-section">
+              <h2 className="source-sans-semibold section-title">Sales Reports & Invoices</h2>
+              
+              <div className="reports-dashboard">
+                <div className="date-range-selector">
+                  <h3 className="source-sans-semibold">Generate Custom Report</h3>
+                  <div className="date-selector-container">
+                    <div className="date-inputs">
+                      <div className="date-input-group">
+                        <label className="form-label">Start Date</label>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="form-input date-input"
+                        />
+                      </div>
+                      <div className="date-input-group">
+                        <label className="form-label">End Date</label>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="form-input date-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="preset-periods">
+                      <button className="period-btn" onClick={() => handlePresetPeriod('today')}>Today</button>
+                      <button className="period-btn" onClick={() => handlePresetPeriod('yesterday')}>Yesterday</button>
+                      <button className="period-btn" onClick={() => handlePresetPeriod('week')}>This Week</button>
+                      <button className="period-btn" onClick={() => handlePresetPeriod('month')}>This Month</button>
+                      <button className="period-btn" onClick={() => handlePresetPeriod('quarter')}>This Quarter</button>
+                    </div>
+                    <button onClick={fetchInvoices} className="generate-report-btn">
+                      Generate Report
+                    </button>
                   </div>
-                  <div className="sm-form-group">
-                    <label>End Date</label>
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                  <button onClick={fetchInvoices} className="sm-btn-generate">Generate Report</button>
                 </div>
 
                 {reportData && (
-                    <div className="sm-report-data">
-                      <div className="sm-summary-cards">
-                        <div className="sm-summary-card">
-                          <h3>Revenue</h3>
-                          <p className="sm-amount">${reportData.revenue.toFixed(2)}</p>
-                        </div>
-                        <div className="sm-summary-card">
-                          <h3>Cost</h3>
-                          <p className="sm-amount">${reportData.cost.toFixed(2)}</p>
-                        </div>
-                        <div className="sm-summary-card">
-                          <h3>Profit</h3>
-                          <p className="sm-amount">${reportData.profit.toFixed(2)}</p>
+                  <div className="report-results">
+                    <div className="summary-dashboard">
+                      <div className="summary-card revenue">
+                        <div className="card-icon">💰</div>
+                        <div className="card-content">
+                          <h4>Total Revenue</h4>
+                          <p className="amount">${reportData.revenue.toFixed(2)}</p>
+                          <p className="change positive">+5.2% from previous period</p>
                         </div>
                       </div>
-
-                      <div className="sm-chart-container">
-                        <canvas id="revenue-chart"></canvas>
+                      <div className="summary-card cost">
+                        <div className="card-icon">💸</div>
+                        <div className="card-content">
+                          <h4>Total Cost</h4>
+                          <p className="amount">${reportData.cost.toFixed(2)}</p>
+                          <p className="change negative">+2.8% from previous period</p>
+                        </div>
                       </div>
+                      <div className="summary-card profit">
+                        <div className="card-icon">📈</div>
+                        <div className="card-content">
+                          <h4>Net Profit</h4>
+                          <p className="amount">${reportData.profit.toFixed(2)}</p>
+                          <p className="change positive">+7.5% from previous period</p>
+                        </div>
+                      </div>
+                      <div className="summary-card orders">
+                        <div className="card-icon">📦</div>
+                        <div className="card-content">
+                          <h4>Total Orders</h4>
+                          <p className="amount">{invoices.length}</p>
+                          <p className="change positive">+3.1% from previous period</p>
+                        </div>
+                      </div>
+                    </div>
 
-                      <h3>Invoice List</h3>
-                      <div className="sm-invoice-table-container">
-                        <table className="sm-invoice-table">
+                    <div className="charts-container">
+                      <div className="chart-wrapper">
+                        <h3 className="chart-title">Revenue & Profit Trends</h3>
+                        <div className="sm-chart-container">
+                          <canvas id="revenue-chart"></canvas>
+                        </div>
+                      </div>
+                      <div className="chart-wrapper">
+                        <h3 className="chart-title">Top Selling Products</h3>
+                        <div className="top-products">
+                          <div className="product-rank">
+                            <div className="rank">1</div>
+                            <div className="product-info">
+                              <p className="product-name">Fiction Novel</p>
+                              <p className="product-sales">32 units sold</p>
+                            </div>
+                            <div className="product-revenue">$415.68</div>
+                          </div>
+                          <div className="product-rank">
+                            <div className="rank">2</div>
+                            <div className="product-info">
+                              <p className="product-name">Science Fiction</p>
+                              <p className="product-sales">28 units sold</p>
+                            </div>
+                            <div className="product-revenue">$335.72</div>
+                          </div>
+                          <div className="product-rank">
+                            <div className="rank">3</div>
+                            <div className="product-info">
+                              <p className="product-name">Historical Fiction</p>
+                              <p className="product-sales">19 units sold</p>
+                            </div>
+                            <div className="product-revenue">$284.81</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="invoices-section">
+                      <div className="invoices-header">
+                        <h3 className="source-sans-semibold">Invoices</h3>
+                        <div className="invoice-actions">
+                          <button className="export-btn">Export as CSV</button>
+                          <button className="print-all-btn">Print All</button>
+                        </div>
+                      </div>
+                      
+                      <div className="invoice-filters">
+                        <div className="search-container">
+                          <input type="text" placeholder="Search invoices..." className="invoice-search" />
+                        </div>
+                        <div className="filter-container">
+                          <select className="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="paid">Paid</option>
+                            <option value="unpaid">Unpaid</option>
+                            <option value="refunded">Refunded</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="invoices-table-container">
+                        <table className="invoices-table">
                           <thead>
-                          <tr>
-                            <th>Invoice #</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Actions</th>
-                          </tr>
+                            <tr>
+                              <th className="sortable">Invoice # <span className="sort-icon">↓</span></th>
+                              <th className="sortable">Date <span className="sort-icon"></span></th>
+                              <th>Customer</th>
+                              <th>Items</th>
+                              <th className="sortable">Total <span className="sort-icon"></span></th>
+                              <th>Status</th>
+                              <th>Actions</th>
+                            </tr>
                           </thead>
                           <tbody>
-                          {invoices.map(invoice => (
+                            {invoices.map(invoice => (
                               <tr key={invoice.id}>
-                                <td>{invoice.id}</td>
+                                <td className="invoice-id">{invoice.id}</td>
                                 <td>{invoice.date}</td>
                                 <td>{invoice.customer}</td>
-                                <td>{invoice.items}</td>
-                                <td>${invoice.total.toFixed(2)}</td>
+                                <td className="items-cell">{invoice.items} items</td>
+                                <td className="price-cell">${invoice.total.toFixed(2)}</td>
+                                <td><span className="status-badge paid">Paid</span></td>
                                 <td>
-                                  <div className="sm-invoice-actions">
+                                  <div className="invoice-actions">
                                     <button
-                                        className="sm-btn-view"
-                                        onClick={() => handleSaveInvoicePDF(invoice.id)}
+                                      className="action-btn view-btn"
+                                      title="View Invoice"
                                     >
-                                      Save PDF
+                                      View
                                     </button>
                                     <button
-                                        className="sm-btn-print"
-                                        onClick={() => handlePrintInvoice(invoice.id)}
+                                      className="action-btn download-btn"
+                                      onClick={() => handleSaveInvoicePDF(invoice.id)}
+                                      title="Download PDF"
+                                    >
+                                      PDF
+                                    </button>
+                                    <button
+                                      className="action-btn print-btn"
+                                      onClick={() => handlePrintInvoice(invoice.id)}
+                                      title="Print Invoice"
                                     >
                                       Print
                                     </button>
                                   </div>
                                 </td>
                               </tr>
-                          ))}
+                            ))}
                           </tbody>
                         </table>
                       </div>
+                      
+                      <div className="pagination">
+                        <button className="page-btn">Previous</button>
+                        <div className="page-numbers">
+                          <button className="page-number active">1</button>
+                          <button className="page-number">2</button>
+                          <button className="page-number">3</button>
+                          <span>...</span>
+                          <button className="page-number">8</button>
+                        </div>
+                        <button className="page-btn">Next</button>
+                      </div>
                     </div>
+                  </div>
                 )}
               </div>
+            </div>
           )}
 
           {/* Refunds Section */}
