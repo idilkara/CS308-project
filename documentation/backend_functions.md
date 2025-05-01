@@ -17,11 +17,7 @@
         accept refund
         reject refund
 
-[ ] Discounts
-    
-    Sales Manager sets discount
 
-    Discount notification to user
 
 
 
@@ -36,7 +32,7 @@ refunded amount. Moreover, if the product was bought during a discount campaign 
 the customer chooses to return the product after the campaign ends, the refunded
 amount will be the same as the time of its purchase with the discount applied. 
 
-[ ] dicsount and refund logic.
+[ ] product order bilgisinde set edilen pricelar discount edilmiş halleri. geçmiş discount kontrolu gerekmiyor.
 
 
 ## TESTED - DONE:
@@ -45,7 +41,6 @@ INVOICE THINGS
 INVOICE viewing pdf download etc
 
 Send PDF
-
 
 comment to a product
 rate a product
@@ -88,3 +83,7 @@ present categories
 
 REVIEW: product manager match
 REVIEW: remove function
+
+
+Sales Manager sets discount
+Discount notification to user
