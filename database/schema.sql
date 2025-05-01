@@ -180,9 +180,11 @@ CREATE TABLE refunds (
 CREATE TABLE notifications (
     notification_id SERIAL PRIMARY KEY,
     user_id INT,
+    product_id INT,
     message TEXT NOT NULL,
     read BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
 

@@ -1,21 +1,7 @@
 
-
-## PRIORITY FOR DEMO 
-
-
-
 ## TO DO (NOT PROGRESS DEMO):
-[ ] INVOICE viewing pdf download etc
-
-[ ] Notifications
-
-[ ] Send PDF
 
 [ ] Product manager shall view invoices
-
-[ ] Sales Manager sets discount
-
-[ ] Discount notification to user
 
 [ ] Sales manager view invoice pdf
 
@@ -31,6 +17,13 @@
         accept refund
         reject refund
 
+[ ] Discounts
+    
+    Sales Manager sets discount
+
+    Discount notification to user
+
+
 
 ## ADITIONAL NOETS FROM THE PDF
 REFUND (TEST): A customer shall also be able to selectively return a product and ask for a refund. In
@@ -43,9 +36,16 @@ refunded amount. Moreover, if the product was bought during a discount campaign 
 the customer chooses to return the product after the campaign ends, the refunded
 amount will be the same as the time of its purchase with the discount applied. 
 
+[ ] dicsount and refund logic.
+
 
 ## TESTED - DONE:
 INVOICE THINGS
+
+INVOICE viewing pdf download etc
+
+Send PDF
+
 
 comment to a product
 rate a product
