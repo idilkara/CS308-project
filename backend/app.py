@@ -8,7 +8,7 @@ from routes.shopping_routes import shopping_bp
 from routes.wishlist_routes import wishlist_bp 
 from routes.refunds_routes import refunds_bp
 from routes.payment_routes import payment_bp
-from routes.discount_routes import discount_bp
+from routes.discounts import discounts_bp
 from routes.categories_routes import categories_bp
 from routes.order_routes    import order_bp 
 from routes.company_routes    import company_bp 
@@ -22,6 +22,7 @@ from routes.invoice_routes import invoice_bp
 from routes.author_routes import authors_bp
 
 from routes.review_routes import review_bp  
+from routes.notifications  import notifications_bp
 
 app = Flask(__name__)
 
@@ -40,12 +41,14 @@ app.register_blueprint(authors_bp, url_prefix="/authors")
 app.register_blueprint(shopping_bp, url_prefix="/shopping")
 app.register_blueprint(wishlist_bp, url_prefix="/wishlist")
 app.register_blueprint(refunds_bp, url_prefix="/refunds")
-app.register_blueprint(discount_bp, url_prefix="/discount")
+app.register_blueprint(discounts_bp, url_prefix="/discounts")
 
 app.register_blueprint(categories_bp, url_prefix="/categories")
 app.register_blueprint(payment_bp, url_prefix="/payment")
 app.register_blueprint(order_bp, url_prefix="/order")
 app.register_blueprint(invoice_bp, url_prefix="/invoice")
+
+app.register_blueprint(notifications_bp, url_prefix="/notification")
 
 
 app.register_blueprint(company_bp, url_prefix="/company")

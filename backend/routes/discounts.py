@@ -3,6 +3,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 import logging as log
 
+
+
+#  Additionally, they (sales managers) shall set a discount on the selected items. When the 
+# discount rate and the products are given, the system automatically sets the new price 
+# and notify the users, whose wish list includes the discounted product, about the 
+# discount. 
+
 discounts_bp = Blueprint('discounts', __name__)
 
 #set discount to product ID
@@ -11,8 +18,8 @@ discounts_bp = Blueprint('discounts', __name__)
 def get_discounts():
 
     # Get the current user's identity
-    current_user = get_jwt_identity()
-    user_id = current_user['user_id']
+    user_id = get_jwt_identity()
+    
 
     # Get the request data
     data = request.get_json()
@@ -26,16 +33,19 @@ def get_discounts():
     conn = get_db_connection()
     cursor = conn.cursor()
     # Check if the user is an admin of the produce
-    cursor.execute('SELECT sales_manager FROM products WHERE product_id = ?', (product_id,))
+    cursor.execute('SELECT sales_manager FROM products WHERE product_id = %s', (product_id,))
     product = cursor.fetchone()
     if not product:
         return jsonify({'error': 'Product not found'}), 404
-    if product[0] != user_id:
+    
+    log.info(f"salesmanager fetched: {product[0]}")
+    log.info(f"current user: {user_id}")
+    if int(product[0]) != int(user_id):
         return jsonify({'error': 'You are not authorized to set discounts for this product'}), 403
     
     try:
         # Update the discount for the product in the database
-        cursor.execute("INSERT INTO discounts (product_id, discount_amount) VALUES (?, ?)", (product_id, discount_amount))
+        cursor.execute("INSERT INTO discounts (product_id, discount_amount) VALUES (%s, %s)", (product_id, discount_amount))
         conn.commit()
 
         # Notify users who have the product in their wishlist
@@ -64,7 +74,7 @@ def get_discount(product_id):
 
     try:
         # Fetch the discount for the product from the database
-        cursor.execute("SELECT discount_amount FROM discounts WHERE product_id = ?", (product_id,))
+        cursor.execute("SELECT discount_amount FROM discounts WHERE product_id = %s", (product_id,))
         discount = cursor.fetchone()
         if discount:
             return discount[0]
@@ -86,7 +96,7 @@ def addToUserNotifications(user_id, product_id, discount_amount):
 
     try:
         # Add the notification to the user's notifications table
-        cursor.execute("INSERT INTO user_notifications (user_id, product_id, message) VALUES (?, ?, ?)", (user_id, product_id, f"Discount of {discount_amount} added to product {product_id}"))
+        cursor.execute("INSERT INTO notifications (user_id, product_id, message) VALUES (%s, %s, %s)", (user_id, product_id, f"Discount of {discount_amount} added to product {product_id}"))
         conn.commit()
 
     except Exception as e:

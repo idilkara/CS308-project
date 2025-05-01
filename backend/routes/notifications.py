@@ -12,16 +12,15 @@ notifications_bp = Blueprint('notifications', __name__)
 def get_notifications():
 
     # Get the current user's identity
-    current_user = get_jwt_identity()
-    user_id = current_user['user_id']
-
+    user_id = get_jwt_identity()
+    
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
         # Fetch notifications for the user from the database
-        cursor.execute("SELECT notification_id, product_id, message, read FROM notifications WHERE user_id = ?", (user_id,))
+        cursor.execute("SELECT notification_id, product_id, message, read FROM notifications WHERE user_id = %s", (user_id,))
         notifications = cursor.fetchall()
 
         # Convert notifications to a list of dictionaries
@@ -51,8 +50,8 @@ def get_notifications():
 @jwt_required()
 def set_notification_read():
     # Get the current user's identity
-    current_user = get_jwt_identity()
-    user_id = current_user['user_id']
+    user_id = get_jwt_identity()
+   
 
     # Get the request data
     data = request.get_json()
@@ -67,7 +66,7 @@ def set_notification_read():
 
     try:
         # Update the notification status in the database
-        cursor.execute("UPDATE notifications SET read = True WHERE notification_id = ? AND user_id = ?", (notification_id, user_id))
+        cursor.execute("UPDATE notifications SET read = True WHERE notification_id = %s AND user_id = %s", (notification_id, user_id))
         conn.commit()
 
         # Return a success response

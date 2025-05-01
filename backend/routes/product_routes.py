@@ -81,6 +81,17 @@ def get_all_products():
     ratings_dict = {rating[0]: (rating[1] if rating[1] is not None else 0) for rating in ratings}
 
 
+    #get the discounts for each product if exitst.
+    cursor.execute("""
+        SELECT p.product_id, d.discount_amount AS discount_rate
+        FROM products p 
+        LEFT JOIN discounts d ON p.product_id = d.product_id
+    """)
+
+    discounts = cursor.fetchall()
+    logging.debug(f"Discounts fetched: {discounts}")
+    discounts_dict = {discount[0]: (discount[1] if discount[1] is not None else 0) for discount in discounts}
+
     cursor.close()
     conn.close()
 
@@ -102,8 +113,9 @@ def get_all_products():
         "author": product[10],
         "stock_quantity": product[11],  # Add this line
         "average_rating": str(ratings_dict.get(product[0], 0)),
-          "model": product[12],  # Add this line
-          "serial_number": product[13]  # Add this line
+        "model": product[12],  # Add this line
+        "serial_number": product[13],  # Add this line
+        "discount_rate": str(discounts_dict.get(product[0], 0))  # Add this line
     }
     for product in products
 ])

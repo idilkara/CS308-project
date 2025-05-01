@@ -89,10 +89,11 @@ def create_order():
             quantity = item[3]
             stock_quantity = item[4]
 
+            # checks if there is a discount (as rate) for the product
             cur.execute("SELECT discount_amount from discounts where product_id = %s", (product_id,))
-            discount_amount = cur.fetchone()    
-            if discount_amount:
-                price = price - price * discount_amount[0]
+            discount_rate = cur.fetchone()    
+            if discount_rate:
+                price = price - price * discount_rate[0]
 
             if stock_quantity < quantity:
                 raise ValueError(f"Not enough stock for product {item[1]}")

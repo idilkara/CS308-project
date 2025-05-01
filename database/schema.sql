@@ -110,7 +110,7 @@ CREATE TABLE orderitems (
     order_id INT,
     product_id INT,
     quantity INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL, --final price --if discount was applied it affected it already
+    price DECIMAL(10,2) NOT NULL, --final price --if  was applied it affected it already
     status VARCHAR(50) CHECK (status IN ('processing', 'in-transit', 'delivered')) DEFAULT 'processing',
     FOREIGN KEY (order_id) REFERENCES userorders(order_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)

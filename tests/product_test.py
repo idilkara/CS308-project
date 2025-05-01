@@ -46,7 +46,7 @@ def viewproducts ( ):
 
 def viewcategories ():
 
-    response = requests.get(f"{BASEURL}/categories/categories")
+    response = requests.get(f"{BASEURL}/categories/categories")  
     
     # Check if the request was successful
     if response.status_code == 200:
@@ -148,13 +148,13 @@ if __name__ == "__main__":
     # login
 
     customer_login1 = login("customer@example.com", "password")
-    customer_login2 = login("homelesscustomer@example.com", "password")
+  
     pm_login = login("pm@example.com", "password")
     sm_login = login("sm@example.com", "password")
 
     # Ensure login success
     customer_token = customer_login1.get("access_token")
-    customer_token2 = customer_login2.get("access_token")
+
     pm_token = pm_login.get("access_token")
     sm_token = sm_login.get("access_token")
 
