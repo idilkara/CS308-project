@@ -56,6 +56,86 @@ def get_invoice_pdf(invoiceID):
 
 
 
+# get all invoices of a user
+@invoice_bp.route("/get_invoices", methods=["GET"])
+@jwt_required()
+def get_invoices():
+
+    user_id = get_jwt_identity()
+    logging.info(f"User ID: {user_id}")
+    
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT invoice_id, order_id, total_price, delivery_address, invoice_date
+        FROM invoices
+        WHERE user_id = %s
+        ORDER BY invoice_date DESC
+    """, (user_id,))
+
+    invoices = cur.fetchall()
+    logging.info(f"Fetched invoices: {invoices}")
+
+    cur.close()
+    conn.close()
+    if not invoices:
+        return jsonify({"message": "No invoices found"}), 404
+    
+    return jsonify([
+        {
+            "invoice_id": invoice[0],
+            "order_id": invoice[1],
+            "total_price": invoice[2],
+            "delivery_address": invoice[3],
+            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S")
+        }
+        for invoice in invoices
+    ])
+
+
+# get invoices of manager
+@invoice_bp.route("/get_invoices_manager", methods=["GET"])
+@jwt_required()
+
+def get_invoices_manager():
+
+    user_id = get_jwt_identity()
+    logging.info(f"User ID: {user_id}")
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT invoice_id, order_id, total_price, delivery_address, invoice_date
+        FROM managerinvoices
+        WHERE manager_id = %s
+        ORDER BY invoice_date DESC
+    """, (user_id,))
+
+    invoices = cur.fetchall()
+    logging.info(f"Fetched invoices: {invoices}")
+
+    cur.close()
+    conn.close()
+    if not invoices:
+        return jsonify({"message": "No invoices found"}), 404
+    
+    return jsonify([
+        {
+            "invoice_id": invoice[0],
+            "order_id": invoice[1],
+            "total_price": invoice[2],
+            "delivery_address": invoice[3],
+            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S")
+        }
+        for invoice in invoices
+    ])
+
+
+
+
 @invoice_bp.route("/generate_invoice", methods=["POST"])
 @jwt_required()
 def generate_invoice():

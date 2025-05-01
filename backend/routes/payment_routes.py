@@ -286,11 +286,12 @@ def generate_invoices(orderID, paymentID):
 
         total_price = sum(item[2] * item[1] for item in order_items)
         
+        log.info(f"creating invoice for product manager: {product_owner}")
         # insert the invoice for the product owner
         cur.execute("""
-            INSERT INTO managerinvoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
-            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
-        """, (product_owner, orderID, paymentID, total_price,delivery_address, 'paid'))
+            INSERT INTO managerinvoices (manager_id, user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
+        """, (product_owner, customerID, orderID, paymentID, total_price,delivery_address, 'paid'))
 
         invoice_id = cur.fetchone()[0]
         log.info(f"Invoice created with ID: {invoice_id}")
@@ -328,10 +329,11 @@ def generate_invoices(orderID, paymentID):
         total_price = sum(item[2] * item[1] for item in order_items)
         log.info(f"total price: {order}")
         # insert the invoice for the product owner
+        log.info(f"creating invoice for sales manager: {sales_manager}")
         cur.execute("""
-            INSERT INTO managerinvoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
-            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
-        """, (product_owner,orderID, paymentID, total_price,delivery_address, 'paid'))
+            INSERT INTO managerinvoices (manager_id, user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
+        """, (sales_manager, customerID, orderID, paymentID, total_price,delivery_address, 'paid'))
 
         invoice_id = cur.fetchone()[0]
         log.info(f"invoice pdf generated: {invoice_id}")

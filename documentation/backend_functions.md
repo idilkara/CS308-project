@@ -18,9 +18,6 @@
         reject refund
 
 
-
-
-
 ## ADITIONAL NOETS FROM THE PDF
 REFUND (TEST): A customer shall also be able to selectively return a product and ask for a refund. In
 such a case, the customer will select an already purchased product from his/her order
