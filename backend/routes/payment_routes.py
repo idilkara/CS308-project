@@ -65,55 +65,83 @@ def create_order():
         if not user_info or not user_info[0] or not user_info[1]:
             raise ValueError("User does not have a delibery address or payment method set")
 
-        total_price = sum(item[2] * item[3] for item in cart_items)
+        # Fetch cart items
+        cur.execute("""
+            SELECT p.product_id, p.name, p.price, scp.quantity, p.stock_quantity
+            FROM shoppingcart sc
+            JOIN shoppingcartproducts scp ON sc.cart_id = scp.cart_id
+            JOIN products p ON scp.product_id = p.product_id
+            WHERE sc.user_id = %s
+        """, (user_id,))
+        cart_items = cur.fetchall()
 
-        # check if there are enpugh stock for the products in the cart
-        for item in cart_items:
-            product_id = item[0]
-            quantity = item[3]
-            cur.execute("SELECT stock_quantity FROM products WHERE product_id = %s", (product_id,))
-            stock_quantity = cur.fetchone()[0]
+        if not cart_items:
+            raise ValueError("Cart is empty")
 
-            if stock_quantity < quantity:
-                raise ValueError(f"Not enough stock for product {item[1]}")
-        
+        # Check user has home address and payment method
+        cur.execute("""
+            SELECT home_address, payment_method FROM users WHERE user_id = %s
+        """, (user_id,))
+        user_info = cur.fetchone()
+        if not user_info or not user_info[0] or not user_info[1]:
+            raise ValueError("User does not have a delivery address or payment method set")
+
+        delivery_address = user_info[0]
+        total_price = 0
         itemsAmountAndPrice = []
-        # Create user order
-        cur.execute("INSERT INTO userorders (user_id, total_price, delivery_address) VALUES (%s, %s, %s) RETURNING order_id", (user_id, total_price, delivery_address))
+
+        # Process each item and calculate total_price after discounts
+        for item in cart_items:
+            product_id, product_name, original_price, quantity, stock_quantity = item
+
+            # Check stock
+            if stock_quantity < quantity:
+                raise ValueError(f"Not enough stock for product {product_name}")
+
+            # Check discount
+            cur.execute("SELECT discount_amount FROM discounts WHERE product_id = %s", (product_id,))
+            discount = cur.fetchone()
+            price = original_price
+            if discount:
+                price -= price * discount[0]
+
+            # Accumulate total price
+            total_price += price * quantity
+
+            # Store for later insert
+            itemsAmountAndPrice.append({
+                "product_id": product_id,
+                "product_name": product_name,
+                "price": price,
+                "quantity": quantity,
+                "new_stock": stock_quantity - quantity
+            })
+
+        # Create user order after total price is known
+        cur.execute("""
+            INSERT INTO userorders (user_id, total_price, delivery_address)
+            VALUES (%s, %s, %s) RETURNING order_id
+        """, (user_id, total_price, delivery_address))
         userorder_id = cur.fetchone()[0]
 
-        # Add items to order and decrease stock quantity
-        for item in cart_items:
-            product_id = item[0]
-            price = item[2] # TODO : price might change based on discounts
-            quantity = item[3]
-            stock_quantity = item[4]
-
-            # checks if there is a discount (as rate) for the product
-            cur.execute("SELECT discount_amount from discounts where product_id = %s", (product_id,))
-            discount_rate = cur.fetchone()    
-            if discount_rate:
-                price = price - price * discount_rate[0]
-
-            if stock_quantity < quantity:
-                raise ValueError(f"Not enough stock for product {item[1]}")
-
-            # Decrease the stock quantity
-            new_stock_quantity = stock_quantity - quantity
-            cur.execute("UPDATE products SET stock_quantity = %s WHERE product_id = %s", (new_stock_quantity, product_id))
-            cur.execute("INSERT INTO orderitems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)", (userorder_id, product_id, quantity, price))
+        # Insert order items and update product stock
+        for item in itemsAmountAndPrice:
+            cur.execute("""
+                UPDATE products SET stock_quantity = %s WHERE product_id = %s
+            """, (item["new_stock"], item["product_id"]))
             
-            cur.execute("SELECT name FROM products WHERE product_id = %s", (product_id,))
-            product_name = cur.fetchone()[0]
-            itemAmountAndPrice = {"productName": product_name , "quantity": quantity, "UnitPrice": price}
-            itemsAmountAndPrice.append(itemAmountAndPrice)
+            cur.execute("""
+                INSERT INTO orderitems (order_id, product_id, quantity, price)
+                VALUES (%s, %s, %s, %s)
+            """, (userorder_id, item["product_id"], item["quantity"], item["price"]))
 
-        # create payment
+        # Create payment
         cur.execute("""
             INSERT INTO payments (user_id, userorder_id, amount, payment_date)
             VALUES (%s, %s, %s, CURRENT_TIMESTAMP) RETURNING payment_id
         """, (user_id, userorder_id, total_price))
         payment_id = cur.fetchone()[0]
+
 
 
         # Generate invoices and invoice pdfs

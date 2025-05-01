@@ -35,7 +35,7 @@ def update_price(token, product_id, price):
 
 def viewproducts ( ):
 
-    response = requests.get(f"{BASEURL}/products/products")
+    response = requests.get(f"{BASEURL}/products/viewall")
     
     # Check if the request was successful
     if response.status_code == 200:

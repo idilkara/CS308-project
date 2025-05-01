@@ -175,6 +175,14 @@ def get_product(product_id):
     """, (product_id,))
     product = cursor.fetchone()
 
+    #get discount for the product if exists.
+    cursor.execute("""
+        SELECT d.discount_amount AS discount_rate
+        FROM products p
+        LEFT JOIN discounts d ON p.product_id = d.product_id
+        WHERE p.product_id = %s;
+    """, (product_id,))
+    discount = cursor.fetchone()
 
     # Get the ratings for the product
     cursor.execute("""
@@ -205,7 +213,8 @@ def get_product(product_id):
             "waiting": product[11],
             "author": product[12],
             "serial_number": product[13],
-            "average_rating": str(average_rating)
+            "average_rating": str(average_rating),
+            "discount_rate": str(discount[0]) if discount and discount[0] is not None else 0
         })
     else:
         return jsonify({"error": "Product not found"}), 404

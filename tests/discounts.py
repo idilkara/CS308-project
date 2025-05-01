@@ -5,6 +5,15 @@ import json
 from auth_test import login 
 from product_test import viewproducts 
 
+from shopping_test import add_to_cart
+from shopping_test import create_order
+from product_test import viewproducts, viewproduct
+
+
+def view_orders(token):
+    headers = {"Authorization": f"Bearer {token}", **HEADERS}
+    response = requests.get(f"{BASEURL}/order/view_order_history", headers=headers)
+    return response.json() if response.status_code == 200 else {"error": "Failed to fetch order history", "status_code": response.status_code, "details": response.json()}
 
 
 def addTowishlist(token, product_id):
@@ -54,11 +63,22 @@ if __name__ == "__main__":
     sm_token = sm_login.get("access_token")
 
 
-    print(addTowishlist(customer_token, 1))  # Add product with ID 1 to wishlist
+    print(addTowishlist(customer_token, 2))  # Add product with ID 1 to wishlist
     
-    set_discount(sm_token, 1, 0.2)  # Set a discount of 20% for product with ID 1
+    set_discount(sm_token, 2, 0.2)  # Set a discount of 20% for product with ID 1
 
     print("Discount set successfully!")
     notif = get_notification(customer_token)
     print("Notification: ", notif)  # Get notifications for the customer
 
+    # print(viewproducts())  # View all products
+    print(viewproduct(2))  # View details of product with ID 1
+    add_to_cart(customer_token, 2, 1)  # Add product with ID 1 to cart with quantity 2
+    add_to_cart(customer_token, 3, 2)  # Add product with ID 1 to cart with quantity 2
+    print("Product added to cart successfully!")
+    order = create_order(customer_token)  # Create an order for product with ID 1
+    print("Order created successfully!")
+
+    orders =  view_orders(customer_token)  # View order history for the customer
+    print("Order details: ", orders)  # Print order details
+    
