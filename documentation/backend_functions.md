@@ -1,13 +1,7 @@
 
 ## TO DO (NOT PROGRESS DEMO):
 
-[ ] Product manager shall view invoices
-
-[ ] Sales manager view invoice pdf
-
 [ ] Sales manager calculate revenue and loss/profit in between given dates and view a chart of it. (For loss and profit calculations,the product cost can default to 50% of the sale price for convenience)
-
-### TEST & DEBUG: 
 
 [ ] refund routes (see notes from pdf)
     customer:
@@ -84,3 +78,7 @@ REVIEW: remove function
 
 Sales Manager sets discount
 Discount notification to user
+
+
+Product manager shall view invoices
+Sales manager view invoice pdf
