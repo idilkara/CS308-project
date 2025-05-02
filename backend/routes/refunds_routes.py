@@ -13,9 +13,12 @@ from datetime import datetime, timedelta
 # Moreover, if the product was bought during a discount campaign and the customer chooses to return the product after the campaign ends, 
 # the refunded amount will be the same as the time of its purchase with the discount applied.
 
-# request return product given order id , product id 
+# IMPLEMENT EDILCEKLER: 
+    # request return product given order id , product id 
+    # accept return request  (update status)
+    # reject return request     (update status)
+    # get requests for sales manager 
 
-# accept return request 
 
 # Blueprint oluştur
 refunds_bp = Blueprint("refunds", __name__)
@@ -34,7 +37,7 @@ def request_return():
         cur = conn.cursor()
 
         # Check if the order exists and belongs to the user
-        cur.execute("SELECT order_date, status FROM orders WHERE order_id = %s AND user_id = %s", (order_id, user_id))
+        cur.execute("SELECT order_date, status FROM userorders WHERE order_id = %s AND user_id = %s", (order_id, user_id))
         order = cur.fetchone()
         if order is None:
             return jsonify({"error": "Order not found"}), 404
@@ -90,7 +93,7 @@ def accept_return():
         cur.execute("UPDATE products SET stock_quantity = stock_quantity + %s WHERE product_id = %s", (quantity, product_id))
 
         # Update order status to refunded
-        cur.execute("UPDATE orders SET status = 'refunded' WHERE order_id = %s", (order_id,))
+        cur.execute("UPDATE refunds SET status = 'refunded' WHERE orderitem_id = %s", (order_id,))
 
         # Delete the return request
         cur.execute("DELETE FROM return_requests WHERE return_request_id = %s", (return_request_id,))
