@@ -748,17 +748,43 @@ const SalesManager = () => {
           {/* Pricing Section */}
           {activeSection === 'pricing' && (
               <div className="pricing-section">
-                <h2 className="source-sans-semibold">Set Product Prices</h2>
-                <p>New products require pricing before they become available for purchase.</p>
+                <div className="pricing-header">
+                  <h2 className="source-sans-semibold section-title">Set Product Prices</h2>
+                  <p className="section-description">New products require pricing before they become available for purchase.</p>
+                  
+                  {/* Summary dashboard */}
+                  <div className="pricing-summary">
+                    <div className="summary-card">
+                      <div className="card-icon">📋</div>
+                      <div className="card-content">
+                        <h4>Pending Products</h4>
+                        <p className="amount">{newProducts.length}</p>
+                      </div>
+                    </div>
+                    <div className="summary-card">
+                      <div className="card-icon">💰</div>
+                      <div className="card-content">
+                        <h4>Recently Priced</h4>
+                        <p className="amount">{newProducts.filter(product => product.price).length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {pricingIsLoading ? (
-                    <div className="sm-loading">
-                      <p>Loading products...</p>
-                    </div>
+                  <div className="loading-state">
+                    <div className="loading-spinner"></div>
+                    <p>Loading products that need pricing...</p>
+                  </div>
                 ) : newProducts.length === 0 ? (
-                    <div className="sm-no-products">
-                      <p>No new products require pricing at this time.</p>
-                    </div>
+                  <div className="empty-state">
+                    <div className="empty-icon">✓</div>
+                    <h3>All products are priced!</h3>
+                    <p>There are no new products waiting for price assignment.</p>
+                    <button className="refresh-btn" onClick={() => fetchNewProducts(token)}>
+                      Refresh List
+                    </button>
+                </div>
                 ) : (
                     <div className="sm-pricing-table-container">
                       <table className="sm-pricing-table">
@@ -782,18 +808,24 @@ const SalesManager = () => {
                               <td>{product.stock}</td>
                               <td className="price-column">
                                 {editPriceId === product.product_id ? (
+                                  <div className="price-input-wrapper">
+                                    <span className="currency-symbol">$</span>
                                     <input
-                                        type="number"
-                                        className="sm-price-input"
-                                        value={newPrice}
-                                        onChange={handlePriceInputChange}
-                                        min="0.01"
-                                        step="0.01"
+                                      type="number"
+                                      className="sm-price-input"
+                                      value={newPrice}
+                                      onChange={handlePriceInputChange}
+                                      min="0.01"
+                                      step="0.01"
+                                      placeholder="0.00"
+                                      autoFocus
                                     />
+                                    <div className="input-hint">Required</div>
+                                  </div>
                                 ) : product.price ? (
-                                    `$${product.price}`
+                                  <span className="price-value">${parseFloat(product.price).toFixed(2)}</span>
                                 ) : (
-                                    <span style={{color: 'red'}}>Not set</span>
+                                  <span className="price-not-set">Not set</span>
                                 )}
                               </td>
                               <td className="cost-column">
@@ -815,26 +847,28 @@ const SalesManager = () => {
                               </td>
                               <td>
                                 {editPriceId === product.product_id ? (
-                                    <div className="stock-edit-actions">
-                                      <button
-                                          className="sm-btn-save"
-                                          onClick={() => handlePriceUpdate(product.product_id)}
-                                      >
-                                        Save
-                                      </button>
-                                      <button
-                                          className="sm-btn-cancel"
-                                          onClick={cancelPriceEdit}
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                ) : (    <button
-                                        className="sm-btn-edit"
-                                        onClick={() => startEditPrice(product)}
+                                  <div className="action-buttons">
+                                    <button
+                                      className="sm-btn-save"
+                                      onClick={() => handlePriceUpdate(product.product_id)}
+                                      disabled={!newPrice || isNaN(parseFloat(newPrice)) || parseFloat(newPrice) <= 0}
                                     >
-                                      Set Price
+                                      Save
                                     </button>
+                                    <button
+                                      className="sm-btn-cancel"
+                                      onClick={cancelPriceEdit}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="sm-btn-edit"
+                                    onClick={() => startEditPrice(product)}
+                                  >
+                                    Set Price
+                                  </button>
                                 )}
                               </td>
                             </tr>
