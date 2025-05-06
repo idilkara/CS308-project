@@ -70,6 +70,13 @@ const SalesManager = () => {
   const [refundRequests, setRefundRequests] = useState([]);
   const [refundIsLoading, setRefundIsLoading] = useState(false);
 
+  // State for notifications
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false,
+    type: 'success' 
+  });
+
   // ---------- API CALLS ----------
 
   // // API calls for pricing
@@ -91,6 +98,18 @@ const SalesManager = () => {
   //     setPricingIsLoading(false);
   //   }
   // };
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      message,
+      visible: true,
+      type
+    });
+    
+    setTimeout(() => {
+      setNotification({ message: '', visible: false, type });
+    }, 3000);
+  };
 
   const fetchNewProducts = async (token) => {
     const headers = {
@@ -522,12 +541,12 @@ const SalesManager = () => {
               )
           );
 
-          alert(`Refund #${refundId} approved. Stock has been updated and customer has been notified.`);
+          showNotification(`Refund #${refundId} approved. Stock has been updated and customer has been notified.`);
           return { success: true };
         } else {
           const errorData = await response.json();
           console.error("Failed to approve refund:", errorData.error || "Unknown error");
-          alert(`Error approving refund: ${errorData.error || "Unknown error"}`);
+          showNotification(`Error approving refund: ${errorData.error || "Unknown error"}`);
           return { error: errorData.error || "Failed to approve refund" };
         }
       } else {
@@ -539,7 +558,7 @@ const SalesManager = () => {
                     : request
             )
         );
-        alert(`Refund #${refundId} rejected. Customer has been notified.`);
+        showNotification(`Refund #${refundId} rejected. Customer has been notified.`);
         return { success: true };
       }
     } catch (error) {
@@ -595,22 +614,21 @@ const SalesManager = () => {
 
   const handlePriceUpdate = async (id) => {
     if (newPrice === '' || isNaN(newPrice) || parseFloat(newPrice) <= 0) {
-      alert('Please enter a valid price (must be a positive number)');
+      showNotification('Please enter a valid price (must be a positive number)', 'error');
       return;
     }
-
+  
     // For cost, default to 50% of price if not specified
     const finalCost = newCost === '' || isNaN(newCost) ? parseFloat(newPrice) * 0.5 : parseFloat(newCost);
-    console.log(`id ot the product to update price : ${id}`);
     const result = await updatePrice(token, id, parseFloat(newPrice));
-
-    if (result.ok) {
+  
+    if (result && !result.error) {
       setEditPriceId(null);
       setNewPrice('');
       setNewCost('');
-      alert(`Price updated successfully for product #${id}`);
+      showNotification(`Price updated successfully for product #${id}`, 'success');
     } else {
-      alert(`Error: ${result.error}`);
+      showNotification(`Failed to update price: ${result.error || 'Unknown error'}`, 'error');
     }
   };
 
@@ -1207,8 +1225,18 @@ const SalesManager = () => {
                       <p>Loading refund requests...</p>
                     </div>
                 ) : refundRequests.length === 0 ? (
-                    <div className="sm-no-refunds">
-                      <p>No pending refund requests at this time.</p>
+                    <div className="empty-state-container">
+                      <div className="empty-state-icon">🔄</div>
+                      <h3>No pending refund requests at this time</h3>
+                      <p>When customers request refunds, they'll appear here for your review.</p>
+                      <div className="empty-state-actions">
+                        <button
+                            className="sm-btn-refresh"
+                            onClick={() => fetchRefundRequests(token)}
+                        >
+                          Refresh Requests
+                        </button>
+                      </div>
                     </div>
                 ) : (
                     <div className="sm-refund-table-container">
@@ -1269,6 +1297,13 @@ const SalesManager = () => {
                     </div>
                 )}
               </div>
+          )}
+
+          {/* Notification */}
+          {notification.visible && (
+            <div className={`sm-notification ${notification.type}`}>
+              {notification.message}
+            </div>
           )}
         </div>
       </div>
