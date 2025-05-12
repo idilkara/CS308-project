@@ -8,12 +8,6 @@ import bookCover from './img/BookCover.png';
 import PdfViewer from './components/pdfView.js';
 
 
-//phone city country / expire card name info falan sil
-// siparişiniz alındı sayfasına yönlendir
-// address ve payment yoksa devam etmeye izin verme
-// user logged in değilken checkouta girmeye izin verme !!!!!!!!!!!!!
-// cart boşsa checkouta girmeye izin verme
-
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,7 +74,7 @@ const CheckoutPage = () => {
           console.error("Failed to fetch invoice:", errorText);
         }
       } catch (err) {
-        console.error("Error fetching PDF:", err);
+       // console.error("Error fetching PDF:", err);
       }
     };
 
@@ -103,13 +97,6 @@ const CheckoutPage = () => {
       total: total
     });
   }, [cartItems]);
-
-  // Fetch user info if authenticated
-  useEffect(() => {
-    if (token) {
-      fetchUserInfo();
-    }
-  }, [token]);
 
   // Function to fetch cart items
   const fetchCart = async () => {
@@ -181,22 +168,48 @@ const CheckoutPage = () => {
             email: userData.email || '',
             address: userData.home_address || '',
           });
-
-          if (userData.payment_method && userData.payment_method.length > 0) {
-            setPaymentInfo({
-              cardNumber: userData.payment_method || '',
-            });
-          if (userData.payment_method = null) {
-
-            alert("Please add a payment method to your account from the profile page. ");
-          }
-          }
         }
       }
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
   };
+
+  const getPaymentMethod = async () => {
+    try {
+      const response = await fetch("http://localhost/api/users/payment_method", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to fetch payment method:", errorData.error || "Unknown error");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Payment method fetched successfully:", data.payment_method);
+      if (data.payment_method != null) {
+        setPaymentInfo({
+          cardNumber: data.payment_method,
+          cardName: ""
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching payment method:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUserInfo();
+      getPaymentMethod();
+    }
+  }, [token]);
 
   // Handle shipping form changes
   const handleShippingChange = (e) => {
@@ -205,87 +218,22 @@ const CheckoutPage = () => {
       ...shippingInfo,
       [name]: value
     });
-    
-    // Clear error for this field if it exists
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: ''
-      });
-    }
   };
 
   // Handle payment form changes
   const handlePaymentChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setPaymentInfo({
       ...paymentInfo,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     });
-    
-    // Clear error for this field if it exists
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: ''
-      });
-    }
-  };
-
-  // Format card number with spaces
-  const formatCardNumber = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-    
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
-
-  // Validate shipping form
-  const validateShippingForm = () => {
-    const errors = {};
-    
-    if (!shippingInfo.fullName.trim()) errors.fullName = 'Full name is required';
-    if (!shippingInfo.email.trim()) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(shippingInfo.email)) errors.email = 'Email is invalid';
-    if (!shippingInfo.address.trim()) errors.address = 'Address is required';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // Validate payment form
-  const validatePaymentForm = () => {
-    const errors = {};
-    
-    if (!paymentInfo.cardName.trim()) errors.cardName = 'Name on card is required';
-    if (!paymentInfo.cardNumber.trim()) errors.cardNumber = 'Card number is required';
-    else if (paymentInfo.cardNumber.replace(/\s/g, '').length < 16) errors.cardNumber = 'Card number is invalid';
-    if (!paymentInfo.expMonth) errors.expMonth = 'Expiration month is required';
-    if (!paymentInfo.expYear) errors.expYear = 'Expiration year is required';
-    if (!paymentInfo.cvv.trim()) errors.cvv = 'CVV is required';
-    else if (!/^\d{3,4}$/.test(paymentInfo.cvv)) errors.cvv = 'CVV is invalid';
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   // Handle continue to payment
   const handleContinueToPayment = (e) => {
     e.preventDefault();
-    
-    if (validateShippingForm()) {
-      setActiveStep('payment');
-      window.scrollTo(0, 0);
-    }
+    setActiveStep('payment');
+    window.scrollTo(0, 0);
   };
 
   // Handle back to shipping
@@ -294,64 +242,83 @@ const CheckoutPage = () => {
     setActiveStep('shipping');
     window.scrollTo(0, 0);
   };
-// Place order function
-const placeOrder = async (e) => {
-  if (e) e.preventDefault();
 
-  setLoading(true);
+  // Place order function
+  const placeOrder = async (e) => {
+    if (e) e.preventDefault();
 
-  try {
-    // Create order object
-    const orderData = {
-      items: cartItems.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      shipping_info: shippingInfo,
-      payment_method: "credit_card",
-      total: orderSummary.total
-    };
-
-    // If user is logged in, send to API
-    if (token) {
-      const response = await fetch("http://localhost/api/payment/create_order", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-       
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        setInvId(data.invoice_id);
-
-        setCartItems([]);
-        setOrderComplete(true);
-      } else {
-        const errorData = await response.json();
-        alert(`Order failed: 'Please add delivery address and payment information to your account and try again'}`);
-      }
+    // Check for missing information
+    const missingInfo = [];
+    
+    if (!shippingInfo.address || shippingInfo.address.trim() === '') {
+      missingInfo.push('delivery address');
     }
-  } catch (error) {
-    console.error("Error placing order:", error);
-    alert("Error placing order. Please try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
 
-  // Generate random order ID for demo purposes
-  const generateOrderId = () => {
-    return 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+    if (!paymentInfo.cardNumber || paymentInfo.cardNumber.trim() === '') {
+      missingInfo.push('payment method');
+    }
+
+    if (missingInfo.length > 0) {
+      const confirmMessage = `You need to add ${missingInfo.join(' and ')} to your profile before proceeding with checkout. Would you like to go to your profile page now?`;
+      if (window.confirm(confirmMessage)) {
+        localStorage.setItem('pendingShippingInfo', JSON.stringify(shippingInfo));
+        navigate('/user');
+        return;
+      }
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const orderData = {
+        items: cartItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shipping_info: shippingInfo,
+        payment_method: paymentInfo.cardNumber,
+        total: orderSummary.total
+      };
+
+      if (token) {
+        const response = await fetch("http://localhost/api/payment/create_order", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setInvId(data.invoice_id);
+          setCartItems([]);
+          setOrderComplete(true);
+          localStorage.removeItem('pendingShippingInfo');
+        } else {
+          const errorData = await response.json();
+          alert('Order failed: Please ensure you have added both delivery address and payment information to your account.');
+        }
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Error placing order. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle navigation to continue shopping
   const handleContinueShopping = () => {
     navigate('/');
+  };
+
+  // Generate random order ID for demo purposes
+  const generateOrderId = () => {
+    return 'ORD-' + Math.floor(100000 + Math.random() * 900000);
   };
 
   // Render order confirmation page
@@ -375,31 +342,7 @@ const placeOrder = async (e) => {
           <p>Billing address same as shipping</p>
         </div> */}
       </div>
-      {/* <div className="confirmation-summary">
-        <h3>Order Summary</h3>
-        <div className="summary-items">
-          {cartItems.map((item, index) => (
-            <div key={index} className="summary-item">
-              <div className="summary-item-details">
-                <p className="summary-item-name">{item.name}</p>
-                <p className="summary-item-info">Qty: {item.quantity}</p>
-              </div>
-              <p className="summary-item-price">${(item.price * item.quantity)}</p>
-            </div>
-          ))}
-        </div>
-        <div className="summary-totals">
-          <div className="summary-row">
-            <span>Subtotal</span>
-            <span>${orderSummary.subtotal}</span>
-          </div>
-     
-          <div className="summary-row total">
-            <span>Total</span>
-            <span>${orderSummary.total.toFixed(2)}</span>
-          </div>
-        </div>
-      </div> */}
+ 
       <PdfViewer pdfUrl={pdfUrl} />
       <div className="confirmation-actions">
         <button className="continue-shopping-btn" onClick={handleContinueShopping}>Continue Shopping</button>
@@ -515,6 +458,14 @@ const placeOrder = async (e) => {
       </div>
     </div>
   );
+
+  // Add useEffect to restore shipping info when returning from profile page
+  useEffect(() => {
+    const pendingShippingInfo = localStorage.getItem('pendingShippingInfo');
+    if (pendingShippingInfo) {
+      setShippingInfo(JSON.parse(pendingShippingInfo));
+    }
+  }, []);
 
   return (
     <div>
