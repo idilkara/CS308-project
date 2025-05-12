@@ -1,10 +1,6 @@
 
 ## TO DO (NOT PROGRESS DEMO):
 
-[ ] Product manager shall view invoices
-
-[ ] Sales manager view invoice pdf
-
 [ ] Sales manager calculate revenue and loss/profit in between given dates and view a chart of it. (For loss and profit calculations,the product cost can default to 50% of the sale price for convenience)
 
 ### TEST & DEBUG: 
@@ -29,7 +25,10 @@ refunded amount. Moreover, if the product was bought during a discount campaign 
 the customer chooses to return the product after the campaign ends, the refunded
 amount will be the same as the time of its purchase with the discount applied. 
 
-[ ] product order bilgisinde set edilen pricelar discount edilmiş halleri. geçmiş discount kontrolu gerekmiyor.
+ product order bilgisinde set edilen pricelar discount edilmiş halleri. geçmiş discount kontrolu gerekmiyor.
+
+
+
 
 
 ## TESTED - DONE:
@@ -84,3 +83,6 @@ REVIEW: remove function
 
 Sales Manager sets discount
 Discount notification to user
+
+Sales manager view invoice pdf
+Product manager shall view invoices
