@@ -311,47 +311,125 @@ const SalesManager = () => {
     }
   };
 
-  // API calls for reports
+  // // API calls for reports
+  // const fetchInvoices = async () => {
+  //   if (!startDate || !endDate) {
+  //     alert("Please select both start and end dates");
+  //     return;
+  //   }
+  //
+  //   try {
+  //     // Simulate API call
+  //     setTimeout(() => {
+  //       const sampleInvoices = [
+  //         { id: "INV-2023-001", date: "2025-03-12", customer: "John Smith", total: 37.97, items: 3 },
+  //         { id: "INV-2023-002", date: "2025-03-13", customer: "Mary Jones", total: 42.98, items: 2 },
+  //         { id: "INV-2023-003", date: "2025-03-14", customer: "Robert Brown", total: 24.99, items: 1 },
+  //         { id: "INV-2023-004", date: "2025-03-15", customer: "Jane Miller", total: 54.97, items: 3 },
+  //         { id: "INV-2023-005", date: "2025-03-16", customer: "Sam Wilson", total: 29.98, items: 2 }
+  //       ];
+  //       setInvoices(sampleInvoices);
+  //
+  //       // Sample report data
+  //       const reportSample = {
+  //         revenue: 190.89,
+  //         cost: 95.45,
+  //         profit: 95.44,
+  //         dailyData: [
+  //           { date: '2025-03-12', revenue: 37.97, cost: 18.99, profit: 18.98 },
+  //           { date: '2025-03-13', revenue: 42.98, cost: 21.49, profit: 21.49 },
+  //           { date: '2025-03-14', revenue: 24.99, cost: 12.50, profit: 12.49 },
+  //           { date: '2025-03-15', revenue: 54.97, cost: 27.48, profit: 27.49 },
+  //           { date: '2025-03-16', revenue: 29.98, cost: 14.99, profit: 14.99 }
+  //         ]
+  //       };
+  //       setReportData(reportSample);
+  //
+  //       // Create chart
+  //       createChart(reportSample.dailyData);
+  //     }, 800);
+  //   } catch (error) {
+  //     console.error("Error fetching invoices:", error);
+  //   }
+  // };
+
   const fetchInvoices = async () => {
-    if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
+    if (!token) {
+      console.error("Token is missing");
       return;
     }
 
     try {
-      // Simulate API call
-      setTimeout(() => {
-        const sampleInvoices = [
-          { id: "INV-2023-001", date: "2025-03-12", customer: "John Smith", total: 37.97, items: 3 },
-          { id: "INV-2023-002", date: "2025-03-13", customer: "Mary Jones", total: 42.98, items: 2 },
-          { id: "INV-2023-003", date: "2025-03-14", customer: "Robert Brown", total: 24.99, items: 1 },
-          { id: "INV-2023-004", date: "2025-03-15", customer: "Jane Miller", total: 54.97, items: 3 },
-          { id: "INV-2023-005", date: "2025-03-16", customer: "Sam Wilson", total: 29.98, items: 2 }
-        ];
-        setInvoices(sampleInvoices);
+      console.log("Using token:", token);
 
-        // Sample report data
-        const reportSample = {
-          revenue: 190.89,
-          cost: 95.45,
-          profit: 95.44,
-          dailyData: [
-            { date: '2025-03-12', revenue: 37.97, cost: 18.99, profit: 18.98 },
-            { date: '2025-03-13', revenue: 42.98, cost: 21.49, profit: 21.49 },
-            { date: '2025-03-14', revenue: 24.99, cost: 12.50, profit: 12.49 },
-            { date: '2025-03-15', revenue: 54.97, cost: 27.48, profit: 27.49 },
-            { date: '2025-03-16', revenue: 29.98, cost: 14.99, profit: 14.99 }
-          ]
-        };
-        setReportData(reportSample);
+      const response = await fetch("http://localhost/api/invoice/get_invoices_manager", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        // Create chart
-        createChart(reportSample.dailyData);
-      }, 800);
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          console.error("Failed to fetch invoices (JSON error):", errorData);
+          alert("Failed to fetch invoices: " + (errorData.message || "Unknown error"));
+        } else {
+          const text = await response.text();
+          console.error("Failed to fetch invoices (non-JSON error):", text);
+          alert("Failed to fetch invoices: Non-JSON error returned from server");
+        }
+        return;
+      }
+
+      // ✅ Safe to parse JSON now
+      const data = await response.json();
+
+      const parsedInvoices = data.map((invoice) => ({
+        id: invoice.invoice_id,
+        date: invoice.invoice_date.split(' ')[0],
+        customer: invoice.delivery_address,
+        items: 1, // Placeholder: adjust if real item count is available
+        total: parseFloat(invoice.total_price),
+      }));
+
+      setInvoices(parsedInvoices);
+
+      const reportData = {
+        revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
+        cost: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
+        profit: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
+        dailyData: parsedInvoices.reduce((acc, inv) => {
+          const date = inv.date;
+          const existing = acc.find(d => d.date === date);
+          const revenue = inv.total;
+          const cost = revenue * 0.5;
+          const profit = revenue - cost;
+
+          if (existing) {
+            existing.revenue += revenue;
+            existing.cost += cost;
+            existing.profit += profit;
+          } else {
+            acc.push({ date, revenue, cost, profit });
+          }
+
+          return acc;
+        }, []),
+      };
+
+      setReportData(reportData);
+      createChart(reportData.dailyData);
+
     } catch (error) {
-      console.error("Error fetching invoices:", error);
+      console.error("Unexpected error fetching invoices:", error);
+      alert("Unexpected error fetching invoices");
     }
   };
+
 
   const createChart = (data) => {
     // Destroy previous chart if it exists
