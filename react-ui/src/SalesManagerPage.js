@@ -3,6 +3,7 @@ import './SalesManagerPage.css';
 import { useAuth } from './context/AuthContext';
 import Chart from 'chart.js/auto';
 import Navbar from "./components/Navbar.jsx";
+import PdfViewer from './components/pdfView.js';
 
 const SalesManager = () => {
   const { token } = useAuth();
@@ -76,6 +77,9 @@ const SalesManager = () => {
   const [refundRequests, setRefundRequests] = useState([]);
   const [refundIsLoading, setRefundIsLoading] = useState(false);
 
+  const [pdfUrl, setPdfUrl] = useState(null);
+const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+
   // ---------- API CALLS ----------
 
   // // API calls for pricing
@@ -106,12 +110,9 @@ const SalesManager = () => {
       "Content-Type": "application/json",
     };
 
-    let url = "http://localhost/api/invoice/get_invoices_manager";
-    // Add query parameters for date filtering if provided
-    if (startDate && endDate) {
-      url += `?start_date=${startDate}&end_date=${endDate}`;
-    }
-
+    // Always fetch all invoices since backend doesn't support date filtering
+    const url = "http://localhost/api/invoice/get_invoices_manager";
+    
     const response = await fetch(url, {
       method: "GET",
       headers,
@@ -121,15 +122,51 @@ const SalesManager = () => {
       const data = await response.json();
       
       // Map the response to the format you need
-      const mappedOrders = data.map((invoice) => ({
-        id: invoice.invoice_id,
-        orderId: invoice.order_id || invoice.invoice_id,
-        customer: invoice.delivery_address || `User ${invoice.user_id}`,
-        products: invoice.items || [{name: "Book", quantity: 1}], // Adjust based on your actual data structure
-        date: invoice.invoice_date?.split(' ')[0] || new Date().toLocaleDateString(),
-        total: parseFloat(invoice.total_price),
-        status: invoice.status || "Completed"
-      }));
+      // Modified part of fetchOrders function
+let mappedOrders = [];
+const orderMap = new Map();
+
+data.forEach((invoice) => {
+  // Use order_id as the primary key for aggregation, fall back to invoice_id if needed
+  const orderId = invoice.order_id || invoice.invoice_id;
+  
+  if (orderMap.has(orderId)) {
+    // If we've already seen this order, update the total
+    const existingOrder = orderMap.get(orderId);
+    existingOrder.total += parseFloat(invoice.total_price || 0);
+    
+    // We could add new items here if needed
+    // existingOrder.products.push(...(invoice.items || []));
+  } else {
+    // Create new order entry
+    const newOrder = {
+      id: invoice.invoice_id,
+      orderId: orderId,
+      customer: extractCustomerName(invoice.delivery_address) || `User ${invoice.user_id}`,
+      products: invoice.items || [{name: "Book", quantity: 1}],
+      date: invoice.invoice_date?.split(' ')[0] || new Date().toLocaleDateString(),
+      total: parseFloat(invoice.total_price || 0),
+      status: invoice.status || "Completed"
+    };
+    orderMap.set(orderId, newOrder);
+  }
+});
+
+// Convert Map to array
+mappedOrders = Array.from(orderMap.values());
+      
+      // Filter orders on client-side if date range is provided
+      if (startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        // Set endDateObj to end of day
+        endDateObj.setHours(23, 59, 59, 999);
+        
+        mappedOrders = mappedOrders.filter(order => {
+          const orderDate = new Date(order.date);
+          return orderDate >= startDateObj && orderDate <= endDateObj;
+        });
+      }
       
       setOrders(mappedOrders);
       return mappedOrders;
@@ -144,6 +181,17 @@ const SalesManager = () => {
   } finally {
     setIsLoadingOrders(false);
   }
+};
+
+const extractCustomerName = (address) => {
+  if (!address) return null;
+  // Try to extract a name from the beginning of the address
+  // This assumes the format is usually "Name, Address"
+  const parts = address.split(',');
+  if (parts.length > 0) {
+    return parts[0].trim();
+  }
+  return address;
 };
 
 const handleFilterOrders = () => {
@@ -183,7 +231,63 @@ const handleFilterOrders = () => {
     }
   };
 
+const fetchInvoicePdf = async (invoiceId) => {
+  try {
+    // First attempt to fetch as a manager
+    const response = await fetch(`http://localhost/api/invoice/get_invoice_pdf/${invoiceId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (response.ok) {
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      setPdfUrl(objectUrl);
+      setSelectedInvoiceId(invoiceId);
+    } else {
+      // If that fails, we might need to try a different approach
+      const errorText = await response.text();
+      console.error("Failed to fetch invoice PDF:", errorText);
+      
+      // Try a different endpoint specifically for managers
+      try {
+        // This assumes you have or will create a manager-specific endpoint
+        const managerResponse = await fetch(`http://localhost/api/invoice/get_manager_invoice_pdf/${invoiceId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (managerResponse.ok) {
+          const blob = await managerResponse.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          setPdfUrl(objectUrl);
+          setSelectedInvoiceId(invoiceId);
+        } else {
+          alert("Failed to load invoice PDF - you may not have permission to view this invoice");
+        }
+      } catch (innerError) {
+        console.error("Error fetching manager invoice PDF:", innerError);
+        alert("Error loading invoice PDF - backend service may be unavailable");
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching invoice PDF:", error);
+    alert("Error loading invoice PDF - check console for details");
+  }
+};
 
+// Add a cleanup effect to release object URLs when component unmounts
+useEffect(() => {
+  return () => {
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+    }
+  };
+}, []);
 
   const updatePrice = async (token, productId, price) => {
     const headers = {
@@ -1161,16 +1265,50 @@ const handleFilterOrders = () => {
                     </td>
                     <td>
                       <button 
-                        className="sm-btn-view"
-                        onClick={() => alert(`View invoice for order ${order.orderId}`)}
-                      >
-                        View Invoice
-                      </button>
+                      className="sm-btn-view"
+                      onClick={() => fetchInvoicePdf(order.id)}
+                    >
+                      View Invoice
+                    </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {/* Invoice PDF Modal */}
+
+
+
+                {selectedInvoiceId && pdfUrl && (
+  <div className="invoice-modal">
+    <div className="invoice-modal-content">
+      <div className="invoice-modal-header">
+        <h3>Invoice #{selectedInvoiceId}</h3>
+        <button 
+          className="invoice-modal-close"
+          onClick={() => {
+            setSelectedInvoiceId(null);
+            URL.revokeObjectURL(pdfUrl);
+            setPdfUrl(null);
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div className="invoice-modal-body">
+        <PdfViewer pdfUrl={pdfUrl} />
+      </div>
+      <div className="invoice-modal-footer">
+        <button
+          className="sm-btn-save"
+          onClick={() => window.open(pdfUrl, '_blank')}
+        >
+          Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+)}
           </div>
         )}
       </>
