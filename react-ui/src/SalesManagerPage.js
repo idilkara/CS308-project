@@ -66,6 +66,12 @@ const SalesManager = () => {
   //const [invoices, setInvoices] = useState([]);
   const [chartInstance, setChartInstance] = useState(null);
 
+  //State for orders/invoices
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [orderStartDate, setOrderStartDate] = useState('');
+  const [orderEndDate, setOrderEndDate] = useState('');
+
   // State for refunds
   const [refundRequests, setRefundRequests] = useState([]);
   const [refundIsLoading, setRefundIsLoading] = useState(false);
@@ -91,6 +97,64 @@ const SalesManager = () => {
   //     setPricingIsLoading(false);
   //   }
   // };
+
+  const fetchOrders = async (token, startDate = null, endDate = null) => {
+  setIsLoadingOrders(true);
+  try {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    let url = "http://localhost/api/invoice/get_invoices_manager";
+    // Add query parameters for date filtering if provided
+    if (startDate && endDate) {
+      url += `?start_date=${startDate}&end_date=${endDate}`;
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Map the response to the format you need
+      const mappedOrders = data.map((invoice) => ({
+        id: invoice.invoice_id,
+        orderId: invoice.order_id || invoice.invoice_id,
+        customer: invoice.delivery_address || `User ${invoice.user_id}`,
+        products: invoice.items || [{name: "Book", quantity: 1}], // Adjust based on your actual data structure
+        date: invoice.invoice_date?.split(' ')[0] || new Date().toLocaleDateString(),
+        total: parseFloat(invoice.total_price),
+        status: invoice.status || "Completed"
+      }));
+      
+      setOrders(mappedOrders);
+      return mappedOrders;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to fetch orders:", errorData.error || "Unknown error");
+      return { error: errorData.error || "Failed to fetch orders" };
+    }
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return { error: "An unexpected error occurred" };
+  } finally {
+    setIsLoadingOrders(false);
+  }
+};
+
+const handleFilterOrders = () => {
+  console.log(orderStartDate, orderEndDate);
+  if (!orderStartDate || !orderEndDate) {
+    alert("Please select both start and end dates");
+    return;
+  }
+  
+  fetchOrders(token, orderStartDate, orderEndDate);
+};
 
   const fetchNewProducts = async (token) => {
     const headers = {
@@ -642,6 +706,12 @@ const SalesManager = () => {
             setAllProducts(fetchedAllProducts);
           }
           break;
+
+          // In your existing useEffect where you load data for different sections
+        case 'invoices':
+          fetchOrders(token);
+          break;
+
         case 'refunds':
           const fetchedRefunds = await fetchRefundRequests(token);
           if (fetchedRefunds && !fetchedRefunds.error) {
@@ -1024,6 +1094,89 @@ const SalesManager = () => {
                 )}
               </div>
           )}
+
+          {/* Orders & Invoices Section */}
+{activeSection === 'invoices' && (
+  <div className="invoices-section">
+    <h2 className="source-sans-semibold">Orders & Invoices</h2>
+    
+    {/* Date filtering */}
+    <div className="sm-date-selector">
+      <div className="sm-form-group">
+        <label>Start Date</label>
+        <input
+          type="date"
+          value={orderStartDate}
+          onChange={(e) => setOrderStartDate(e.target.value)}
+        />
+      </div>
+      <div className="sm-form-group">
+        <label>End Date</label>
+        <input
+          type="date"
+          value={orderEndDate}
+          onChange={(e) => setOrderEndDate(e.target.value)}
+        />
+      </div>
+      <button onClick={handleFilterOrders} className="sm-btn-generate">Filter Orders</button>
+    </div>
+
+    {isLoadingOrders ? (
+      <div className="sm-loading">
+        <p>Loading orders data...</p>
+      </div>
+    ) : (
+      <>
+        <div className="sm-orders-header">
+          <h3 className="source-sans-semibold">Order Management</h3>
+          <p className="source-sans-light">View and manage customer orders</p>
+        </div>
+
+        {orders.length === 0 ? (
+          <p className="source-sans-regular">No orders found.</p>
+        ) : (
+          <div className="sm-orders-table-container">
+            <table className="sm-orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(order => (
+                  <tr key={order.id}>
+                    <td>{order.orderId}</td>
+                    <td>{order.customer}</td>
+                    <td>{order.date}</td>
+                    <td>${order.total.toFixed(2)}</td>
+                    <td>
+                      <span className={`status-badge status-${order.status.toLowerCase()}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button 
+                        className="sm-btn-view"
+                        onClick={() => alert(`View invoice for order ${order.orderId}`)}
+                      >
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
 
           {/* Refunds Section */}
           {activeSection === 'refunds' && (

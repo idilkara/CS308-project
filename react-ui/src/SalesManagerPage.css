@@ -395,3 +395,66 @@
     opacity: 0.6;
     pointer-events: none; /* discounted products cannot be clicked again */
 }
+
+.sm-orders-table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.sm-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.sm-orders-table th,
+.sm-orders-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.sm-orders-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.sm-orders-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-completed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-processing {
+  background-color: #cff4fc;
+  color: #055160;
+}
+
+.status-shipped {
+  background-color: #e2e3e5;
+  color: #41464b;
+}
+
+.sm-btn-view {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.sm-btn-view:hover {
+  background-color: #5a6268;
+}
