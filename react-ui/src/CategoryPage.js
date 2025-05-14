@@ -27,8 +27,14 @@ const CategoryPage = () => {
     useEffect(() => {
       if (categoryQuery != "") {
         console.log("Category from state:", categoryQuery);
-        // Instead of setting active category, add to selectedCategories
-        setSelectedCategories(prev => [...prev, categoryQuery]);
+        // Reset categories and only use the one from the query
+        setSelectedCategories([categoryQuery]);
+        
+        // Open the categories dropdown
+        setDropdowns(prev => ({
+          ...prev,
+          categories: true
+        }));
       }
     }, [categoryQuery]);
 
@@ -472,11 +478,22 @@ const addToCart = async (event, book) => {
    
     // Apply category filter - modified to handle multiple categories
     if (!selectedCategories.includes('All')) {
-      filtered = filtered.filter(product =>
-        // Check if product.categories array contains any of the selected categories
-        product.categories && Array.isArray(product.categories) &&
-        product.categories.some(category => selectedCategories.includes(category))
-      );
+      filtered = filtered.filter(product => {
+        // Check if product.categories exists and is an array
+        if (product.categories && Array.isArray(product.categories)) {
+          return product.categories.some(category => selectedCategories.includes(category));
+        }
+        // If categories is a string (comma-separated list), split it and check
+        else if (product.categories && typeof product.categories === 'string') {
+          const categoriesArray = product.categories.split(',').map(cat => cat.trim());
+          return categoriesArray.some(category => selectedCategories.includes(category));
+        }
+        // Handle case where categories might be in a different property
+        else if (product.category) {
+          return selectedCategories.includes(product.category);
+        }
+        return false;
+      });
     }
    
     // Apply price range filter

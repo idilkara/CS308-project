@@ -63,7 +63,7 @@ const SalesManager = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportData, setReportData] = useState(null);
-  const [invoices, setInvoices] = useState([]);
+  //const [invoices, setInvoices] = useState([]);
   const [chartInstance, setChartInstance] = useState(null);
 
   // State for refunds
@@ -353,7 +353,7 @@ const SalesManager = () => {
   //   }
   // };
 
-  const fetchInvoices = async () => {
+  const generateAnalyticsReport = async () => {
     if (!token) {
       console.error("Token is missing");
       return;
@@ -396,7 +396,7 @@ const SalesManager = () => {
         total: parseFloat(invoice.total_price),
       }));
 
-      setInvoices(parsedInvoices);
+     // setInvoices(parsedInvoices);
 
       const reportData = {
         revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
@@ -714,7 +714,7 @@ const SalesManager = () => {
       alert(`Error: ${result.error}`);
     }
   };
-
+/*
   const handleSaveInvoicePDF = (invoiceId) => {
     // In a real app, this would trigger a PDF download
     alert(`Saving invoice ${invoiceId} as PDF...`);
@@ -723,7 +723,7 @@ const SalesManager = () => {
   const handlePrintInvoice = (invoiceId) => {
     // In a real app, this would open a print dialog
     alert(`Printing invoice ${invoiceId}...`);
-  };
+  }; */
 
   return (
       <div className="container sales-manager">
@@ -744,11 +744,18 @@ const SalesManager = () => {
           >
             Manage Discounts
           </button>
+          {/* REPORTS = ANALYTICS  */}
           <button
               className={`sm-tab source-sans-semibold ${activeSection === 'reports' ? 'active' : ''}`}
               onClick={() => setActiveSection('reports')}
           >
-            Reports & Invoices
+            Analytics
+          </button>
+          <button
+              className={`sm-tab source-sans-semibold ${activeSection === 'invoices' ? 'active' : ''}`}
+              onClick={() => setActiveSection('invoices')}
+          >
+            Orders & Invoices
           </button>
           <button
               className={`sm-tab source-sans-semibold ${activeSection === 'refunds' ? 'active' : ''}`}
@@ -928,7 +935,7 @@ const SalesManager = () => {
           {/* Reports Section */}
           {activeSection === 'reports' && (
               <div className="reports-section">
-                <h2 className="source-sans-semibold">Sales Reports & Invoices</h2>
+                <h2 className="source-sans-semibold">Sales Reports & Analytics</h2>
 
                 <div className="sm-date-selector">
                   <div className="sm-form-group">
@@ -947,7 +954,7 @@ const SalesManager = () => {
                         onChange={(e) => setEndDate(e.target.value)}
                     />
                   </div>
-                  <button onClick={fetchInvoices} className="sm-btn-generate">Generate Report</button>
+                  <button onClick={generateAnalyticsReport} className="sm-btn-generate">Generate Report</button>
                 </div>
 
                 {reportData && (
@@ -970,7 +977,7 @@ const SalesManager = () => {
                       <div className="sm-chart-container">
                         <canvas id="revenue-chart"></canvas>
                       </div>
-
+{/*
                       <h3>Invoice List</h3>
                       <div className="sm-invoice-table-container">
                         <table className="sm-invoice-table">
@@ -1012,7 +1019,7 @@ const SalesManager = () => {
                           ))}
                           </tbody>
                         </table>
-                      </div>
+                      </div> */}
                     </div>
                 )}
               </div>
