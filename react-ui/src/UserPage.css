@@ -1240,6 +1240,88 @@
   cursor: not-allowed;
 }
 
+
+
+/* Notifications Styles */
+.notifications-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.notification-item {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.notification-date {
+  font-size: 12px;
+  color: #777;
+}
+
+.unread-badge {
+  background-color: var(--warm-brown);
+  color: white;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 12px;
+}
+
+.empty-notifications {
+  margin-top: 30px;
+  text-align: center;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.empty-notifications p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.view-product-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: var(--warm-brown);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.view-product-btn:hover {
+  background-color: #8B5A2B;
+}
+
 /* Return Request Button Styles */
 .return-request-btn {
   background-color: #007bff;
