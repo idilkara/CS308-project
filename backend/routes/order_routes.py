@@ -24,14 +24,16 @@ def view_orders():
     cur = conn.cursor()
 
     try:
-        # Get all orders for the user
+        # Get all orders for the user and also get refund status
         cur.execute("""
             SELECT o.order_id, o.order_date, o.total_price, o.status, 
                 oi.product_id, oi.quantity, oi.price, oi.orderitem_id,
-                p.name, p.author, p.distributor_information, oi.status, o.delivery_address
+                p.name, p.author, p.distributor_information, oi.status, o.delivery_address,
+                r.status as refund_status
             FROM userorders o
             JOIN orderitems oi ON o.order_id = oi.order_id
             JOIN products p ON oi.product_id = p.product_id
+            LEFT JOIN refunds r ON oi.orderitem_id = r.orderitem_id
             WHERE o.user_id = %s
             ORDER BY o.order_date DESC
         """, (user_id,))
@@ -63,7 +65,8 @@ def view_orders():
                 "name": order[8], 
                 "author": order[9],  
                 "distributor": order[10], 
-                "orderitem_status": order[11]  
+                "orderitem_status": order[11]  ,
+                "refund_status": order[13]
             })
         if current_order is not None:
             order_list.append(current_order)

@@ -1239,3 +1239,86 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Return Request Button Styles */
+.return-request-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+}
+
+.return-request-btn:hover {
+  background-color: #0069d9;
+}
+
+.return-requested {
+  display: inline-block;
+  background-color: #6c757d;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  margin-top: 8px;
+}
+
+/* For the toast notifications */
+.Toastify__toast-container {
+  width: 320px;
+}
+
+.Toastify__toast--success {
+  background-color: #28a745;
+}
+
+.Toastify__toast--error {
+  background-color: #dc3545;
+
+
+}
+
+
+.return-status {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.return-requested {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.return-approved {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.return-rejected {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.return-request-btn {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.return-request-btn:hover {
+  background-color: #0056b3;
+}

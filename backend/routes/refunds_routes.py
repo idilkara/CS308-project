@@ -33,93 +33,6 @@ from reportlab.lib.units import inch
     # reject return request     (update status)
     # get requests for sales manager 
 
-""""
-# Blueprint oluştur
-refunds_bp = Blueprint("refunds", __name__)
-
-### **Request Return Product**
-@refunds_bp.route("/request_return", methods=["POST"])
-@jwt_required()
-def request_return():
-    try:
-        data = request.json
-        user_id = get_jwt_identity()["user_id"]
-        order_id = data["order_id"]
-        product_id = data["product_id"]
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Check if the order exists and belongs to the user
-        cur.execute("SELECT order_date, status FROM userorders WHERE order_id = %s AND user_id = %s", (order_id, user_id))
-        order = cur.fetchone()
-        if order is None:
-            return jsonify({"error": "Order not found"}), 404
-
-        order_date, status = order
-        if status != 'delivered':
-            return jsonify({"error": "Product has not been delivered yet"}), 400
-
-        # Check if the return request is within 30 days of purchase
-        if datetime.now() > order_date + timedelta(days=30):
-            return jsonify({"error": "Return request is beyond the 30-day return period"}), 400
-
-        # Check if the product is in the order
-        cur.execute("SELECT quantity, price FROM orderitems WHERE order_id = %s AND product_id = %s", (order_id, product_id))
-        order_item = cur.fetchone()
-        if order_item is None:
-            return jsonify({"error": "Product not found in order"}), 404
-
-        quantity, price = order_item
-
-        # Insert return request
-        cur.execute("INSERT INTO return_requests (order_id, product_id, user_id, quantity, price, request_date) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (order_id, product_id, user_id, quantity, price, datetime.now()))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return jsonify({"message": "Return request submitted successfully!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-### **Accept Return Request**
-@refunds_bp.route("/accept_return", methods=["POST"])
-@jwt_required()
-def accept_return():
-    try:
-        data = request.json
-        return_request_id = data["return_request_id"]
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Check if the return request exists
-        cur.execute("SELECT order_id, product_id, quantity, price FROM return_requests WHERE return_request_id = %s", (return_request_id,))
-        return_request = cur.fetchone()
-        if return_request is None:
-            return jsonify({"error": "Return request not found"}), 404
-
-        order_id, product_id, quantity, price = return_request
-
-        # Update product stock
-        cur.execute("UPDATE products SET stock_quantity = stock_quantity + %s WHERE product_id = %s", (quantity, product_id))
-
-        # Update order status to refunded
-        cur.execute("UPDATE refunds SET status = 'refunded' WHERE orderitem_id = %s", (order_id,))
-
-        # Delete the return request
-        cur.execute("DELETE FROM return_requests WHERE return_request_id = %s", (return_request_id,))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return jsonify({"message": "Return request accepted and product added back to stock!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-"""
 
 
 refunds_bp = Blueprint("refunds", __name__)
@@ -272,6 +185,16 @@ def request_refund():
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Check if the order item is already refunded
+    cur.execute("""
+        SELECT COUNT(*) FROM refunds
+        WHERE orderitem_id = %s 
+    """, (orderitem_id,))
+    duplicate_check = cur.fetchone()[0]
+    if duplicate_check > 0:
+        return jsonify({"error": "Request has already been sent"}), 201
+    
+
     cur.execute("""
         SELECT oi.product_id, oi.order_id, oi.status, uo.order_date, oi.price
         FROM orderitems oi
@@ -311,9 +234,14 @@ def request_refund():
 def list_refund_requests():
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # product name de gelsin             "user_name": r[8],   "order_id": r[9],
     cur.execute("""
-        SELECT refund_id, orderitem_id, user_id, product_id, refund_amount, status, request_date
-        FROM refunds
+        SELECT r.refund_id, r.orderitem_id, r.user_id, r.product_id, r.refund_amount, r.status, r.request_date, p.name, u.name, oi.order_id
+        FROM refunds r
+        JOIN orderitems oi ON r.orderitem_id = oi.orderitem_id
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN users u ON r.user_id = u.user_id
         ORDER BY request_date DESC
     """)
     data = cur.fetchall()
@@ -324,11 +252,15 @@ def list_refund_requests():
         {
             "refund_id": r[0],
             "orderitem_id": r[1],
+            "product_name": r[7],
             "user_id": r[2],
             "product_id": r[3],
             "refund_amount": float(r[4]),
             "status": r[5],
-            "request_date": r[6].isoformat()
+            "request_date": r[6].isoformat(),
+            "user_name": r[8],
+            "order_id": r[9],
+            
         } for r in data
     ])
 
@@ -372,14 +304,7 @@ def approve_refund(refund_id):
     if status != "requested":
         return jsonify({'error': 'Refund already processed.'}), 400
 
-    # Bu order item için başka refund işlemi yapılmış mı (ek koruma)?
-    cur.execute("""
-        SELECT COUNT(*) FROM refunds
-        WHERE orderitem_id = %s AND status IN ('approved', 'requested') AND refund_id != %s
-    """, (orderitem_id, refund_id))
-    duplicate_check = cur.fetchone()[0]
-    if duplicate_check > 0:
-        return jsonify({'error': 'A refund request for this item already exists.'}), 400
+    
 
     # İade tutarı hesaplanır (sipariş esnasındaki net fiyat)
     refund_amount = float(price) * quantity

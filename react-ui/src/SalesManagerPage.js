@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import Chart from 'chart.js/auto';
 import Navbar from "./components/Navbar.jsx";
 import PdfViewer from './components/pdfView.js';
+import SalesManagerPageRefunds from './SalesManagerPageRefunds';
 
 const SalesManager = () => {
   const { token } = useAuth();
@@ -713,86 +714,8 @@ useEffect(() => {
   //   }
   // };
 
-  const fetchRefundRequests = async (token) => {
-    setRefundIsLoading(true);
-    try {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
 
-      const response = await fetch("http://localhost/api/refunds/get_all_requests", {
-        method: "GET",
-        headers,
-      });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Refund requests fetched:", result);
-        setRefundRequests(result); // assuming result is an array of refund requests
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to fetch refund requests:", errorData.error || "Unknown error");
-      }
-    } catch (error) {
-      console.error("Error fetching refund requests:", error);
-    } finally {
-      setRefundIsLoading(false);
-    }
-  };
-
-  const handleRefundAction = async (refundId, action) => {
-    try {
-      if (action === 'approve') {
-        const headers = {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        };
-
-        const response = await fetch("http://localhost/api/refunds/accept_return", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ return_request_id: refundId }),
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log("Refund approved:", result);
-
-          // Update local state to mark it as approved
-          setRefundRequests(prevRequests =>
-              prevRequests.map(request =>
-                  request.id === refundId
-                      ? { ...request, status: "approved" }
-                      : request
-              )
-          );
-
-          alert(`Refund #${refundId} approved. Stock has been updated and customer has been notified.`);
-          return { success: true };
-        } else {
-          const errorData = await response.json();
-          console.error("Failed to approve refund:", errorData.error || "Unknown error");
-          alert(`Error approving refund: ${errorData.error || "Unknown error"}`);
-          return { error: errorData.error || "Failed to approve refund" };
-        }
-      } else {
-        // If rejected — just update local state without calling backend (no reject API exists)
-        setRefundRequests(prevRequests =>
-            prevRequests.map(request =>
-                request.id === refundId
-                    ? { ...request, status: "rejected" }
-                    : request
-            )
-        );
-        alert(`Refund #${refundId} rejected. Customer has been notified.`);
-        return { success: true };
-      }
-    } catch (error) {
-      console.error("Error processing refund:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
 
   // Load data when section changes
   useEffect(() => {
@@ -817,10 +740,6 @@ useEffect(() => {
           break;
 
         case 'refunds':
-          const fetchedRefunds = await fetchRefundRequests(token);
-          if (fetchedRefunds && !fetchedRefunds.error) {
-            setRefundRequests(fetchedRefunds);
-          }
           break;
         default:
           break;
@@ -1318,76 +1237,7 @@ useEffect(() => {
 
           {/* Refunds Section */}
           {activeSection === 'refunds' && (
-              <div className="refunds-section">
-                <h2 className="source-sans-semibold">Manage Refund Requests</h2>
-
-                {refundIsLoading ? (
-                    <div className="sm-loading">
-                      <p>Loading refund requests...</p>
-                    </div>
-                ) : refundRequests.length === 0 ? (
-                    <div className="sm-no-refunds">
-                      <p>No pending refund requests at this time.</p>
-                    </div>
-                ) : (
-                    <div className="sm-refund-table-container">
-                      <table className="sm-refund-table">
-                        <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Order</th>
-                          <th>Customer</th>
-                          <th>Product</th>
-                          <th>Purchase Date</th>
-                          <th>Price</th>
-                          <th>Reason</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {refundRequests.map(request => (
-                            <tr key={request.id} className={`status-${request.status}`}>
-                              <td>{request.id}</td>
-                              <td>{request.orderId}</td>
-                              <td>{request.customer}</td>
-                              <td>{request.product}</td>
-                              <td>{request.purchaseDate}</td>
-                              <td>
-                                ${request.purchasePrice.toFixed(2)}
-                                {request.discounted && (
-                                    <span className="discounted-price">
-                            (was ${request.originalPrice.toFixed(2)})
-                          </span>
-                                )}
-                              </td>
-                              <td>{request.reason}</td>
-                              <td>{request.status}</td>
-                              <td>
-                                {request.status === 'pending' && (
-                                    <div className="sm-refund-actions">
-                                      <button
-                                          className="sm-btn-approve"
-                                          onClick={() => handleRefundAction(request.id, 'approve')}
-                                      >
-                                        Approve
-                                      </button>
-                                      <button
-                                          className="sm-btn-reject"
-                                          onClick={() => handleRefundAction(request.id, 'reject')}
-                                      >
-                                        Reject
-                                      </button>
-                                    </div>
-                                )}
-                              </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                      </table>
-                    </div>
-                )}
-              </div>
+              <SalesManagerPageRefunds token={token} />
           )}
         </div>
       </div>

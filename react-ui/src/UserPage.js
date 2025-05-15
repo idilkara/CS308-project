@@ -3,6 +3,8 @@ import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth, useSetRole } from "./context/AuthContext";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
   const UserAccountPage = () => {
 
@@ -41,6 +43,9 @@ import { useAuth, useSetRole } from "./context/AuthContext";
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [orderTab, setOrderTab] = useState('all');
     const [activeTab, setActiveTab] = useState('profile');
+
+    // Add this new state for return request handling
+    const [returnRequested, setReturnRequested] = useState([]);
 
     //CHECKS FOR THE TOKEN
     // useEffect to handle token validation and user info fetching
@@ -561,14 +566,6 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                             </div>
                         </div>
 
-                        {/* <div className="card-actions">
-                            <button 
-                                className="delete-btn"
-                                onClick={deletePaymentMethod}
-                            >
-                                Remove
-                            </button>
-                        </div> */}
                     </div>
                 ) : (
                     <div className="empty-payment-methods">
@@ -760,8 +757,6 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                 <div className="info-value">{userData.email}</div>
             </div>
             
-           
-            
             <div className="address-block">
                 <div className="info-label">
                     Delivery Address 
@@ -775,6 +770,60 @@ import { useAuth, useSetRole } from "./context/AuthContext";
         <button className="edit-button" onClick={toggleEditMode}>Edit Profile</button>
         </>
     );
+    };
+
+    // Add the requestRefund function
+    const requestRefund = async (orderItemId) => {
+        if (!orderItemId) {
+            console.error('Invalid orderItemId:', orderItemId);
+            return;
+        }
+
+        try {
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            };
+            
+            const data = { orderitem_id: orderItemId };
+            
+            console.log('Sending refund request for item:', orderItemId);
+            
+            const response = await fetch("http://localhost/api/refunds/request-refund", {
+                method: "POST",
+                headers,
+                body: JSON.stringify(data)
+            });
+            
+            if (response.status === 201) {
+                const result = await response.json();
+                console.log('Refund request successful:', result);
+                
+                // Update order history to reflect the new refund status
+                setOrderHistory(prevOrders => 
+                    prevOrders.map(order => ({
+                        ...order,
+                        items: order.items.map(item => 
+                            item.orderitem_id === orderItemId 
+                                ? { ...item, refund_status: 'requested' }
+                                : item
+                        )
+                    }))
+                );
+                
+                //toast.success("Return request submitted successfully!");
+                return result;
+            } else {
+                const errorData = await response.json();
+                console.error('Refund request failed:', errorData);
+                toast.error(errorData.error || "Failed to request return");
+                return { error: errorData.error || "Failed to request return" };
+            }
+        } catch (error) {
+            console.error("Error requesting return:", error);
+            toast.error("An unexpected error occurred");
+            return { error: "An unexpected error occurred" };
+        }
     };
 
     return (
@@ -882,6 +931,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                                     {order.items.map(item => {
                                         const imageSrc = `assets/covers/${item.name ? item.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`;
                                         const capitalizedStatus = item.orderitem_status.charAt(0).toUpperCase() + item.orderitem_status.slice(1);
+                                        const canRequestReturn = item.orderitem_status === 'delivered' && !returnRequested.includes(item.orderitem_id);
 
                                         return (
                                             <div key={item.orderitem_id} className="order-item">
@@ -895,6 +945,88 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                                                         <span className="item-quantity">Qty: {item.quantity}</span>
                                                         <span className="item-status">Status: {capitalizedStatus}</span>
                                                     </div>
+                                                    {(() => {
+                                                        // Debug logging
+                                                        console.log('Rendering order item:', {
+                                                            itemId: item?.orderitem_id,
+                                                            status: item?.orderitem_status,
+                                                            refundStatus: item?.refund_status,
+                                                            returnRequested: returnRequested
+                                                        });
+
+                                                        // Early return if item is invalid
+                                                        if (!item || !item.orderitem_id) {
+                                                            console.log('Invalid item, returning null');
+                                                            return null;
+                                                        }
+
+                                                        // Determine if return can be requested
+                                                        const isDelivered = item.orderitem_status === 'delivered';
+                                                        const isAlreadyRequested = item.refund_status === 'requested' || 
+                                                                                  item.refund_status === 'approved' ||
+                                                                                  item.refund_status === 'rejected';
+
+                                                        console.log('Status check:', { isDelivered, isAlreadyRequested });
+
+                                                        // Handle the refund request
+                                                        const handleRefundRequest = (e) => {
+                                                            if (e) {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                            }
+                                                            requestRefund(item.orderitem_id);
+                                                        };
+
+                                                        // Render appropriate content based on refund status
+                                                        if (isDelivered && !isAlreadyRequested) {
+                                                            return (
+                                                                <button 
+                                                                    className="return-request-btn"
+                                                                    onClick={handleRefundRequest}
+                                                                >
+                                                                    Request Return
+                                                                </button>
+                                                            );
+                                                        }
+
+                                                        // Show status message if already requested
+                                                        if (isAlreadyRequested) {
+                                                            let statusMessage = '';
+                                                            let statusClass = '';
+
+                                                            switch (item.refund_status) {
+                                                                case 'requested':
+                                                                    statusMessage = 'Return Requested';
+                                                                    statusClass = 'return-requested';
+                                                                    break;
+                                                                case 'approved':
+                                                                    statusMessage = 'Return Approved';
+                                                                    statusClass = 'return-approved';
+                                                                    break;
+                                                                case 'rejected':
+                                                                    statusMessage = 'Return Rejected';
+                                                                    statusClass = 'return-rejected';
+                                                                    break;
+                                                                default:
+                                                                    statusMessage = 'Return Requested';
+                                                                    statusClass = 'return-requested';
+                                                            }
+
+                                                            return (
+                                                                <span className={`return-status ${statusClass}`}>
+                                                                    {statusMessage}
+                                                                </span>
+                                                            );
+                                                        }
+
+                                                        // Default case
+                                                        return (
+                                                            <div>
+                                                        
+                                                            </div>
+                                                        );
+                                                    }
+                                                    )()}
                                                 </div>
                                             </div>
                                         );
@@ -943,13 +1075,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                                             >
                                                 <span className="heart-filled">♥</span>
                                             </button>
-                                            {/* <button 
-                                                className="cart-btn" 
-                                                onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
-                                                disabled={isOutOfStock}
-                                            >
-                                                <span>🛒</span>
-                                            </button> */}
+                              
                                         </div>
                                         <div className="grid-item-content">
                                             <img
@@ -1055,6 +1181,7 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                 </div>
             </div>
             </div>
+            <ToastContainer position="bottom-right" autoClose={3000} />
         </div>
     );
 };
