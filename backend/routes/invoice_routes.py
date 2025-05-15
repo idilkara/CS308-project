@@ -136,6 +136,41 @@ def get_invoices_manager():
 
 
 
+@invoice_bp.route("/get_invoice_pdf_manager/<invoiceID>", methods=["GET"])
+@jwt_required()
+def get_invoice_pdf_manager(invoiceID):
+
+    user_id = get_jwt_identity()
+    logging.info(f"User ID: {user_id}")
+    logging.info(f"Invoice ID: {invoiceID}")
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT pdf_file 
+        FROM managerinvoices
+        WHERE invoice_id = %s AND manager_id = %s  
+    """, (invoiceID, user_id))
+
+    result = cur.fetchone()
+    logging.info(f"Fetched invoice data: {result}")
+    cur.close()
+    conn.close()
+
+    if result is None:
+        return {"message": "Invoice not found or not authorized"}, 401
+
+    pdf_data = result[0]
+
+    return Response(
+        pdf_data,
+        mimetype='application/pdf',
+        headers={
+            "Content-Disposition": f'inline; filename=invoice_{invoiceID}.pdf'
+        }
+    )
+
+
 @invoice_bp.route("/generate_invoice", methods=["POST"])
 @jwt_required()
 def generate_invoice():

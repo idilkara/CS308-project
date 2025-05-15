@@ -234,7 +234,7 @@ const handleFilterOrders = () => {
 const fetchInvoicePdf = async (invoiceId) => {
   try {
     // First attempt to fetch as a manager
-    const response = await fetch(`http://localhost/api/invoice/get_invoice_pdf/${invoiceId}`, {
+    const response = await fetch(`http://localhost/api/invoice/get_invoice_pdf_manager/${invoiceId}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -254,7 +254,7 @@ const fetchInvoicePdf = async (invoiceId) => {
       // Try a different endpoint specifically for managers
       try {
         // This assumes you have or will create a manager-specific endpoint
-        const managerResponse = await fetch(`http://localhost/api/invoice/get_manager_invoice_pdf/${invoiceId}`, {
+        const managerResponse = await fetch(`http://localhost/api/invoice/get_invoice_pdf_manager/${invoiceId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
