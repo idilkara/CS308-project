@@ -210,3 +210,118 @@ def checkout():
     finally:
         cur.close()
         conn.close()
+
+
+#cancel order
+
+@order_bp.route("/cancel_order/<int:order_id>", methods=["POST"])
+@jwt_required()
+def cancel_order(order_id):
+    user_id = get_jwt_identity()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Check if the order belongs to the user
+        cur.execute("SELECT user_id FROM userorders WHERE order_id = %s", (order_id,))
+        order = cur.fetchone()
+        if not order or order[0] != user_id:
+            return jsonify({"error": "Order not found or unauthorized"}), 403
+        
+        # Check if the order is in the processing state
+        cur.execute("SELECT status FROM userorders WHERE order_id = %s", (order_id,))
+        status = cur.fetchone()[0]
+        if status != 'processing':
+            return jsonify({"error": "Order is not in the processing state"}), 400
+        
+        # Update the order status to cancelled
+        cur.execute("UPDATE userorders SET status = 'cancelled' WHERE order_id = %s", (order_id,))
+
+
+        #update the overall order status to cancelled if all orderitems in the order are cancelled 
+        #check if all orderitems are cancelled
+     
+        cur.execute("SELECT status FROM orderitems WHERE order_id = %s", (order_id,))
+        order_status = [status[0] for status in cur.fetchall()]
+
+        # Determine new status for userorders
+        if "processing" not in order_status and "delivered" not in order_status and "in-transit" not in order_status :
+            log.info("All orderitems are cancelled, updating order status to cancelled")
+            cur.execute("UPDATE userorders SET status = 'cancelled' WHERE order_id = %s", (order_id,))
+
+
+        #increment the stock of the product - orderitem is cancelled
+        # get product id of the orderitem
+        cur.execute("SELECT product_id FROM orderitems WHERE order_id = %s", (order_id,))
+        product_id = cur.fetchone()[0]
+        # increment the stock of the product
+        cur.execute("UPDATE products SET stock_quantity = stock_quantity + %s WHERE product_id = %s", (1, product_id))
+
+
+        conn.commit()
+        return jsonify({"message": "Order cancelled successfully"}), 200
+    
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Order cancellation failed: {str(e)}"}), 500
+    
+
+
+
+#cancel orderitem
+@order_bp.route("/cancel_orderitem/<int:orderitem_id>", methods=["POST"])
+@jwt_required()
+def cancel_orderitem(orderitem_id):
+    user_id = get_jwt_identity()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Check if the order item belongs to an order that belongs to the user
+        cur.execute("""
+            SELECT o.user_id 
+            FROM orderitems oi
+            JOIN userorders o ON oi.order_id = o.order_id
+            WHERE oi.orderitem_id = %s
+        """, (orderitem_id,))
+        order = cur.fetchone()
+        if not order or int(order[0]) != int(user_id):
+            return jsonify({"error": "Order item not found or unauthorized"}), 403
+
+        # Check if the order item is in the processing state
+        cur.execute("SELECT status FROM orderitems WHERE orderitem_id = %s", (orderitem_id,))
+        status = cur.fetchone()[0]
+        if status != 'processing':
+            return jsonify({"error": "Order item is not in the processing state"}), 400
+        
+        # Update the order item status to cancelled
+        cur.execute("UPDATE orderitems SET status = 'cancelled' WHERE orderitem_id = %s", (orderitem_id,))
+        # Get order_id and product_id for the cancelled orderitem
+        cur.execute("""
+            SELECT order_id, product_id 
+            FROM orderitems 
+            WHERE orderitem_id = %s
+        """, (orderitem_id,))
+        result = cur.fetchone()
+        order_id, product_id = result
+
+        # Check if all orderitems in this order are cancelled
+        cur.execute("SELECT status FROM orderitems WHERE order_id = %s", (order_id,))
+        order_status = [status[0] for status in cur.fetchall()]
+
+        # Update order status to cancelled if all items are cancelled
+        if "processing" not in order_status and "delivered" not in order_status and "in-transit" not in order_status:
+            log.info("All orderitems are cancelled, updating order status to cancelled")
+            cur.execute("UPDATE userorders SET status = 'cancelled' WHERE order_id = %s", (order_id,))
+
+        # Increment the stock quantity for the cancelled item
+        cur.execute("UPDATE products SET stock_quantity = stock_quantity + %s WHERE product_id = %s", (1, product_id))
+
+
+        conn.commit()
+        return jsonify({"message": "Order item cancelled successfully"}), 200
+    
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Order item cancellation failed: {str(e)}"}), 500
+    

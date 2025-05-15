@@ -1480,3 +1480,24 @@
   max-width: 800px;
   margin: 0 auto;
 }
+
+.cancel-order-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-top: 8px;
+}
+
+.cancel-order-btn:hover {
+    background-color: #c82333;
+}
+
+.cancel-order-btn:active {
+    background-color: #bd2130;
+}

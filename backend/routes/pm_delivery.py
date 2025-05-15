@@ -116,6 +116,12 @@ def update_status(orderproduct_id):
 
         if not cur.fetchone():
             return jsonify({"error": "Unauthorized access"}), 403
+        
+        #check if the order not cancelled
+        cur.execute("SELECT status FROM orderitems WHERE orderitem_id = %s", (orderproduct_id,))
+        order_status = cur.fetchone()[0]
+        if order_status == "cancelled":
+            return jsonify({"error": "Order is already cancelled"}), 400
 
         # Update the order item status
         cur.execute("""

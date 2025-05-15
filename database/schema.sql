@@ -101,7 +101,7 @@ CREATE TABLE userorders (
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_price DECIMAL(10,2) NOT NULL,
     delivery_address TEXT NOT NULL,
-    status VARCHAR(50) CHECK (status IN ('processing', 'in-transit', 'delivered')) DEFAULT 'processing',
+    status VARCHAR(50) CHECK (status IN ('processing', 'in-transit', 'delivered', 'cancelled')) DEFAULT 'processing',
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
@@ -111,7 +111,7 @@ CREATE TABLE orderitems (
     product_id INT,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL, --final price --if  was applied it affected it already
-    status VARCHAR(50) CHECK (status IN ('processing', 'in-transit', 'delivered')) DEFAULT 'processing',
+    status VARCHAR(50) CHECK (status IN ('processing', 'in-transit', 'delivered', 'cancelled')) DEFAULT 'processing',
     FOREIGN KEY (order_id) REFERENCES userorders(order_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
     
