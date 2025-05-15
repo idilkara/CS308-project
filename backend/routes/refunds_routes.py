@@ -314,6 +314,7 @@ def approve_refund(refund_id):
                 (refund_amount, refund_id))
     cur.execute("UPDATE products SET stock_quantity = stock_quantity + %s WHERE product_id = %s",
                 (quantity, product_id))
+    
     conn.commit()
 
     # PDF oluştur
