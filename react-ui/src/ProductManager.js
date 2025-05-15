@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ProductManager.css';
 import { useAuth } from './context/AuthContext';
 import Navbar from "./components/Navbar.jsx";
+import PdfViewer from './components/pdfView.js';
 
 const ProductManager = () => {
 
@@ -82,6 +83,184 @@ const ProductManager = () => {
   const [comments, setComments] = useState([]);
   const [commentIsLoading, setCommentIsLoading] = useState(false);
   const [commentFilter, setCommentFilter] = useState('pending'); // 'pending', 'approved', 'rejected', 'all'
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [orderStartDate, setOrderStartDate] = useState('');
+  const [orderEndDate, setOrderEndDate] = useState('');
+  const [orders, setOrders] = useState([]);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+
+  // Add this useEffect to fetch orders when the invoices tab is selected
+
+
+  const fetchOrders = async (token, startDate = null, endDate = null) => {
+  setIsLoadingOrders(true);
+  try {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    // Always fetch all invoices since backend doesn't support date filtering
+    const url = "http://localhost/api/invoice/get_invoices_manager";
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Map the response to the format you need
+      // Modified part of fetchOrders function
+let mappedOrders = [];
+const orderMap = new Map();
+
+data.forEach((invoice) => {
+  // Use order_id as the primary key for aggregation, fall back to invoice_id if needed
+  const orderId = invoice.order_id || invoice.invoice_id;
+  
+  if (orderMap.has(orderId)) {
+    // If we've already seen this order, update the total
+    const existingOrder = orderMap.get(orderId);
+    existingOrder.total += parseFloat(invoice.total_price || 0);
+    
+    // We could add new items here if needed
+    // existingOrder.products.push(...(invoice.items || []));
+  } else {
+    // Create new order entry
+    const newOrder = {
+      id: invoice.invoice_id,
+      orderId: orderId,
+      customer: extractCustomerName(invoice.delivery_address) || `User ${invoice.user_id}`,
+      products: invoice.items || [{name: "Book", quantity: 1}],
+      date: invoice.invoice_date?.split(' ')[0] || new Date().toLocaleDateString(),
+      total: parseFloat(invoice.total_price || 0),
+      status: invoice.status || "Completed"
+    };
+    orderMap.set(orderId, newOrder);
+  }
+});
+
+// Convert Map to array
+mappedOrders = Array.from(orderMap.values());
+      
+      // Filter orders on client-side if date range is provided
+      if (startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        // Set endDateObj to end of day
+        endDateObj.setHours(23, 59, 59, 999);
+        
+        mappedOrders = mappedOrders.filter(order => {
+          const orderDate = new Date(order.date);
+          return orderDate >= startDateObj && orderDate <= endDateObj;
+        });
+      }
+      
+      setOrders(mappedOrders);
+      return mappedOrders;
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to fetch orders:", errorData.error || "Unknown error");
+      return { error: errorData.error || "Failed to fetch orders" };
+    }
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return { error: "An unexpected error occurred" };
+  } finally {
+    setIsLoadingOrders(false);
+  }
+};
+
+useEffect(() => {
+  if (activeSection === 'invoices') {
+    fetchOrders(token);
+  }
+}, [activeSection, token]);
+
+const extractCustomerName = (address) => {
+  if (!address) return null;
+  // Try to extract a name from the beginning of the address
+  // This assumes the format is usually "Name, Address"
+  const parts = address.split(',');
+  if (parts.length > 0) {
+    return parts[0].trim();
+  }
+  return address;
+};
+
+
+
+  const fetchInvoicePdf = async (invoiceId) => {
+    try {
+      // First attempt to fetch as a manager
+      const response = await fetch(`http://localhost/api/invoice/get_invoice_pdf_manager/${invoiceId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setPdfUrl(objectUrl);
+        setSelectedInvoiceId(invoiceId);
+      } else {
+        // If that fails, we might need to try a different approach
+        const errorText = await response.text();
+        console.error("Failed to fetch invoice PDF:", errorText);
+        
+        // Try a different endpoint specifically for managers
+        try {
+          // This assumes you have or will create a manager-specific endpoint
+          const managerResponse = await fetch(`http://localhost/api/invoice/get_invoice_pdf_manager/${invoiceId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          
+          if (managerResponse.ok) {
+            const blob = await managerResponse.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            setPdfUrl(objectUrl);
+            setSelectedInvoiceId(invoiceId);
+          } else {
+            alert("Failed to load invoice PDF - you may not have permission to view this invoice");
+          }
+        } catch (innerError) {
+          console.error("Error fetching manager invoice PDF:", innerError);
+          alert("Error loading invoice PDF - backend service may be unavailable");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching invoice PDF:", error);
+      alert("Error loading invoice PDF - check console for details");
+    }
+  };
+  
+  // Add a cleanup effect to release object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, []);
+
+  
+const handleFilterOrders = () => {
+  console.log(orderStartDate, orderEndDate);
+  if (!orderStartDate || !orderEndDate) {
+    alert("Please select both start and end dates");
+    return;
+  }
+  
+  fetchOrders(token, orderStartDate, orderEndDate);
+};
 
 
   const createProduct = async (token, productData) => {
@@ -865,6 +1044,12 @@ const ProductManager = () => {
           >
             Manage Comments
           </button>
+          <button
+              className={`pm-tab source-sans-semibold ${activeSection === 'invoices' ? 'active' : ''}`}
+              onClick={() => setActiveSection('invoices')}
+          >
+            View Invoices
+          </button>
         </div>
 
         {/* Content Area */}
@@ -1242,6 +1427,123 @@ const ProductManager = () => {
   </div>
 )}
 
+{/* Manage Invoices Section */}
+
+{activeSection === 'invoices' && (
+  <div className="invoices-section">
+    <h2 className="source-sans-semibold">Orders & Invoices</h2>
+    
+    {/* Date filtering */}
+    <div className="sm-date-selector">
+      <div className="sm-form-group">
+        <label>Start Date</label>
+        <input
+          type="date"
+          value={orderStartDate}
+          onChange={(e) => setOrderStartDate(e.target.value)}
+        />
+      </div>
+      <div className="pm-form-group">
+        <label>End Date</label>
+        <input
+          type="date"
+          value={orderEndDate}
+          onChange={(e) => setOrderEndDate(e.target.value)}
+        />
+      </div>
+      <button onClick={handleFilterOrders} className="sm-btn-generate">Filter Orders</button>
+    </div>
+
+    {isLoadingOrders ? (
+      <div className="sm-loading">
+        <p>Loading orders data...</p>
+      </div>
+    ) : (
+      <>
+        <div className="pm-orders-header">
+          <h3 className="source-sans-semibold">Order Management</h3>
+          <p className="source-sans-light">View and manage customer orders</p>
+        </div>
+
+        {orders.length === 0 ? (
+          <p className="source-sans-regular">No orders found.</p>
+        ) : (
+          <div className="sm-orders-table-container">
+            <table className="sm-orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(order => (
+                  <tr key={order.id}>
+                    <td>{order.orderId}</td>
+                    <td>{order.customer}</td>
+                    <td>{order.date}</td>
+                    <td>${order.total.toFixed(2)}</td>
+                    <td>
+                      <span className={`status-badge status-${order.status.toLowerCase()}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button 
+                      className="sm-btn-view"
+                      onClick={() => fetchInvoicePdf(order.id)}
+                    >
+                      View Invoice
+                    </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Invoice PDF Modal */}
+
+
+
+                {selectedInvoiceId && pdfUrl && (
+  <div className="invoice-modal">
+    <div className="invoice-modal-content">
+      <div className="invoice-modal-header">
+        <h3>Invoice #{selectedInvoiceId}</h3>
+        <button 
+          className="invoice-modal-close"
+          onClick={() => {
+            setSelectedInvoiceId(null);
+            URL.revokeObjectURL(pdfUrl);
+            setPdfUrl(null);
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div className="invoice-modal-body">
+        <PdfViewer pdfUrl={pdfUrl} />
+      </div>
+      <div className="invoice-modal-footer">
+        <button
+          className="sm-btn-save"
+          onClick={() => window.open(pdfUrl, '_blank')}
+        >
+          Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
 
           {/* Manage Comments Section */}
           {activeSection === 'comments' && (

@@ -1070,3 +1070,105 @@ textarea.pm-form-control {
     color: #007bff;
   }
 
+.pm-form-group {
+    margin-bottom: 20px;
+    width: 100% !important;
+    padding-right: 0 !important;
+}
+
+
+.sm-orders-table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.sm-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.sm-orders-table th,
+.sm-orders-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.sm-orders-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.sm-orders-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* PDF Modal styles */
+.invoice-modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.invoice-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.invoice-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.invoice-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+.invoice-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.invoice-modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sm-btn-save {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'SourceSans3-Regular', sans-serif;
+}
+
+.sm-btn-save:hover {
+    background-color: #3e8e41;
+}
