@@ -29,6 +29,68 @@ import { useAuth, useSetRole } from "./context/AuthContext";
     const [notification, setNotification] = useState({ message: '', visible: false });
 
 
+    const [notifications, setNotifications] = useState([]);
+    const markNotificationAsRead = async (notificationId) => {
+        try {
+            const response = await fetch("http://localhost/api/notifications/setnotificationread", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ notification_id: notificationId })
+            });
+    
+            if (response.ok) {
+                // Update the local state to reflect that the notification is read
+                setNotifications(prevNotifications => 
+                    prevNotifications.map(notification => 
+                        notification.notification_id === notificationId 
+                            ? {...notification, read: true} 
+                            : notification
+                    )
+                );
+                console.log("Notification marked as read");
+            } else {
+                console.error("Failed to mark notification as read");
+            }
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+        }
+    };
+
+
+        useEffect(() => {
+        if (token) {
+            fetchNotifications(token);
+        }
+    }, [token]);
+
+    const fetchNotifications = async (token) => {
+        try {
+            const response = await fetch("http://localhost/api/notification/notificationsofuser", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            if (response.ok) {
+                const notificationsData = await response.json();
+                console.log("Notifications fetched successfully:", notificationsData);
+                setNotifications(notificationsData); // Update notifications state
+            } else {
+                const errorData = await response.json();
+                console.error("Failed to fetch notifications:", errorData.error || "Unknown error");
+            }
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        }
+    };
+    
+
+
     const [paymentMethod, setPaymentMethod] = useState({
         cardNumber: '',
         cardName: ''
@@ -809,6 +871,10 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                     onClick={(e) => { e.preventDefault(); setActiveTab('security'); }}>
                     Security
                     </a></li>
+                    <li><a href="#notifications" className={activeTab === 'notifications' ? 'active' : ''} 
+                    onClick={(e) => { e.preventDefault(); setActiveTab('notifications'); }}>
+                    Notifications
+                    </a></li>
                 </ul>
                 </div>
                 
@@ -1050,6 +1116,44 @@ import { useAuth, useSetRole } from "./context/AuthContext";
                             Confirm Changes
                         </button>
                     </div>
+                    </div>
+                )}
+                {activeTab === 'notifications' && (
+                    <div>
+                        <h2 className="section-title">Your Notifications</h2>
+                        
+                        {notifications && notifications.length > 0 ? (
+                            <div className="notifications-container">
+                                {notifications.map((notification) => (
+                                    <div 
+                                        key={notification.notification_id} 
+                                        className="notification-item"
+                                        onClick={() => markNotificationAsRead(notification.notification_id)}
+                                    >
+                                        <div className="notification-content">
+                                            <p>{notification.message}</p>
+                                            {notification.product_id && (
+                                                <button 
+                                                    className="view-product-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        markNotificationAsRead(notification.notification_id);
+                                                        navigate('/product', { state: { product_id: notification.product_id } });
+                                                    }}
+                                                >
+                                                    View Product
+                                                </button>
+                                            )}
+                                        </div>
+                                        {notification.read === false && <span className="unread-badge">New</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-notifications">
+                                <p>You don't have any notifications yet.</p>
+                            </div>
+                        )}
                     </div>
                 )}
                 </div>
