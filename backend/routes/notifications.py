@@ -23,7 +23,7 @@ def get_notifications():
         cursor.execute("SELECT notification_id, product_id, message, read FROM notifications WHERE user_id = %s", (user_id,))
         notifications = cursor.fetchall()
 
-        # Convert notifications to a list of dictionaries
+        # Convert notifications to a list of dictionaries in reverse order
         notifications_list = []
         for notification in notifications:
             notifications_list.append({
@@ -32,6 +32,7 @@ def get_notifications():
                 'message': notification[2],
                 'read': notification[3]
             })
+        notifications_list.reverse()
 
         # Return the notifications as JSON
         return jsonify(notifications_list), 200
@@ -80,4 +81,30 @@ def set_notification_read():
         cursor.close()
         conn.close()
 
+#get notificaitons status - if the user has any unread notifications
+@notifications_bp.route('/getnotificationsstatus', methods=['GET'])
+@jwt_required()
+def get_notifications_status():
+    # Get the current user's identity
+    user_id = get_jwt_identity()
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Fetch notifications for the user from the database
+        cursor.execute("SELECT COUNT(*) FROM notifications WHERE user_id = %s AND read = False", (user_id,))
+        unread_notifications = cursor.fetchone()
+
+        # Return the number of unread notifications
+        return jsonify({'unread_notifications': unread_notifications[0]}), 200
+
+    except Exception as e:
+        log.error(f"Error fetching notifications status: {e}")
+        return jsonify({'error': 'Failed to fetch notifications status'}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
 

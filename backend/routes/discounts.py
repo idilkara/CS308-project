@@ -52,8 +52,7 @@ def get_discounts():
         user_ids = getUsersToBeNotified(product_id)
         for user_id in user_ids:
             addToUserNotifications(user_id, product_id, discount_amount)
-        # Log the notification
-        log.info(f"Discount of {discount_amount} added to product {product_id} for user {user_id}")
+      
         # Return a success response
         return jsonify({'message': 'Discount updated successfully'}), 200
 
@@ -96,8 +95,13 @@ def addToUserNotifications(user_id, product_id, discount_amount):
 
     try:
         # Add the notification to the user's notifications table
-        cursor.execute("INSERT INTO notifications (user_id, product_id, message) VALUES (%s, %s, %s)", (user_id, product_id, f"Discount of {discount_amount} added to product {product_id}"))
+
+        cursor.execute("SELECT name FROM products WHERE product_id = %s", (product_id,))
+        product_name = cursor.fetchone()
+        cursor.execute("INSERT INTO notifications (user_id, product_id, message) VALUES (%s, %s, %s)", (user_id, product_id, f"Discount of {discount_amount} added to product {product_name[0]}"))
         conn.commit()
+
+        log.info(f"Discount of {discount_amount} added to product {product_name[0]}")
 
     except Exception as e:
         log.error(f"Error adding notification: {e}")

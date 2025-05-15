@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search } from "lucide-react";
 
 import { Link , useNavigate } from 'react-router-dom';
-import { BsBag, BsPersonCircle, BsBarChartLineFill } from "react-icons/bs";
+import { BsBag, BsPersonCircle, BsBarChartLineFill, BsBell } from "react-icons/bs";
 
 import { searchProducts } from "../utils/SearchUtils";
 import { useAuth } from "../context/AuthContext";
@@ -22,6 +22,7 @@ const Navbar = () => {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [authors, setAuthors] = useState([]);
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
 
     const { token, role, setToken, setRole } = useAuth(); // Assuming setToken is provided by AuthContext
     // const setRole = useSetRole();
@@ -86,7 +87,35 @@ const Navbar = () => {
 
         fetchAuthors();
     }, []);
-    //TODO add authors fetching
+
+    // Add this useEffect to fetch notification status
+    useEffect(() => {
+        const fetchNotificationStatus = async () => {
+            if (token) {
+                try {
+                    const response = await fetch("http://localhost/api/notifications/getnotificationsstatus", {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUnreadNotifications(data.unread_notifications);
+                    }
+                } catch (error) {
+                    console.error("Error fetching notification status:", error);
+                }
+            }
+        };
+
+        fetchNotificationStatus();
+        // Set up polling every 30 seconds
+        const interval = setInterval(fetchNotificationStatus, 30000);
+        return () => clearInterval(interval);
+    }, [token]);
 
     return (
         <header className="navbar">
@@ -206,6 +235,8 @@ const Navbar = () => {
             >
                 <Search className="w-5 h-5" />
             </div>
+            
+
             
             {/* Shopping bag/manager icon */}
             {role === "product_manager" ? (

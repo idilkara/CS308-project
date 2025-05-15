@@ -34,7 +34,7 @@ import 'react-toastify/dist/ReactToastify.css';
     const [notifications, setNotifications] = useState([]);
     const markNotificationAsRead = async (notificationId) => {
         try {
-            const response = await fetch("http://localhost/api/notifications/setnotificationread", {
+            const response = await fetch("http://localhost/api/notification/setnotificationread", {
                 method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -1253,25 +1253,36 @@ import 'react-toastify/dist/ReactToastify.css';
                                 {notifications.map((notification) => (
                                     <div 
                                         key={notification.notification_id} 
-                                        className="notification-item"
-                                        onClick={() => markNotificationAsRead(notification.notification_id)}
+                                        className={`notification-item ${notification.read ? 'read' : 'unread'}`}
                                     >
                                         <div className="notification-content">
                                             <p>{notification.message}</p>
-                                            {notification.product_id && (
-                                                <button 
-                                                    className="view-product-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        markNotificationAsRead(notification.notification_id);
-                                                        navigate('/product', { state: { product_id: notification.product_id } });
-                                                    }}
-                                                >
-                                                    View Product
-                                                </button>
-                                            )}
+                                            <div className="notification-actions">
+                                                {notification.product_id && (
+                                                    <button 
+                                                        className="view-product-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate('/product', { state: { product_id: notification.product_id } });
+                                                        }}
+                                                    >
+                                                        View Product
+                                                    </button>
+                                                )}
+                                                {!notification.read && (
+                                                    <button 
+                                                        className="mark-read-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            markNotificationAsRead(notification.notification_id);
+                                                        }}
+                                                    >
+                                                        Mark as Read
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                        {notification.read === false && <span className="unread-badge">New</span>}
+                                        {!notification.read && <span className="unread-badge">New</span>}
                                     </div>
                                 ))}
                             </div>

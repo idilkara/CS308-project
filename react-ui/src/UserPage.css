@@ -1404,3 +1404,79 @@
 .return-request-btn:hover {
   background-color: #0056b3;
 }
+
+.notification-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.notification-item.unread {
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--warm-brown);
+}
+
+.notification-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.notification-content p {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.view-product-btn,
+.mark-read-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.view-product-btn {
+  background-color: var(--warm-brown);
+  color: white;
+}
+
+.mark-read-btn {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.view-product-btn:hover {
+  background-color: #d4a373;
+}
+
+.mark-read-btn:hover {
+  background-color: #dee2e6;
+}
+
+.unread-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--warm-brown);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.notifications-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
