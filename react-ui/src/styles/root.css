@@ -149,7 +149,7 @@ body, html {
     border: 1px solid var(--secondary-text-color);
     border-radius: 0;
     overflow: hidden;
-    height: 380px;
+    height: 430px;
     text-align: left;
     width: 200px;
     flex-shrink: 0;
@@ -179,21 +179,30 @@ body, html {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: left;
+    align-items: flex-start; /* corrected from 'left' */
     padding-left: 25px;
     padding-bottom: 15px;
+    padding-top: 15px;
+
     border-bottom: 1px solid var(--secondary-text-color);
     gap: 2px;
-    background-color: var(--background-color); /* Changed to use background-color */
+    background-color: var(--background-color);
+    
+    width: 200px;
+    height: 150px;
+    box-sizing: border-box; /* ensures padding is included in height */
 }
 
 .grid-item-content {
     flex-grow: 1;
     display: flex;
+    max-height: 260px;
+    justify-content: center; /* vertically centers children */
+
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 15px;
+    padding-top: 15px;
     text-align: left;
     background-color: var(--background-color); /* Changed to use background-color */
 }
@@ -206,13 +215,58 @@ body, html {
 
 .grid-item hr {
     width: 90%;
-    margin: 5px auto; /* moved line up by reducing top margin */
+    margin: 20px auto; /* moved line up by reducing top margin */
     border: 0;
     border-top: 1px solid var(--secondary-text-color);
     background-color: var(--secondary-text-color);
 }
 
-                                                                /* FAVORITES & CART ON GRID ITEMS */
+
+.grid-item-header {
+    padding-top: 10px;
+}
+
+.grid-item-header h3 {
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.grid-item-header p {
+    color: var(--secondary-text-color);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+  /* Discount price styling */
+.product-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: var(--secondary-text-color);
+    font-size: 0.85rem;
+    margin-bottom: 30px;
+}
+
+.original-usual-price {
+    color: var(--main-text-color);
+    font-size: 1.20rem;
+    margin-bottom: 30px;
+}
+
+.discounted-price {
+    color: #e74c3c; /* Red color for discount price */
+    font-weight: bold;
+}
+
+/* Add this to your CategoryPage.css file */
+.grid-item.out-of-stock {
+    background-color: rgba(230, 230, 230, 0.7);
+    position: relative;
+}
+                                 /* FAVORITES & CART ON GRID ITEMS */
 .item-actions {
     position: absolute;
     top: 10px;

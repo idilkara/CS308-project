@@ -3,146 +3,16 @@ import "./UserPage.css";
 import Navbar from "./components/Navbar.jsx";
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth, useSetRole } from "./context/AuthContext";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-// Add this component before the main UserAccountPage component
-const OrderItemComponent = ({ item, requestRefund, cancelOrderItem }) => {
-  console.log('OrderItemComponent rendering with item:', item);
-  // Ensure we have a valid item
-  if (!item || !item.orderitem_id) {
-    console.log('Invalid item, returning null');
-    return null;
-  }
+  const UserAccountPage = () => {
 
-  // Calculate values needed for rendering
-  const imageSrc = `assets/covers/${item.name ? item.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`;
-  const capitalizedStatus = item.orderitem_status 
-    ? item.orderitem_status.charAt(0).toUpperCase() + item.orderitem_status.slice(1)
-    : 'Processing';
-
-  // Determine status flags
-  const isDelivered = item.orderitem_status === 'delivered';
-  const isProcessing = item.orderitem_status === 'processing';
-  const isCancelled = item.orderitem_status === 'cancelled';
-  const isAlreadyRequested = item.refund_status === 'requested' || 
-                            item.refund_status === 'approved' ||
-                            item.refund_status === 'rejected';
-
-  // Handle the refund request
-  const handleRefundRequest = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    requestRefund(item.orderitem_id);
-  };
-
-  // Handle the cancel request
-  const handleCancelRequest = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    cancelOrderItem(item.orderitem_id);
-  };
-
-  // Determine what action button or status to show
-  const renderActionOrStatus = () => {
-    // Debug logging
-    console.log('Rendering order item:', {
-      itemId: item?.orderitem_id,
-      status: item?.orderitem_status,
-      refundStatus: item?.refund_status
-    });
-
-    if (isCancelled) {
-      return (
-        <span className="return-status return-rejected">
-          Order Cancelled
-        </span>
-      );
-    }
-
-    if (isProcessing) {
-      return (
-        <button 
-          className="cancel-order-btn"
-          onClick={handleCancelRequest}
-        >
-          Cancel Order
-        </button>
-      );
-    }
-
-    if (isDelivered && !isAlreadyRequested) {
-      return (
-        <button 
-          className="return-request-btn"
-          onClick={handleRefundRequest}
-        >
-          Request Return
-        </button>
-      );
-    }
-
-    // Show status message if already requested
-    if (isAlreadyRequested) {
-      let statusMessage = '';
-      let statusClass = '';
-
-      switch (item.refund_status) {
-        case 'requested':
-          statusMessage = 'Return Requested';
-          statusClass = 'return-requested';
-          break;
-        case 'approved':
-          statusMessage = 'Return Approved';
-          statusClass = 'return-approved';
-          break;
-        case 'rejected':
-          statusMessage = 'Return Rejected';
-          statusClass = 'return-rejected';
-          break;
-        default:
-          statusMessage = 'Return Requested';
-          statusClass = 'return-requested';
-      }
-
-      return (
-        <span className={`return-status ${statusClass}`}>
-          {statusMessage}
-        </span>
-      );
-    }
-
-    // Default case - return an empty div instead of undefined
-    return <div className="no-action"></div>;
-  };
-
-  return (
-    <div className="order-item">
-      <div className="item-image-container">
-        <img src={imageSrc} alt={item.name} className="item-image" />
-      </div>
-      <div className="item-details">
-        <h4 className="item-title">{item.name}</h4>
-        <div className="item-price-qty">
-          <span className="item-price">${item.price}</span>
-          <span className="item-quantity">Qty: {item.quantity}</span>
-          <span className="item-status">Status: {capitalizedStatus}</span>
-        </div>
-        {renderActionOrStatus()}
-      </div>
-    </div>
-  );
-};
-
-const UserAccountPage = () => {
     const navigate = useNavigate(); // Initialize useNavigate
     const { token } = useAuth(); // Access the token from AuthContext
     console.log("Token from context:", token); // Log the token to check if it's being passed correctly
     const setRole = useSetRole(); // This is the hook call
+   
+    
+    
     const [userData, setUserData] = useState({ name: '', email: '', address: '' }); // address is primary
     const [formData, setFormData] = useState({
         name: userData.name,
@@ -162,7 +32,7 @@ const UserAccountPage = () => {
     const [notifications, setNotifications] = useState([]);
     const markNotificationAsRead = async (notificationId) => {
         try {
-            const response = await fetch("http://localhost/api/notification/setnotificationread", {
+            const response = await fetch("http://localhost/api/notifications/setnotificationread", {
                 method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -233,9 +103,6 @@ const UserAccountPage = () => {
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [orderTab, setOrderTab] = useState('all');
     const [activeTab, setActiveTab] = useState('profile');
-
-    // Add this new state for return request handling
-    const [returnRequested, setReturnRequested] = useState([]);
 
     //CHECKS FOR THE TOKEN
     // useEffect to handle token validation and user info fetching
@@ -756,6 +623,14 @@ const UserAccountPage = () => {
                             </div>
                         </div>
 
+                        {/* <div className="card-actions">
+                            <button 
+                                className="delete-btn"
+                                onClick={deletePaymentMethod}
+                            >
+                                Remove
+                            </button>
+                        </div> */}
                     </div>
                 ) : (
                     <div className="empty-payment-methods">
@@ -947,6 +822,8 @@ const UserAccountPage = () => {
                 <div className="info-value">{userData.email}</div>
             </div>
             
+           
+            
             <div className="address-block">
                 <div className="info-label">
                     Delivery Address 
@@ -960,135 +837,6 @@ const UserAccountPage = () => {
         <button className="edit-button" onClick={toggleEditMode}>Edit Profile</button>
         </>
     );
-    };
-
-    // Add the requestRefund function
-    const requestRefund = async (orderItemId) => {
-        if (!orderItemId) {
-            console.error('Invalid orderItemId:', orderItemId);
-            return;
-        }
-
-        try {
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            };
-            
-            const data = { orderitem_id: orderItemId };
-            
-            console.log('Sending refund request for item:', orderItemId);
-            
-            const response = await fetch("http://localhost/api/refunds/request-refund", {
-                method: "POST",
-                headers,
-                body: JSON.stringify(data)
-            });
-            
-            if (response.status === 201) {
-                const result = await response.json();
-                console.log('Refund request successful:', result);
-                
-                // Update order history to reflect the new refund status
-                setOrderHistory(prevOrders => 
-                    prevOrders.map(order => ({
-                        ...order,
-                        items: order.items.map(item => 
-                            item.orderitem_id === orderItemId 
-                                ? { ...item, refund_status: 'requested' }
-                                : item
-                        )
-                    }))
-                );
-                
-                //toast.success("Return request submitted successfully!");
-                return result;
-            } else {
-                const errorData = await response.json();
-                console.error('Refund request failed:', errorData);
-                toast.error(errorData.error || "Failed to request return");
-                return { error: errorData.error || "Failed to request return" };
-            }
-        } catch (error) {
-            console.error("Error requesting return:", error);
-            toast.error("An unexpected error occurred");
-            return { error: "An unexpected error occurred" };
-        }
-    };
-
-    // Add the cancelOrderItem function after requestRefund function
-    const cancelOrderItem = async (orderItemId) => {
-        if (!orderItemId) {
-            console.error('Invalid orderItemId:', orderItemId);
-            return;
-        }
-    
-        try {
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            };
-            
-            console.log('Sending cancel request for item:', orderItemId);
-            
-            const response = await fetch(`http://localhost/api/order/cancel_orderitem/${orderItemId}`, {
-                method: "POST",
-                headers
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                console.log('Cancel request successful:', result);
-                
-                setOrderHistory(prevOrders => {
-                    if (!Array.isArray(prevOrders)) {
-                        console.error('Previous orders is not an array:', prevOrders);
-                        return prevOrders;
-                    }
-
-                    const updatedOrders = prevOrders.map(order => {
-                        if (!order || !Array.isArray(order.items)) {
-                            console.error('Invalid order structure:', order);
-                            return order;
-                        }
-
-                        const updatedItems = order.items.map(item => {
-                            if (!item) {
-                                console.error('Invalid item in order:', item);
-                                return item;
-                            }
-
-                            if (item.orderitem_id === orderItemId) {
-                                console.log('Updating item status to cancelled:', item);
-                                return { ...item, orderitem_status: 'cancelled' };
-                            }
-                            return item;
-                        });
-
-                        return {
-                            ...order,
-                            items: updatedItems
-                        };
-                    });
-
-                    console.log('Updated orders:', updatedOrders);
-                    return updatedOrders;
-                });
-                
-                setExpandedOrderId(null); // Close any expanded order details
-                toast.success("Order item cancelled successfully!");
-                return result;
-            } else {
-                const errorData = await response.json();
-                console.error('Cancel request failed:', errorData);
-                toast.error(errorData.error || "Failed to cancel order item");
-                return { error: errorData.error || "Failed to cancel order item" };
-            }
-        } catch (error) {
-            console.error("Error cancelling order item:", error);
-            toast.error("An unexpected error occurred");
-            return { error: "An unexpected error occurred" };
-        }
     };
 
     return (
@@ -1176,7 +924,6 @@ const UserAccountPage = () => {
                                     {order.status === 'processing' && 'Processing'}
                                     {order.status === 'in-transit' && 'In Transit'}
                                     {order.status === 'delivered' && 'Delivered'}
-                                    {order.status === 'cancelled' && 'Cancelled'}
                                 </p>
                                 <p><strong>Order No:</strong> {order.order_id}</p>
                                 <p><strong>Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
@@ -1198,23 +945,26 @@ const UserAccountPage = () => {
                                     <h3>Order Items</h3>
                                 </div>
                                 <div className="order-items-container">
-                                    {Array.isArray(order.items) ? (
-                                        order.items
-                                            .filter(item => {
-                                                console.log('Filtering item:', item);
-                                                return item && item.orderitem_id;
-                                            })
-                                            .map(item => (
-                                                <OrderItemComponent
-                                                    key={item.orderitem_id}
-                                                    item={item}
-                                                    requestRefund={requestRefund}
-                                                    cancelOrderItem={cancelOrderItem}
-                                                />
-                                            ))
-                                    ) : (
-                                        <p>No items in this order</p>
-                                    )}
+                                    {order.items.map(item => {
+                                        const imageSrc = `assets/covers/${item.name ? item.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`;
+                                        const capitalizedStatus = item.orderitem_status.charAt(0).toUpperCase() + item.orderitem_status.slice(1);
+
+                                        return (
+                                            <div key={item.orderitem_id} className="order-item">
+                                                <div className="item-image-container">
+                                                    <img src={imageSrc} alt={item.name} className="item-image" />
+                                                </div>
+                                                <div className="item-details">
+                                                    <h4 className="item-title">{item.name}</h4>
+                                                    <div className="item-price-qty">
+                                                        <span className="item-price">${item.price}</span>
+                                                        <span className="item-quantity">Qty: {item.quantity}</span>
+                                                        <span className="item-status">Status: {capitalizedStatus}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -1259,7 +1009,13 @@ const UserAccountPage = () => {
                                             >
                                                 <span className="heart-filled">♥</span>
                                             </button>
-                              
+                                            {/* <button 
+                                                className="cart-btn" 
+                                                onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
+                                                disabled={isOutOfStock}
+                                            >
+                                                <span>🛒</span>
+                                            </button> */}
                                         </div>
                                         <div className="grid-item-content">
                                             <img
@@ -1371,36 +1127,25 @@ const UserAccountPage = () => {
                                 {notifications.map((notification) => (
                                     <div 
                                         key={notification.notification_id} 
-                                        className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+                                        className="notification-item"
+                                        onClick={() => markNotificationAsRead(notification.notification_id)}
                                     >
                                         <div className="notification-content">
                                             <p>{notification.message}</p>
-                                            <div className="notification-actions">
-                                                {notification.product_id && (
-                                                    <button 
-                                                        className="view-product-btn"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate('/product', { state: { product_id: notification.product_id } });
-                                                        }}
-                                                    >
-                                                        View Product
-                                                    </button>
-                                                )}
-                                                {!notification.read && (
-                                                    <button 
-                                                        className="mark-read-btn"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            markNotificationAsRead(notification.notification_id);
-                                                        }}
-                                                    >
-                                                        Mark as Read
-                                                    </button>
-                                                )}
-                                            </div>
+                                            {notification.product_id && (
+                                                <button 
+                                                    className="view-product-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        markNotificationAsRead(notification.notification_id);
+                                                        navigate('/product', { state: { product_id: notification.product_id } });
+                                                    }}
+                                                >
+                                                    View Product
+                                                </button>
+                                            )}
                                         </div>
-                                        {!notification.read && <span className="unread-badge">New</span>}
+                                        {notification.read === false && <span className="unread-badge">New</span>}
                                     </div>
                                 ))}
                             </div>
@@ -1414,7 +1159,6 @@ const UserAccountPage = () => {
                 </div>
             </div>
             </div>
-            <ToastContainer position="bottom-right" autoClose={3000} />
         </div>
     );
 };

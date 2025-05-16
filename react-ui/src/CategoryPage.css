@@ -596,5 +596,34 @@ height: calc(100vh - 130px); /* Adjust based on navbar and top bar height */
     }
   }
 
+/* Discount price styling */
+.product-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
+.original-price {
+  text-decoration: line-through;
+  color: var(--secondary-text-color);
+  font-size: 0.85rem;
+  margin-bottom: 30px;
+}
+
+.original-usual-price {
+  color: var(--main-text-color);
+  font-size: 1.20rem;
+  margin-bottom: 30px;
+}
+
+.discounted-price {
+  color: #e74c3c; /* Red color for discount price */
+  font-weight: bold;
+}
+
+/* Add this to your CategoryPage.css file */
+.grid-item.out-of-stock {
+    background-color: rgba(230, 230, 230, 0.7);
+    position: relative;
+  }
 

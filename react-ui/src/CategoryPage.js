@@ -908,7 +908,19 @@ const toggleFavorite = (productId) => {
                         }
                       </h3>
                       <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
-                      <span className="source-sans-bold">${book.price || "0.00"}</span>
+                      {parseFloat(book.discount_rate) > 0 ? (
+                        <div className="product-price">
+                          <span className="original-price">${book.price || "0.00"}</span>
+                          <span className="discounted-price">
+                            ${(
+                              parseFloat(book.price) * (1 - parseFloat(book.discount_rate))
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="original-usual-price">${book.price || "0.00"}</span>
+                      )}
+
                     </div>
                   </div>
                 );

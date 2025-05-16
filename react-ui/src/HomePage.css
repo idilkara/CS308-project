@@ -319,3 +319,86 @@
   border-top: 1px solid var(--secondary-text-color);
   background-color: var(--secondary-text-color);
 }
+
+
+.notification-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.notification-tabs button {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-tabs button.active {
+    border-bottom: 3px solid var(--warm-brown);
+    color: var(--warm-brown);
+}
+
+.notification-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f9f9f9;
+}
+
+.notification-unread {
+    background-color: #fff8f0;
+    border-left: 4px solid var(--warm-brown);
+}
+
+.notification-read {
+    background-color: #ffffff;
+    opacity: 0.85;
+}
+
+.unread-badge {
+    background-color: var(--warm-brown);
+    color: white;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 10px;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content p {
+    margin: 0 0 8px 0;
+}
+
+.view-product-btn {
+    padding: 5px 12px;
+    background-color: var(--warm-brown);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.view-product-btn:hover {
+    background-color: #a87d5c;
+}
