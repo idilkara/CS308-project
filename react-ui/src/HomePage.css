@@ -402,3 +402,27 @@
 .view-product-btn:hover {
     background-color: #a87d5c;
 }
+.grid-item-hp .product-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.grid-item-hp .original-price {
+  text-decoration: line-through;
+  color: var(--secondary-text-color);
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+
+.grid-item-hp .discounted-price {
+  color: #e74c3c; /* Red color for discount price */
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.grid-item-hp .original-usual-price {
+  color: var(--main-text-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}

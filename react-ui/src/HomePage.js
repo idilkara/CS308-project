@@ -522,54 +522,65 @@ const addToCart = async (event, book) => {
                       const favoriteKey = `new-${product.product_id}`;
                       return (
                         <div 
-                          key={productIndex} 
-                          className="grid-item-hp"
-                          onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                          className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(productIndex, product.product_id, 'new');
-                          }}
-                        >
-                          {favorites[product.product_id] ? 
-                            <span className="heart-filled">♥</span> : 
-                            <span className="heart-outline">♡</span>
-                          }
-                        </button>
-                            <button 
-                              className="cart-btn"
-                              onClick={(e) => addToCart(e, product)}
-                            >
-                              <span>🛒</span>
-                            </button>
+                            key={productIndex} 
+                            className="grid-item-hp"
+                            onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="item-actions" onClick={(e) => e.stopPropagation()}>
+                              <button 
+                                className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(productIndex, product.product_id, 'new');
+                                }}
+                              >
+                                {favorites[product.product_id] ? 
+                                  <span className="heart-filled">♥</span> : 
+                                  <span className="heart-outline">♡</span>
+                                }
+                              </button>
+                              <button 
+                                className="cart-btn"
+                                onClick={(e) => addToCart(e, product)}
+                              >
+                                <span>🛒</span>
+                              </button>
+                            </div>
+
+                            <div className="grid-item-content-hp">
+                              <img
+                                src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
+                                alt={getBookName(product)}
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = bookCover;
+                                }}
+                              />
+                            </div>
+                            <hr />
+                            <div className="grid-item-header-hp">
+                              <h3 className="source-sans-semibold">
+                                {getBookName(product).length > 27
+                                  ? getBookName(product).slice(0, 27) + '...'
+                                  : getBookName(product)
+                                }
+                              </h3>
+                              <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
+                              {parseFloat(product.discount_rate) > 0 ? (
+                                <div className="product-price">
+                                  <span className="original-price">${product.price || "0.00"}</span>
+                                  <span className="discounted-price">
+                                    ${(
+                                      parseFloat(product.price) * (1 - parseFloat(product.discount_rate))
+                                    ).toFixed(2)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="original-usual-price">${product.price || "0.00"}</span>
+                              )}
+                            </div>
                           </div>
-                          
-                          <div className="grid-item-content-hp">
-                            <img
-                              src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                              alt={getBookName(product)}
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = bookCover;
-                              }}
-                            />
-                          </div>
-                          <hr />
-                          <div className="grid-item-header-hp">
-                            <h3 className="source-sans-semibold">
-                              {getBookName(product).length > 27
-                                ? getBookName(product).slice(0, 27) + '...'
-                                : getBookName(product)
-                              }
-                            </h3>
-                            <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
-                            <span className="source-sans-bold">${product.price || "0.00"}</span>
-                          </div>
-                        </div>
                       );
                     })}
                 </div>
