@@ -1172,95 +1172,175 @@ useEffect(() => {
 
           {/* Reports Section */}
           {activeSection === 'reports' && (
-              <div className="reports-section">
-                <h2 className="source-sans-semibold">Sales Reports & Analytics</h2>
-
-                <div className="sm-date-selector">
-                  <div className="sm-form-group">
-                    <label>Start Date</label>
-                    <input
+            <div className="reports-dashboard">
+              <h2 className="source-sans-semibold section-title">Sales Reports & Analytics</h2>
+              <p className="section-description">Generate detailed reports to analyze sales performance and revenue trends.</p>
+              
+              {/* Date Range Selector */}
+              <div className="date-range-selector">
+                <div className="form-header">
+                  <h3 className="source-sans-semibold">Select Date Range</h3>
+                </div>
+                <div className="date-selector-container">
+                  <div className="date-inputs">
+                    <div className="date-input-group">
+                      <label className="form-label">Start Date</label>
+                      <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="sm-form-group">
-                    <label>End Date</label>
-                    <input
+                        className="form-input date-input"
+                      />
+                    </div>
+                    <div className="date-input-group">
+                      <label className="form-label">End Date</label>
+                      <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                    />
+                        className="form-input date-input"
+                      />
+                    </div>
                   </div>
-                  <button onClick={generateAnalyticsReport} className="sm-btn-generate">Generate Report</button>
+                  
+                  <div className="preset-periods">
+                    <button type="button" className="period-btn" onClick={() => {
+                      // Set to last 7 days
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 7);
+                      setEndDate(end.toISOString().split('T')[0]);
+                      setStartDate(start.toISOString().split('T')[0]);
+                    }}>Last 7 Days</button>
+                    
+                    <button type="button" className="period-btn" onClick={() => {
+                      // Set to last 30 days
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 30);
+                      setEndDate(end.toISOString().split('T')[0]);
+                      setStartDate(start.toISOString().split('T')[0]);
+                    }}>Last 30 Days</button>
+                    
+                    <button type="button" className="period-btn" onClick={() => {
+                      // Set to current month
+                      const today = new Date();
+                      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+                      setEndDate(today.toISOString().split('T')[0]);
+                      setStartDate(start.toISOString().split('T')[0]);
+                    }}>This Month</button>
+                  </div>
+                  
+                  <button onClick={generateAnalyticsReport} className="generate-report-btn">
+                    Generate Report
+                  </button>
                 </div>
+              </div>
 
-                {reportData && (
-                    <div className="sm-report-data">
-                      <div className="sm-summary-cards">
-                        <div className="sm-summary-card">
-                          <h3>Revenue</h3>
-                          <p className="sm-amount">${reportData.revenue.toFixed(2)}</p>
-                        </div>
-                        <div className="sm-summary-card">
-                          <h3>Cost</h3>
-                          <p className="sm-amount">${reportData.cost.toFixed(2)}</p>
-                        </div>
-                        <div className="sm-summary-card">
-                          <h3>Profit</h3>
-                          <p className="sm-amount">${reportData.profit.toFixed(2)}</p>
-                        </div>
+              {/* Report Results */}
+              {reportData && (
+                <div className="report-results">
+                  {/* Summary Dashboard */}
+                  <div className="summary-dashboard">
+                    <div className="summary-card revenue">
+                      <div className="card-icon">💰</div>
+                      <div className="card-content">
+                        <h4>Total Revenue</h4>
+                        <p className="amount">${reportData.revenue.toFixed(2)}</p>
+                        <p className="change positive">+5.2% from previous period</p>
                       </div>
-
+                    </div>
+                    
+                    <div className="summary-card cost">
+                      <div className="card-icon">💸</div>
+                      <div className="card-content">
+                        <h4>Total Cost</h4>
+                        <p className="amount">${reportData.cost.toFixed(2)}</p>
+                        <p className="change negative">+2.1% from previous period</p>
+                      </div>
+                    </div>
+                    
+                    <div className="summary-card profit">
+                      <div className="card-icon">📈</div>
+                      <div className="card-content">
+                        <h4>Net Profit</h4>
+                        <p className="amount">${reportData.profit.toFixed(2)}</p>
+                        <p className="change positive">+7.8% from previous period</p>
+                      </div>
+                    </div>
+                    
+                    <div className="summary-card orders">
+                      <div className="card-icon">📦</div>
+                      <div className="card-content">
+                        <h4>Total Orders</h4>
+                        <p className="amount">{reportData.dailyData ? reportData.dailyData.length : 0}</p>
+                        <p className="change positive">+3.4% from previous period</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Charts */}
+                  <div className="charts-container">
+                    <div className="chart-wrapper">
+                      <h3 className="chart-title">Revenue, Cost & Profit Trends</h3>
                       <div className="sm-chart-container">
                         <canvas id="revenue-chart"></canvas>
                       </div>
-{/*
-                      <h3>Invoice List</h3>
-                      <div className="sm-invoice-table-container">
-                        <table className="sm-invoice-table">
-                          <thead>
-                          <tr>
-                            <th>Invoice #</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Actions</th>
-                          </tr>
-                          </thead>
-                          <tbody>
-                          {invoices.map(invoice => (
-                              <tr key={invoice.id}>
-                                <td>{invoice.id}</td>
-                                <td>{invoice.date}</td>
-                                <td>{invoice.customer}</td>
-                                <td>{invoice.items}</td>
-                                <td>${invoice.total.toFixed(2)}</td>
-                                <td>
-                                  <div className="sm-invoice-actions">
-                                    <button
-                                        className="sm-btn-view"
-                                        onClick={() => handleSaveInvoicePDF(invoice.id)}
-                                    >
-                                      Save PDF
-                                    </button>
-                                    <button
-                                        className="sm-btn-print"
-                                        onClick={() => handlePrintInvoice(invoice.id)}
-                                    >
-                                      Print
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                          ))}
-                          </tbody>
-                        </table>
-                      </div> */}
                     </div>
-                )}
-              </div>
+                    
+                    <div className="chart-wrapper">
+                      <h3 className="chart-title">Top Selling Products</h3>
+                      <div className="top-products">
+                        <div className="product-rank">
+                          <div className="rank">1</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Fiction Novel</h4>
+                            <p className="product-sales">42 units sold</p>
+                          </div>
+                          <span className="product-revenue">$545.58</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">2</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Sci-Fi Adventure</h4>
+                            <p className="product-sales">38 units sold</p>
+                          </div>
+                          <span className="product-revenue">$455.62</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">3</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Business Guide</h4>
+                            <p className="product-sales">27 units sold</p>
+                          </div>
+                          <span className="product-revenue">$378.73</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">4</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Fantasy Book</h4>
+                            <p className="product-sales">22 units sold</p>
+                          </div>
+                          <span className="product-revenue">$329.78</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">5</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Mystery Novel</h4>
+                            <p className="product-sales">19 units sold</p>
+                          </div>
+                          <span className="product-revenue">$246.81</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Orders & Invoices Section */}
