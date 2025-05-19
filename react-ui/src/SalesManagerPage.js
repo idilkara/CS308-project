@@ -79,7 +79,26 @@ const SalesManager = () => {
   const [refundIsLoading, setRefundIsLoading] = useState(false);
 
   const [pdfUrl, setPdfUrl] = useState(null);
-const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+
+  // State for notifications
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false,
+    type: 'success' 
+  });
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      message,
+      visible: true,
+      type
+    });
+    
+    setTimeout(() => {
+      setNotification({ message: '', visible: false, type });
+    }, 3000);
+  };
 
   // ---------- API CALLS ----------
 
@@ -1381,6 +1400,12 @@ useEffect(() => {
               <SalesManagerPageRefunds token={token} />
           )}
         </div>
+        {/* Notification */}
+        {notification.visible && (
+          <div className={`sm-notification ${notification.type}`}>
+            {notification.message}
+          </div>
+        )}
       </div>
   );
 };
