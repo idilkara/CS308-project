@@ -360,22 +360,28 @@ useEffect(() => {
   // };
 
   const fetchAllProducts = async () => {
+    if (!token) {
+      console.error("Token is missing in fetchAllProducts");
+      return;
+    }
+
     try {
-      const response = await fetch("http://localhost/api/products/products", {
+      const response = await fetch("http://localhost/api/products/viewall", {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log("All products fetched:", result);
-        return result;
+        const data = await response.json();
+        console.log("All products fetched:", data);
+        return data;
       } else {
-        const errorData = await response.json();
-        console.error("Failed to fetch all products:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to fetch products" };
+        const errorText = await response.text();
+        console.error("Failed to fetch all products:", errorText);
+        return { error: "Failed to fetch all products" };
       }
     } catch (error) {
       console.error("Error fetching all products:", error);
@@ -1096,6 +1102,7 @@ useEffect(() => {
                         onClick={() => !product.discounted && handleProductSelection(product.product_id)}
                       >
                         <div className="product-image">
+                          {/* Fix the image display with proper img tag */}
                           <img
                             src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
                             alt={product.name}
