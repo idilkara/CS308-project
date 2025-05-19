@@ -1247,51 +1247,80 @@ useEffect(() => {
           {/* Orders & Invoices Section */}
 {activeSection === 'invoices' && (
   <div className="invoices-section">
-    <h2 className="source-sans-semibold">Orders & Invoices</h2>
+    <h2 className="source-sans-semibold section-title">Orders & Invoices</h2>
+    <p className="section-description">Manage customer orders and generate invoices for completed sales.</p>
     
     {/* Date filtering */}
-    <div className="sm-date-selector">
-      <div className="sm-form-group">
-        <label>Start Date</label>
-        <input
-          type="date"
-          value={orderStartDate}
-          onChange={(e) => setOrderStartDate(e.target.value)}
-        />
+    <div className="date-range-selector">
+      <h3 className="source-sans-semibold">Filter Orders</h3>
+      <div className="date-selector-container">
+        <div className="date-inputs">
+          <div className="date-input-group">
+            <label className="form-label">Start Date</label>
+            <input
+              type="date"
+              value={orderStartDate}
+              onChange={(e) => setOrderStartDate(e.target.value)}
+              className="form-input date-input"
+            />
+          </div>
+          <div className="date-input-group">
+            <label className="form-label">End Date</label>
+            <input
+              type="date"
+              value={orderEndDate}
+              onChange={(e) => setOrderEndDate(e.target.value)}
+              className="form-input date-input"
+            />
+          </div>
+        </div>
+        <button onClick={handleFilterOrders} className="generate-report-btn">
+          Filter Orders
+        </button>
       </div>
-      <div className="sm-form-group">
-        <label>End Date</label>
-        <input
-          type="date"
-          value={orderEndDate}
-          onChange={(e) => setOrderEndDate(e.target.value)}
-        />
-      </div>
-      <button onClick={handleFilterOrders} className="sm-btn-generate">Filter Orders</button>
     </div>
 
     {isLoadingOrders ? (
-      <div className="sm-loading">
+      <div className="loading-state">
+        <div className="loading-spinner"></div>
         <p>Loading orders data...</p>
       </div>
     ) : (
       <>
-        <div className="sm-orders-header">
-          <h3 className="source-sans-semibold">Order Management</h3>
-          <p className="source-sans-light">View and manage customer orders</p>
+        <div className="invoice-filters">
+          <div className="search-container">
+            <input type="text" placeholder="Search by customer or product..." className="invoice-search" />
+          </div>
+          <div className="filter-container">
+            <select className="filter-select">
+              <option value="all">All Status</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+            </select>
+          </div>
         </div>
 
         {orders.length === 0 ? (
-          <p className="source-sans-regular">No orders found.</p>
+          <div className="empty-state-container">
+            <div className="empty-state-icon">📦</div>
+            <h3>No orders found</h3>
+            <p>There are no orders matching your current filter criteria.</p>
+            <div className="empty-state-actions">
+              <button className="refresh-btn" onClick={() => fetchOrders(token)}>
+                View All Orders
+              </button>
+            </div>
+          </div>
         ) : (
-          <div className="sm-orders-table-container">
-            <table className="sm-orders-table">
+          <div className="invoices-table-container">
+            <table className="invoices-table">
               <thead>
                 <tr>
-                  <th>Order ID</th>
+                  <th className="sortable">Order ID <span className="sort-icon">↓</span></th>
+                  <th className="sortable">Date <span className="sort-icon"></span></th>
                   <th>Customer</th>
-                  <th>Date</th>
-                  <th>Total</th>
+                  <th className="sortable">Total <span className="sort-icon"></span></th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -1299,61 +1328,47 @@ useEffect(() => {
               <tbody>
                 {orders.map(order => (
                   <tr key={order.id}>
-                    <td>{order.orderId}</td>
-                    <td>{order.customer}</td>
+                    <td className="invoice-id">{order.orderId}</td>
                     <td>{order.date}</td>
-                    <td>${order.total.toFixed(2)}</td>
+                    <td>{order.customer}</td>
+                    <td className="price-cell">${order.total.toFixed(2)}</td>
                     <td>
                       <span className={`status-badge status-${order.status.toLowerCase()}`}>
                         {order.status}
                       </span>
                     </td>
                     <td>
-                      <button 
-                      className="sm-btn-view"
-                      onClick={() => fetchInvoicePdf(order.id)}
-                    >
-                      View Invoice
-                    </button>
+                      <div className="invoice-actions">
+                        <button 
+                          className="action-btn view-btn"
+                          onClick={() => alert(`View invoice for order ${order.orderId}`)}
+                        >
+                          View Details
+                        </button>
+                        <button 
+                          className="action-btn download-btn"
+                          onClick={() => alert(`Download invoice for order ${order.orderId}`)}
+                        >
+                          Download PDF
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {/* Invoice PDF Modal */}
+          </div>
+        )}
 
-
-
-                {selectedInvoiceId && pdfUrl && (
-  <div className="invoice-modal">
-    <div className="invoice-modal-content">
-      <div className="invoice-modal-header">
-        <h3>Invoice #{selectedInvoiceId}</h3>
-        <button 
-          className="invoice-modal-close"
-          onClick={() => {
-            setSelectedInvoiceId(null);
-            URL.revokeObjectURL(pdfUrl);
-            setPdfUrl(null);
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div className="invoice-modal-body">
-        <PdfViewer pdfUrl={pdfUrl} />
-      </div>
-      <div className="invoice-modal-footer">
-        <button
-          className="sm-btn-save"
-          onClick={() => window.open(pdfUrl, '_blank')}
-        >
-          Download PDF
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        {orders.length > 0 && (
+          <div className="pagination">
+            <button className="page-btn">Previous</button>
+            <div className="page-numbers">
+              <button className="page-number active">1</button>
+              <button className="page-number">2</button>
+              <button className="page-number">3</button>
+            </div>
+            <button className="page-btn">Next</button>
           </div>
         )}
       </>
