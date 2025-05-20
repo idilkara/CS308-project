@@ -430,11 +430,11 @@ useEffect(() => {
       "Content-Type": "application/json",
     };
 
-    const data = { product_id: productId, discount };
+    const data = { product_id: productId, discount_amount: discount };
 
     try {
-      const response = await fetch("http://localhost/api/discount/update_discount", {
-        method: "POST",
+      const response = await fetch("http://localhost/api/discounts/setdiscount", {
+        method: "PUT",
         headers,
         body: JSON.stringify(data),
       });
@@ -505,47 +505,6 @@ useEffect(() => {
     }
   };
 
-  // // API calls for reports
-  // const fetchInvoices = async () => {
-  //   if (!startDate || !endDate) {
-  //     alert("Please select both start and end dates");
-  //     return;
-  //   }
-  //
-  //   try {
-  //     // Simulate API call
-  //     setTimeout(() => {
-  //       const sampleInvoices = [
-  //         { id: "INV-2023-001", date: "2025-03-12", customer: "John Smith", total: 37.97, items: 3 },
-  //         { id: "INV-2023-002", date: "2025-03-13", customer: "Mary Jones", total: 42.98, items: 2 },
-  //         { id: "INV-2023-003", date: "2025-03-14", customer: "Robert Brown", total: 24.99, items: 1 },
-  //         { id: "INV-2023-004", date: "2025-03-15", customer: "Jane Miller", total: 54.97, items: 3 },
-  //         { id: "INV-2023-005", date: "2025-03-16", customer: "Sam Wilson", total: 29.98, items: 2 }
-  //       ];
-  //       setInvoices(sampleInvoices);
-  //
-  //       // Sample report data
-  //       const reportSample = {
-  //         revenue: 190.89,
-  //         cost: 95.45,
-  //         profit: 95.44,
-  //         dailyData: [
-  //           { date: '2025-03-12', revenue: 37.97, cost: 18.99, profit: 18.98 },
-  //           { date: '2025-03-13', revenue: 42.98, cost: 21.49, profit: 21.49 },
-  //           { date: '2025-03-14', revenue: 24.99, cost: 12.50, profit: 12.49 },
-  //           { date: '2025-03-15', revenue: 54.97, cost: 27.48, profit: 27.49 },
-  //           { date: '2025-03-16', revenue: 29.98, cost: 14.99, profit: 14.99 }
-  //         ]
-  //       };
-  //       setReportData(reportSample);
-  //
-  //       // Create chart
-  //       createChart(reportSample.dailyData);
-  //     }, 800);
-  //   } catch (error) {
-  //     console.error("Error fetching invoices:", error);
-  //   }
-  // };
 
   const generateAnalyticsReport = async () => {
     if (!token) {
@@ -686,58 +645,6 @@ useEffect(() => {
     setChartInstance(chart);
   };
 
-  // API calls for refund requests
-  // const fetchRefundRequests = async () => {
-  //   setRefundIsLoading(true);
-  //   try {
-  //     // Simulate API call
-  //     setTimeout(() => {
-  //       const sampleRefunds = [
-  //         {
-  //           id: 301,
-  //           orderId: "ORD-2023-010",
-  //           customer: "Alice Johnson",
-  //           product: "Fiction Novel",
-  //           purchaseDate: "2025-03-05",
-  //           purchasePrice: 12.99,
-  //           discounted: true,
-  //           originalPrice: 14.99,
-  //           reason: "Item arrived damaged",
-  //           status: "pending"
-  //         },
-  //         {
-  //           id: 302,
-  //           orderId: "ORD-2023-015",
-  //           customer: "Michael Davis",
-  //           product: "Sci-Fi Novel",
-  //           purchaseDate: "2025-03-08",
-  //           purchasePrice: 11.99,
-  //           discounted: false,
-  //           originalPrice: 11.99,
-  //           reason: "Wrong item received",
-  //           status: "pending"
-  //         },
-  //         {
-  //           id: 303,
-  //           orderId: "ORD-2023-018",
-  //           customer: "Emma Wilson",
-  //           product: "Fantasy Book",
-  //           purchaseDate: "2025-03-10",
-  //           purchasePrice: 15.29,
-  //           discounted: true,
-  //           originalPrice: 16.99,
-  //           reason: "Changed my mind",
-  //           status: "pending"
-  //         }
-  //       ];
-  //       setRefundRequests(sampleRefunds);
-  //       setRefundIsLoading(false);
-  //     }, 800);
-  //   } catch (error) {
-  //     console.error("Error fetching refund requests:", error);
-  //     setRefundIsLoading(false);
-  //   }
-  // };
 
 
 
