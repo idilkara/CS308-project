@@ -6,7 +6,7 @@ import bookCover from './img/BookCover.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-
+import BookCard from "./components/BookCard";
 
 
 const CategoryPage = () => {
@@ -117,6 +117,12 @@ const CategoryPage = () => {
   // Price range state
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
   const [customPriceRange, setCustomPriceRange] = useState({ min: 0, max: 100 });
+  
+  
+  
+  const handleCardClick = (e, book) => {
+  navigate('/product', { state: { product_id: book.product_id } });
+};
 
   // Handle incoming category selection from HomePage
   useEffect(() => {
@@ -848,85 +854,19 @@ const toggleFavorite = (productId) => {
 
           <div className="content-wrapper">
             <div className="grid-container">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((book, index) => {
-                const isOutOfStock = !book.stock_quantity || book.stock_quantity <= 0;
-                
-                return (
-                  <div
-                    className={`grid-item ${isOutOfStock ? 'out-of-stock' : ''}`}
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((book) => (
+                  <BookCard
                     key={book.product_id}
-                    onClick={(e) => {
-                      // Prevent navigation if clicking on buttons
-                      if (e.target.closest('.item-actions')) {
-                        e.stopPropagation();
-                        return;
-                      }
-                      navigate('/product', { state: { product_id: book.product_id } });
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {isOutOfStock && <span className="out-of-stock-label">Out of Stock</span>}
-                    <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        className={`favorite-btn ${favorites[book.product_id] ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(book.product_id);
-                        }}
-                      >
-                        {favorites[book.product_id] ? (
-                          <span className="heart-filled">♥</span>
-                        ) : (
-                          <span className="heart-outline">♡</span>
-                        )}
-                      </button>
-                      <button 
-                        className="cart-btn" 
-                        onClick={(e) => isOutOfStock ? e.preventDefault() : addToCart(e, book)}
-                        disabled={isOutOfStock}
-                      >
-                        <span>🛒</span>
-                        </button>
-                    </div>
-                    <div className="grid-item-content">
-                      <img
-                        src={`assets/covers/${book.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                        alt={getBookName(book)}
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = bookCover;
-                        }}
-                      />
-                    </div>
-                    <hr />
-                    <div className="grid-item-header">
-                      <h3 className="source-sans-semibold">
-                        {getBookName(book).length > 27
-                          ? getBookName(book).slice(0, 27) + '...'
-                          : getBookName(book)
-                        }
-                      </h3>
-                      <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
-                      {parseFloat(book.discount_rate) > 0 ? (
-                        <div className="product-price-root">
-                          <span className="original-price-root">${book.price || "0.00"}</span>
-                          <span className="discounted-price-root">
-                            ${(
-                              parseFloat(book.price) * (1 - parseFloat(book.discount_rate))
-                            ).toFixed(2)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="original-usual-price-root">${book.price || "0.00"}</span>
-                      )}
-
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="grid-container no-results-active">
+                    book={book}
+                    isFavorite={favorites[book.product_id]}
+                    onToggleFavorite={toggleFavorite}
+                    onAddToCart={addToCart}
+                    onClick={handleCardClick}
+                  />
+                ))
+              ) : (
+                <div className="grid-container no-results-active">
                   <div> </div>
                   <div className="no-results">
                     <h3>No books match your current filters</h3>
@@ -936,16 +876,14 @@ const toggleFavorite = (productId) => {
                         setFilters({priceRange: [], author: []});
                         setSelectedCategories(['All']); 
                         setCustomPriceRange({ min: 0, max: 100 });
-                        setSearchKeyWord(''); // Clear search keyword
-                        setFilteredProducts(allProducts); // Reset to show all products
+                        setSearchKeyWord('');
+                        setFilteredProducts(allProducts);
                       }}
                       className="clear-filters-btn"
                     >
                       Clear All Filters
                     </button>
                   </div>
-                  
-
                 </div>
               )}
             </div>
@@ -953,11 +891,10 @@ const toggleFavorite = (productId) => {
         </div>
       </div>
       {notification.visible && (
-  <div className={`cart-notification ${notification.type}`}>
-    {notification.message}
-  </div>
-)}
-    
+        <div className={`cart-notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import bookCover from './img/BookCover.png';
 
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
+import BookCard from "./components/BookCard";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useAuth } from "./context/AuthContext";
 
@@ -241,123 +242,121 @@ const HomePage = () => {
   };
   
   // Add to cart function
-  // Replace the existing addToCart function in HomePage with this one
-const addToCart = async (event, book) => {
-  if (event) {
-    event.stopPropagation();
-  }
-  
-  // Check if item is out of stock
-  if (!book.stock_quantity || book.stock_quantity <= 0) {
-    showNotification("Sorry, this item is out of stock", "error");
-    return { error: "Out of stock" };
-  }
-  
-  try {
-    // Check current quantity in cart first
-    let currentQuantityInCart = 0;
+  const addToCart = async (event, book) => {
+    if (event) {
+      event.stopPropagation();
+    }
     
-    if (token) {
-      // For logged in users, check cart in database
-      const cartResponse = await fetch("http://localhost/api/shopping/view", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
+    // Check if item is out of stock
+    if (!book.stock_quantity || book.stock_quantity <= 0) {
+      showNotification("Sorry, this item is out of stock", "error");
+      return { error: "Out of stock" };
+    }
+    
+    try {
+      // Check current quantity in cart first
+      let currentQuantityInCart = 0;
       
-      if (cartResponse.ok) {
-        const cartData = await cartResponse.json();
-        if (Array.isArray(cartData)) {
-          const existingItem = cartData.find(item => item.product_id === book.product_id);
-          if (existingItem) {
-            currentQuantityInCart = existingItem.quantity;
+      if (token) {
+        // For logged in users, check cart in database
+        const cartResponse = await fetch("http://localhost/api/shopping/view", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (cartResponse.ok) {
+          const cartData = await cartResponse.json();
+          if (Array.isArray(cartData)) {
+            const existingItem = cartData.find(item => item.product_id === book.product_id);
+            if (existingItem) {
+              currentQuantityInCart = existingItem.quantity;
+            }
           }
         }
-      }
-    } else {
-      // For non-logged in users, check localStorage
-      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      const existingItem = tempCart.find(item => item.id === book.product_id);
-      if (existingItem) {
-        currentQuantityInCart = existingItem.quantity;
-      }
-    }
-    
-    // Calculate how many more items can be added
-    const availableToAdd = book.stock_quantity - currentQuantityInCart;
-    
-    if (availableToAdd <= 0) {
-      showNotification("You already have the maximum available quantity in your cart", "error");
-      return { error: "Maximum quantity reached" };
-    }
-    
-    // Continue with adding to cart
-    if (token) {
-      // User is logged in, add to their cart in the database
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      const data = { product_id: book.product_id, quantity: 1 };
-      
-      const response = await fetch("http://localhost/api/shopping/add", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(data),
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Added to cart:", result);
-        showNotification("Added to cart successfully!", "success");
-        return result;
       } else {
-        const errorData = await response.json();
-        console.error("Failed to add to cart:", errorData);
-        showNotification("Failed to add to cart.", "error");
-        return {
-          error: errorData.error || "Failed to add to cart",
-          status_code: response.status,
+        // For non-logged in users, check localStorage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const existingItem = tempCart.find(item => item.id === book.product_id);
+        if (existingItem) {
+          currentQuantityInCart = existingItem.quantity;
+        }
+      }
+      
+      // Calculate how many more items can be added
+      const availableToAdd = book.stock_quantity - currentQuantityInCart;
+      
+      if (availableToAdd <= 0) {
+        showNotification("You already have the maximum available quantity in your cart", "error");
+        return { error: "Maximum quantity reached" };
+      }
+      
+      // Continue with adding to cart
+      if (token) {
+        // User is logged in, add to their cart in the database
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         };
-      }
-    } else {
-      // User is not logged in, store the item in local storage
-      const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-      const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
-      
-      if (existingItemIndex >= 0) {
-        // Item already exists, increase quantity
-        tempCart[existingItemIndex].quantity += 1;
-      } else {
-        // New item, add to cart
-        tempCart.push({
-          id: book.product_id,
-          name: getBookName(book),
-          price: parseFloat(book.price) || 0,
-          quantity: 1,
-          author: book.author || "Unknown Author",
-          publisher: book.distributor_information || "Unknown Publisher",
-          stock_quantity: book.stock_quantity, // Add stock_quantity to track availability
-          image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
+        const data = { product_id: book.product_id, quantity: 1 };
+        
+        const response = await fetch("http://localhost/api/shopping/add", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(data),
         });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Added to cart:", result);
+          showNotification("Added to cart successfully!", "success");
+          return result;
+        } else {
+          const errorData = await response.json();
+          console.error("Failed to add to cart:", errorData);
+          showNotification("Failed to add to cart.", "error");
+          return {
+            error: errorData.error || "Failed to add to cart",
+            status_code: response.status,
+          };
+        }
+      } else {
+        // User is not logged in, store the item in local storage
+        const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
+        const existingItemIndex = tempCart.findIndex(item => item.id === book.product_id);
+        
+        if (existingItemIndex >= 0) {
+          // Item already exists, increase quantity
+          tempCart[existingItemIndex].quantity += 1;
+        } else {
+          // New item, add to cart
+          tempCart.push({
+            id: book.product_id,
+            name: getBookName(book),
+            price: parseFloat(book.price) || 0,
+            quantity: 1,
+            author: book.author || "Unknown Author",
+            publisher: book.distributor_information || "Unknown Publisher",
+            stock_quantity: book.stock_quantity, // Add stock_quantity to track availability
+            image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
+          });
+        }
+        
+        localStorage.setItem('tempCart', JSON.stringify(tempCart));
+        showNotification("Added to cart successfully!", "success");
+        return { success: true };
       }
-      
-      localStorage.setItem('tempCart', JSON.stringify(tempCart));
-      showNotification("Added to cart successfully!", "success");
-      return { success: true };
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showNotification("An unexpected error occurred.", "error");
+      return { error: "An unexpected error occurred" };
     }
-  } catch (error) {
-    console.error("Error adding to cart:", error);
-    showNotification("An unexpected error occurred.", "error");
-    return { error: "An unexpected error occurred" };
-  }
-};
+  };
   
   // Toggle favorite status
-  const toggleFavorite = (index, productId, section) => {
-    // The section and index parameters are kept for backward compatibility
+  const toggleFavorite = (productId) => {
     const currentStatus = favorites[productId];
     
     // Call the appropriate API function based on current status
@@ -376,6 +375,15 @@ const addToCart = async (event, book) => {
         }
       }
     });
+  };
+  
+  // Helper function to get book name
+  const getBookName = (book) => {
+    if (book.title) return book.title;
+    if (book.name) return book.name;
+    if (book.productName) return book.productName;
+    if (book.book_title) return book.book_title;
+    return "Unknown Title";
   };
   
   // Banner navigation functions
@@ -414,15 +422,6 @@ const addToCart = async (event, book) => {
     setBestSellersPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
   
-  // Helper function to get book name
-  const getBookName = (book) => {
-    if (book.title) return book.title;
-    if (book.name) return book.name;
-    if (book.productName) return book.productName;
-    if (book.book_title) return book.book_title;
-    return "Unknown Title";
-  };
-  
   // Banner transition effect
   useEffect(() => {
     if (bannerIndex === extendedBanners.length - 1) {
@@ -439,8 +438,6 @@ const addToCart = async (event, book) => {
       setTimeout(() => setIsTransitioning(false), 500);
     }
   }, [bannerIndex, extendedBanners.length, banners.length]);
-
-  
 
   // Add these scrolling functions for categories section
   const scrollCategoriesRight = () => {
@@ -474,6 +471,11 @@ const addToCart = async (event, book) => {
     { name: "Yapi Kredi Kultur", image: "https://img.kitapyurdu.com/v1/getImage/fn:11263722/wi:200/wh:416d9f42c"},
     { name: "Ithaki", image: "https://www.yaybir.org.tr/wp-content/uploads/2022/08/Ithaki-logo-pdf.jpg"},
   ];
+
+  // Handler for book click
+  const handleBookClick = (e, book) => {
+    navigate('/product', { state: { product_id: book.product_id } });
+  };
 
   return (
     <div>
@@ -517,76 +519,19 @@ const addToCart = async (event, book) => {
                 <div key={pageIndex} className="product-page" style={{ width: '100%' }}>
                   {newArrivals
                     .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
-                    .map((product, index) => {
-                      const productIndex = pageIndex * productsPerPage + index;
-                      const favoriteKey = `new-${product.product_id}`;
-                      return (
-                        <div 
-                            key={productIndex} 
-                            className="grid-item-hp"
-                            onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                              <button 
-                                className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(productIndex, product.product_id, 'new');
-                                }}
-                              >
-                                {favorites[product.product_id] ? 
-                                  <span className="heart-filled">♥</span> : 
-                                  <span className="heart-outline">♡</span>
-                                }
-                              </button>
-                              <button 
-                                className="cart-btn"
-                                onClick={(e) => addToCart(e, product)}
-                              >
-                                <span>🛒</span>
-                              </button>
-                            </div>
-
-                            <div className="grid-item-content-hp">
-                              <img
-                                src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                                alt={getBookName(product)}
-                                onError={(e) => {
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = bookCover;
-                                }}
-                              />
-                            </div>
-                            <hr />
-                            <div className="grid-item-header-hp">
-                              <h3 className="source-sans-semibold">
-                                {getBookName(product).length > 27
-                                  ? getBookName(product).slice(0, 27) + '...'
-                                  : getBookName(product)
-                                }
-                              </h3>
-                              <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
-                              {parseFloat(product.discount_rate) > 0 ? (
-                                <div className="product-price">
-                                  <span className="original-price">${product.price || "0.00"}</span>
-                                  <span className="discounted-price">
-                                    ${(
-                                      parseFloat(product.price) * (1 - parseFloat(product.discount_rate))
-                                    ).toFixed(2)}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="original-usual-price">${product.price || "0.00"}</span>
-                              )}
-                            </div>
-                          </div>
-                      );
-                    })}
+                    .map((product) => (
+                      <BookCard
+                        key={product.product_id}
+                        book={product}
+                        isFavorite={!!favorites[product.product_id]}
+                        onToggleFavorite={toggleFavorite}
+                        onAddToCart={addToCart}
+                        onClick={handleBookClick}
+                      />
+                    ))}
                 </div>
               ))}
             </div>
-            
           </div>
           <button className="prev-button" onClick={prevNewArrivalsPage}>
               <FiChevronLeft size={30} color="black" />
@@ -620,8 +565,6 @@ const addToCart = async (event, book) => {
                 </div>
               ))}
             </div>
-            
-            
           </div>
           <button className="prev-button" onClick={scrollCategoriesLeft}>
               <FiChevronLeft size={30} color="black" />
@@ -647,66 +590,19 @@ const addToCart = async (event, book) => {
                 <div key={pageIndex} className="product-page" style={{ width: '100%' }}>
                   {bestSellers
                     .slice(pageIndex * productsPerPage, (pageIndex + 1) * productsPerPage)
-                    .map((product, index) => {
-                      const productIndex = pageIndex * productsPerPage + index;
-                      const favoriteKey = `best-${product.product_id}`;
-                      return (
-                        <div 
-                          key={productIndex} 
-                          className="grid-item-hp"
-                          onClick={() => navigate('/product', { state: { product_id: product.product_id } })}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="item-actions" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            className={`favorite-btn ${favorites[product.product_id] ? 'active' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(productIndex, product.product_id, 'new');
-                            }}
-                          >
-                            {favorites[product.product_id] ? 
-                              <span className="heart-filled">♥</span> : 
-                              <span className="heart-outline">♡</span>
-                            }
-                          </button>
-                            <button 
-                              className="cart-btn"
-                              onClick={(e) => addToCart(e, product)}
-                            >
-                              <span>🛒</span>
-                            </button>
-                          </div>
-                          
-                          <div className="grid-item-content-hp">
-                            <img
-                              src={`assets/covers/${product.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                              alt={getBookName(product)}
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = bookCover;
-                              }}
-                            />
-                          </div>
-                          <hr />
-                          <div className="grid-item-header-hp">
-                            <h3 className="source-sans-semibold">
-                              {getBookName(product).length > 27
-                                ? getBookName(product).slice(0, 27) + '...'
-                                : getBookName(product)
-                              }
-                            </h3>
-                            <p className="source-sans-regular">{product.author || "Unknown Author"}</p>
-                            <span className="source-sans-bold">${product.price || "0.00"}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    .map((product) => (
+                      <BookCard
+                        key={product.product_id}
+                        book={product}
+                        isFavorite={!!favorites[product.product_id]}
+                        onToggleFavorite={toggleFavorite}
+                        onAddToCart={addToCart}
+                        onClick={handleBookClick}
+                      />
+                    ))}
                 </div>
               ))}
             </div>
-
-            
           </div>
           <button className="prev-button" onClick={prevBestSellersPage}>
               <FiChevronLeft size={30} color="black" />
@@ -717,7 +613,6 @@ const addToCart = async (event, book) => {
         </div>
         <hr />
 
-        
         {/* Publishers Section */}
         <div className="category-container">
           <h2 className="source-sans-bold">Our Publishers</h2>
@@ -742,10 +637,10 @@ const addToCart = async (event, book) => {
         
         {/* Notification */}
         {notification.visible && (
-  <div className={`cart-notification ${notification.type}`}>
-    {notification.message}
-  </div>
-)}
+          <div className={`cart-notification ${notification.type}`}>
+            {notification.message}
+          </div>
+        )}
       </div>
       <Footer />
     </div>

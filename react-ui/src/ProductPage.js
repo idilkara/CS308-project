@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import "./ProductPage.css";
 import Navbar from "./components/Navbar.jsx";
 import ReviewForm from "./ReviewForm.js";
+import BookCard from './components/BookCard'; // Import the BookCard component
 import { useAuth } from "./context/AuthContext";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Tag } from "lucide-react";
 import bookCover from './img/BookCover.png';
 
 const ProductPage = () => {
@@ -25,6 +26,7 @@ const ProductPage = () => {
     stock_quantity: 0,
     waiting: false,
     warranty_status: "Loading warranty status...",
+    discount_rate: "0.00" // Added discount rate
   });
   
   // States for UI management
@@ -45,6 +47,7 @@ const ProductPage = () => {
     totalReviews: 0,
     distribution: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
   });
+  const [wishlistItems, setWishlistItems] = useState([]);
 
   // Check if product is in wishlist
   useEffect(() => {
@@ -61,6 +64,7 @@ const ProductPage = () => {
           
           if (response.ok) {
             const wishlistData = await response.json();
+            setWishlistItems(wishlistData.map(item => item.product_id));
             const isInWishlist = wishlistData.some(item => item.product_id === product_id);
             setInWishlist(isInWishlist);
           }
@@ -129,13 +133,12 @@ const ProductPage = () => {
       if (res.ok) {
         const allProducts = await res.json();
         
-        // Find products in the same category, excluding current product and out-of-stock items
+        // Find products in the same category, excluding current product
         const similar = allProducts
           .filter(p => 
             p.product_id !== product_id && 
             p.categories && 
-            p.categories.includes(category) &&
-            p.stock_quantity > 0  // Only include in-stock items
+            p.categories.includes(category)
           )
           .slice(0, 5); // Limit to 5 products
           
@@ -217,7 +220,6 @@ const ProductPage = () => {
         });
         
         setReviewStats({
-         // averageRating: parseFloat(product.average_rating || 0),
           // averageRating: totalReviews > 0 ? Math.round(ratingSum / totalReviews * 10) / 10 : 0,
           totalReviews,
           distribution
@@ -229,13 +231,17 @@ const ProductPage = () => {
   };
 
   // Add to cart function
-  const addToCart = async (event) => {
+  const addToCart = async (event, productToAdd = null) => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
   
-    if (product.stock_quantity <= 0) {
+    // Use passed product or current product
+    const targetProduct = productToAdd || product;
+    const targetProductId = productToAdd ? productToAdd.product_id : product_id;
+    
+    if (targetProduct.stock_quantity <= 0) {
       showNotification("Sorry, this item is out of stock", "error");
       return;
     }
@@ -257,7 +263,7 @@ const ProductPage = () => {
         if (cartResponse.ok) {
           const cartData = await cartResponse.json();
           if (Array.isArray(cartData)) {
-            const existingItem = cartData.find(item => item.product_id === product_id);
+            const existingItem = cartData.find(item => item.product_id === targetProductId);
             if (existingItem) {
               currentQuantityInCart = existingItem.quantity;
             }
@@ -266,31 +272,30 @@ const ProductPage = () => {
       } else {
         // For non-logged in users, check localStorage
         const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-        const existingItem = tempCart.find(item => item.id === product_id);
+        const existingItem = tempCart.find(item => item.id === targetProductId);
         if (existingItem) {
           currentQuantityInCart = existingItem.quantity;
         }
       }
       
       // Calculate how many more items can be added
-      const availableToAdd = product.stock_quantity - currentQuantityInCart;
+      const availableToAdd = targetProduct.stock_quantity - currentQuantityInCart;
       
       if (availableToAdd <= 0) {
         showNotification("You already have the maximum available quantity in your cart", "error");
         return;
       }
       
-      // Adjust quantity if needed
-      const quantityToAdd = Math.min(quantity, availableToAdd);
+      // Adjust quantity if needed - use 1 for BookCard clicks, otherwise use selected quantity
+      const quantityToAdd = productToAdd ? 1 : Math.min(quantity, availableToAdd);
       
       // Now proceed with adding to cart
       if (token) {
-        // Rest of your existing code for logged-in users...
         const headers = {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         };
-        const data = { product_id: product_id, quantity: quantityToAdd };
+        const data = { product_id: targetProductId, quantity: quantityToAdd };
         
         const response = await fetch("http://localhost/api/shopping/add", {
           method: "POST",
@@ -304,11 +309,12 @@ const ProductPage = () => {
           showNotification("Added to cart successfully!", "success");
         } else {
           // Error handling code...
+          showNotification("Failed to add to cart", "error");
         }
       } else {
-        // Rest of your existing code for non-logged-in users...
+        // For non-logged-in users
         const tempCart = JSON.parse(localStorage.getItem('tempCart')) || [];
-        const existingItemIndex = tempCart.findIndex(item => item.id === product_id);
+        const existingItemIndex = tempCart.findIndex(item => item.id === targetProductId);
         
         if (existingItemIndex >= 0) {
           // Item already exists, increase quantity (but don't exceed stock)
@@ -316,14 +322,15 @@ const ProductPage = () => {
         } else {
           // New item, add to cart
           tempCart.push({
-            id: product_id,
-            name: product.name || "Unknown Title",
-            price: parseFloat(product.price) || 0,
+            id: targetProductId,
+            name: targetProduct.name || "Unknown Title",
+            price: parseFloat(targetProduct.price) || 0,
             quantity: quantityToAdd,
-            author: product.author || "Unknown Author",
-            publisher: product.distributor_information || "Unknown Publisher",
-            stock_quantity: product.stock_quantity, // Include stock_quantity in the cart item
-            image: `assets/covers/${product.name ? product.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
+            author: targetProduct.author || "Unknown Author",
+            publisher: targetProduct.distributor_information || "Unknown Publisher",
+            stock_quantity: targetProduct.stock_quantity,
+            discount_rate: targetProduct.discount_rate || "0.00",
+            image: `assets/covers/${targetProduct.name ? targetProduct.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
           });
         }
         
@@ -337,11 +344,16 @@ const ProductPage = () => {
   };
 
   // Toggle wishlist status
-  const toggleWishlist = async () => {
+  const toggleWishlist = async (productId = null) => {
     if (!token) {
       showNotification("Please log in to add items to wishlist", "error");
       return;
     }
+
+    const targetProductId = productId || product_id;
+    const isCurrentlyInWishlist = productId 
+      ? wishlistItems.includes(productId)
+      : inWishlist;
 
     try {
       const headers = {
@@ -349,8 +361,10 @@ const ProductPage = () => {
         "Content-Type": "application/json",
       };
       
-      const data = { product_id: product_id };
-      const endpoint = inWishlist ? "http://localhost/api/wishlist/remove" : "http://localhost/api/wishlist/add";
+      const data = { product_id: targetProductId };
+      const endpoint = isCurrentlyInWishlist 
+        ? "http://localhost/api/wishlist/remove" 
+        : "http://localhost/api/wishlist/add";
       
       const response = await fetch(endpoint, {
         method: "POST",
@@ -359,9 +373,20 @@ const ProductPage = () => {
       });
       
       if (response.ok) {
-        setInWishlist(!inWishlist);
+        if (productId) {
+          // Update the wishlist items array for BookCard components
+          setWishlistItems(prev => 
+            isCurrentlyInWishlist 
+              ? prev.filter(id => id !== productId)
+              : [...prev, productId]
+          );
+        } else {
+          // Update main product wishlist status
+          setInWishlist(!inWishlist);
+        }
+        
         showNotification(
-          inWishlist ? "Removed from wishlist" : "Added to wishlist", 
+          isCurrentlyInWishlist ? "Removed from wishlist" : "Added to wishlist", 
           "success"
         );
       } else {
@@ -417,6 +442,11 @@ const ProductPage = () => {
     return imagePath;
   };
 
+  // Navigate to product page when clicking a BookCard
+  const handleBookCardClick = (e, book) => {
+    navigate('/product', { state: { product_id: book.product_id } });
+  };
+
   const sortedReviews = getSortedReviews();
 
   if (loading) {
@@ -447,34 +477,40 @@ const ProductPage = () => {
     );
   }
 
+  // Calculate discounted price if applicable
+  const hasDiscount = parseFloat(product.discount_rate) > 0;
+  const discountedPrice = hasDiscount 
+    ? (parseFloat(product.price) * (1 - parseFloat(product.discount_rate))).toFixed(2)
+    : null;
+
   return (
     <div>
       <Navbar />
       <div className="product-container">
         <div className="product-details-container">
           <div className="product-gallery">
-          <div className="main-image">
-          {product.stock_quantity <= 0 && (
-            <div className="out-of-stock-label">Out of Stock</div>
-          )}
-          <div 
-            className={`favorite-btn ${inWishlist ? 'active' : ''}`}
-            onClick={toggleWishlist}
-          >
-            <span className={inWishlist ? "heart-filled" : "heart-outline"}>
-              {inWishlist ? "❤" : "♡"}
-            </span>
-          </div>
-          <img 
-            src={getProductImage()} 
-            alt={product.name} 
-            className={product.stock_quantity <= 0 ? 'out-of-stock-img' : ''}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = bookCover;
-            }}
-          />
-        </div>
+            <div className="main-image">
+              {product.stock_quantity <= 0 && (
+                <div className="out-of-stock-label">Out of Stock</div>
+              )}
+              <div 
+                className={`favorite-btn ${inWishlist ? 'active' : ''}`}
+                onClick={toggleWishlist}
+              >
+                <span className={inWishlist ? "heart-filled" : "heart-outline"}>
+                  {inWishlist ? "❤" : "♡"}
+                </span>
+              </div>
+              <img 
+                src={getProductImage()} 
+                alt={product.name} 
+                className={product.stock_quantity <= 0 ? 'out-of-stock-img' : ''}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = bookCover;
+                }}
+              />
+            </div>
             {/* Optional: Add thumbnail images here if available */}
           </div>
           
@@ -502,7 +538,19 @@ const ProductPage = () => {
             </div>
             
             <h1 className="product-name">{product.name}</h1>
-            <div className="product-price">${parseFloat(product.price).toFixed(2)}</div>
+            
+            {/* Price with discount if applicable */}
+            <div className="product-price-container">
+              {hasDiscount ? (
+                <div className="product-price-root">
+                  <span className="original-price-root">${parseFloat(product.price).toFixed(2)}</span>
+                  <span className="discounted-price-root">${discountedPrice}</span>
+                </div>
+              ) : (
+                <div className="product-price">${parseFloat(product.price).toFixed(2)}</div>
+              )}
+            </div>
+            
             <div className="product-code">Product Id: {product.product_id}</div>
             
             {/* Stock indicator */}
@@ -542,7 +590,7 @@ const ProductPage = () => {
               
               <button 
                 className="add-to-cart-btn" 
-                onClick={addToCart}
+                onClick={(e) => addToCart(e)}
                 disabled={product.stock_quantity <= 0}
               >
                 Add to Cart
@@ -550,7 +598,7 @@ const ProductPage = () => {
               
               <button 
                 className={`wishlist-btn ${inWishlist ? "added" : ""}`}
-                onClick={toggleWishlist}
+                onClick={() => toggleWishlist()}
               >
                 <span className={inWishlist ? "heart-filled" : "heart-outline"}>
                   {inWishlist ? "❤" : "♡"}
@@ -574,7 +622,6 @@ const ProductPage = () => {
               <p className="section-content">{product.warranty_status}</p>
             </div>
 
-            
             <div className="product-section">
               <h3 className="section-title">Serial Number</h3>
               <p className="section-content">{product.serial_number}</p>
@@ -589,50 +636,31 @@ const ProductPage = () => {
               <h3 className="section-title">Distributor</h3>
               <p className="section-content">{product.distributor_information}</p>
             </div>
-
-
-
-
           </div>
         </div>
         
         <div className="separator"></div>
         
-        {/* Similar Products Section */}
+        {/* Similar Products Section using BookCard component */}
         <div className="similar-products-section">
           <h2 className="section-heading">Similar Products</h2>
           <div className="similar-products-grid">
-          {similarProducts.length > 0 ? (
-          similarProducts.map((similarProduct, index) => (
-            <div 
-              key={index} 
-              className={`product-card ${similarProduct.stock_quantity <= 0 ? 'out-of-stock' : ''}`}
-              onClick={() => navigate('/product', { state: { product_id: similarProduct.product_id } })}
-            >
-              <div className="product-card-image">
-                {similarProduct.stock_quantity <= 0 && (
-                  <div className="out-of-stock-label">Out of Stock</div>
-                )}
-                <img 
-                  src={`assets/covers/${similarProduct.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                  alt={similarProduct.name}
-                  className={similarProduct.stock_quantity <= 0 ? 'out-of-stock-img' : ''}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = bookCover;
-                  }}
+            {similarProducts.length > 0 ? (
+              similarProducts.map((similarProduct, index) => (
+                <BookCard
+                  key={index}
+                  book={similarProduct}
+                  isFavorite={wishlistItems.includes(similarProduct.product_id)}
+                  onToggleFavorite={toggleWishlist}
+                  onAddToCart={addToCart}
+                  onClick={handleBookCardClick}
                 />
+              ))
+            ) : (
+              <div className="no-similar-products">
+                No similar products found
               </div>
-              <div className="product-card-brand">{similarProduct.author || "Unknown Author"}</div>
-              <div className="product-card-name">{similarProduct.name || "Unknown Title"}</div>
-              <div className="product-card-price">${parseFloat(similarProduct.price).toFixed(2)}</div>
-            </div>
-          ))
-        ) : (
-          <div className="no-similar-products">
-            No similar products found
-          </div>
-        )}
+            )}
           </div>
         </div>
         
@@ -668,7 +696,7 @@ const ProductPage = () => {
             </div>
             
             <div className="review-distribution">
-              {/* {[5, 4, 3, 2, 1].map(stars => (
+              {[5, 4, 3, 2, 1].map(stars => (
                 <div key={stars} className="rating-bar">
                   <span>{stars} stars</span>
                   <div className="progress-bar">
@@ -683,16 +711,17 @@ const ProductPage = () => {
                   </div>
                   <span>{reviewStats.distribution[stars] || 0}</span>
                 </div>
-              ))} */}
+              ))}
             </div>
           </div>
           
-            {/* Review Form */}
-            {token !== null ? (
-              <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id}  />
-            ) : (
-              <div>You need to log in to write a review.</div>
-            )}
+          {/* Review Form */}
+          {token !== null ? (
+            <ReviewForm onSubmitReview={handleReviewSubmit} product_id={product_id} />
+          ) : (
+            <div>You need to log in to write a review.</div>
+          )}
+          
           {/* Reviews list */}
           <div className="comments-container">
             {sortedReviews.length > 0 ? (

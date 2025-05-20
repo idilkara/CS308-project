@@ -261,11 +261,28 @@ body, html {
   font-weight: bold;
   font-size: 1.20rem;
 }
-/* Add this to your CategoryPage.css file */
+
+.discount-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #e60023; /* bold red */
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+
 .grid-item.out-of-stock {
     background-color: rgba(230, 230, 230, 0.7);
     position: relative;
 }
+
                                  /* FAVORITES & CART ON GRID ITEMS */
 .item-actions {
     position: absolute;
