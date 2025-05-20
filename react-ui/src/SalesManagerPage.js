@@ -65,7 +65,7 @@ const SalesManager = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportData, setReportData] = useState(null);
-  //const [invoices, setInvoices] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [chartInstance, setChartInstance] = useState(null);
 
   //State for orders/invoices
@@ -549,7 +549,7 @@ useEffect(() => {
         total: parseFloat(invoice.total_price),
       }));
 
-     // setInvoices(parsedInvoices);
+      setInvoices(parsedInvoices);
 
       const reportData = {
         revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
@@ -1330,7 +1330,7 @@ useEffect(() => {
             <table className="invoices-table">
               <thead>
                 <tr>
-                  <th className="sortable">Order ID <span className="sort-icon">↓</span></th>
+                  <th className="sortable">Invoice ID <span className="sort-icon">↓</span></th>
                   <th className="sortable">Date <span className="sort-icon"></span></th>
                   <th>Customer</th>
                   <th className="sortable">Total <span className="sort-icon"></span></th>
@@ -1341,7 +1341,7 @@ useEffect(() => {
               <tbody>
                 {orders.map(order => (
                   <tr key={order.id}>
-                    <td className="invoice-id">{order.orderId}</td>
+                    <td className="invoice-id">{order.id}</td>
                     <td>{order.date}</td>
                     <td>{order.customer}</td>
                     <td className="price-cell">${order.total.toFixed(2)}</td>
@@ -1354,16 +1354,17 @@ useEffect(() => {
                       <div className="invoice-actions">
                         <button 
                           className="action-btn view-btn"
-                          onClick={() => alert(`View invoice for order ${order.orderId}`)}
+                          onClick={() => fetchInvoicePdf(order.id)}
                         >
-                          View Details
+                          View Invoice
                         </button>
-                        <button 
+                        {/* <button
                           className="action-btn download-btn"
-                          onClick={() => alert(`Download invoice for order ${order.orderId}`)}
+                          onClick={() => fetchInvoicePdf(order.id)}
+                          style={{ marginLeft: "8px" }}
                         >
                           Download PDF
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
@@ -1398,6 +1399,35 @@ useEffect(() => {
         {notification.visible && (
           <div className={`sm-notification ${notification.type}`}>
             {notification.message}
+          </div>
+        )}
+
+        {/* PDF Modal for viewing and downloading the invoice */}
+        {pdfUrl && selectedInvoiceId && (
+          <div className="pdf-modal" style={{
+            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+            background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+          }}>
+            <div style={{ background: "#fff", padding: 20, borderRadius: 8, maxWidth: "90vw", maxHeight: "90vh", position: "relative" }}>
+              <button
+                style={{ position: "absolute", top: 10, right: 10, fontSize: 18 }}
+                onClick={() => { setPdfUrl(null); setSelectedInvoiceId(null); }}
+              >✕</button>
+              <iframe
+                src={pdfUrl}
+                title="Invoice PDF"
+                style={{ width: "80vw", height: "80vh", border: "none" }}
+              />
+              <div style={{ marginTop: 10, textAlign: "right" }}>
+                <a
+                  href={pdfUrl}
+                  download={`invoice_${selectedInvoiceId}.pdf`}
+                  className="action-btn download-btn"
+                >
+                  Download PDF
+                </a>
+              </div>
+            </div>
           </div>
         )}
       </div>
