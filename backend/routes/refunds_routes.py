@@ -11,7 +11,7 @@ import smtplib
 import logging
 
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
@@ -76,10 +76,10 @@ def generate_refund_receipt_pdf(invoice_id, customer_name, delivery_address, ref
     elements.append(Spacer(1, 0.2 * inch))
 
     # Date and Customer Info
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_date = (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d %H:%M:%S') # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
     info_data = [
         ["Refund ID:", invoice_id],
-        ["Date:", current_date],
+        ["Date:", current_date], # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
         ["Customer:", customer_name],
         ["Delivery Address:", delivery_address]
     ]
@@ -211,6 +211,8 @@ def request_refund():
     if status != "delivered":
         return jsonify({"error": "Only delivered items can be refunded."}), 400
 
+    logging.info(f"Order Date: {order_date}")
+    
     if datetime.now() - order_date > timedelta(days=30):
         return jsonify({"error": "Refund period expired."}), 400
 

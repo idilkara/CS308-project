@@ -7,7 +7,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Add this component before the main UserAccountPage component
-const OrderItemComponent = ({ item, requestRefund, cancelOrderItem }) => {
+const OrderItemComponent = ({ item, requestRefund, cancelOrderItem, orderDate }) => {
   // Ensure we have a valid item
   if (!item || !item.orderitem_id) {
     return null;
@@ -26,6 +26,16 @@ const OrderItemComponent = ({ item, requestRefund, cancelOrderItem }) => {
   const isAlreadyRequested = item.refund_status === 'requested' || 
                             item.refund_status === 'approved' ||
                             item.refund_status === 'rejected';
+
+  // Calculate if order is older than 30 days
+  let isReturnPeriodExpired = false;
+  if (isDelivered && orderDate) {
+    const orderDateObj = new Date(orderDate);
+    const now = new Date();
+    const diffTime = now - orderDateObj;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    isReturnPeriodExpired = diffDays > 30;
+  }
 
   // Handle the refund request
   const handleRefundRequest = (e) => {
@@ -65,6 +75,13 @@ const OrderItemComponent = ({ item, requestRefund, cancelOrderItem }) => {
       );
     }
     if (isDelivered && !isAlreadyRequested) {
+      if (isReturnPeriodExpired) {
+        return (
+          <span className="return-status return-rejected">
+            Return period expired
+          </span>
+        );
+      }
       return (
         <button 
           className="return-request-btn"
@@ -943,8 +960,7 @@ const UserAccountPage = () => {
         
         <button className="edit-button" onClick={toggleEditMode}>Edit Profile</button>
         </>
-    );
-    };
+        );};
 
     // Add the requestRefund function
     const requestRefund = async (orderItemId) => {
@@ -991,6 +1007,8 @@ const UserAccountPage = () => {
                 const errorData = await response.json();
                 console.error('Refund request failed:', errorData);
                 toast.error(errorData.error || "Failed to request return");
+
+                
                 return { error: errorData.error || "Failed to request return" };
             }
         } catch (error) {
@@ -1166,6 +1184,7 @@ const UserAccountPage = () => {
                                                     item={item}
                                                     requestRefund={requestRefund}
                                                     cancelOrderItem={cancelOrderItem}
+                                                    orderDate={order.order_date}
                                                 />
                                             ))
                                     ) : (

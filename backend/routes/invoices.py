@@ -9,7 +9,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -112,7 +112,7 @@ def generate_invoice_pdf_asBytes(invoice_id, user_name, deliveryAddress, items):
     elements.append(Spacer(1, 0.25*inch))
     
     # Add invoice details
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_date = (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d %H:%M:%S') # DATEVALUE
     
     # Create a table for invoice details
     invoice_data = [

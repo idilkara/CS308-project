@@ -89,7 +89,7 @@ def get_invoices():
             "order_id": invoice[1],
             "total_price": invoice[2],
             "delivery_address": invoice[3],
-            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S")
+            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S") # DATEVALUE
         }
         for invoice in invoices
     ])
@@ -111,7 +111,7 @@ def get_invoices_manager():
         SELECT invoice_id, order_id, total_price, delivery_address, invoice_date
         FROM managerinvoices
         WHERE manager_id = %s
-        ORDER BY invoice_date DESC
+        ORDER BY invoice_date DESC 
     """, (user_id,))
 
     invoices = cur.fetchall()
@@ -128,7 +128,7 @@ def get_invoices_manager():
             "order_id": invoice[1],
             "total_price": invoice[2],
             "delivery_address": invoice[3],
-            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S")
+            "invoice_date": invoice[4].strftime("%Y-%m-%d %H:%M:%S") # DATEVALUE
         }
         for invoice in invoices
     ])

@@ -119,8 +119,8 @@ def create_order():
 
         # Create user order after total price is known
         cur.execute("""
-            INSERT INTO userorders (user_id, total_price, delivery_address)
-            VALUES (%s, %s, %s) RETURNING order_id
+            INSERT INTO userorders (user_id, total_price, delivery_address, order_date)
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP - INTERVAL '0 days') RETURNING order_id
         """, (user_id, total_price, delivery_address))
         userorder_id = cur.fetchone()[0]
 
@@ -138,8 +138,8 @@ def create_order():
         # Create payment
         cur.execute("""
             INSERT INTO payments (user_id, userorder_id, amount, payment_date)
-            VALUES (%s, %s, %s, CURRENT_TIMESTAMP) RETURNING payment_id
-        """, (user_id, userorder_id, total_price))
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP - INTERVAL '0 days') RETURNING payment_id
+        """, (user_id, userorder_id, total_price)) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
         payment_id = cur.fetchone()[0]
 
 
@@ -218,8 +218,8 @@ def generate_invoices(orderID, paymentID):
     
     cur.execute("""
         INSERT INTO invoices (user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
-        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
-    """, (order[0], orderID, paymentID, order[2], order[1], 'paid'))
+        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP - INTERVAL '0 days') RETURNING invoice_id
+    """, (order[0], orderID, paymentID, order[2], order[1], 'paid')) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
     invoice_id = cur.fetchone()[0]
     log.info(f"Invoice created with ID: {invoice_id}")
     USERINVOIDCEID = invoice_id
@@ -290,8 +290,8 @@ def generate_invoices(orderID, paymentID):
         # insert the invoice for the product owner
         cur.execute("""
             INSERT INTO managerinvoices (manager_id, user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
-        """, (product_owner, customerID, orderID, paymentID, total_price,delivery_address, 'paid'))
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP - INTERVAL '0 days') RETURNING invoice_id
+        """, (product_owner, customerID, orderID, paymentID, total_price,delivery_address, 'paid')) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
 
         invoice_id = cur.fetchone()[0]
         log.info(f"Invoice created with ID: {invoice_id}")
@@ -332,8 +332,8 @@ def generate_invoices(orderID, paymentID):
         log.info(f"creating invoice for sales manager: {sales_manager}")
         cur.execute("""
             INSERT INTO managerinvoices (manager_id, user_id, order_id, payment_id, total_price, delivery_address, payment_status, invoice_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING invoice_id
-        """, (sales_manager, customerID, orderID, paymentID, total_price,delivery_address, 'paid'))
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP - INTERVAL '0 days') RETURNING invoice_id
+        """, (sales_manager, customerID, orderID, paymentID, total_price,delivery_address, 'paid')) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
 
         invoice_id = cur.fetchone()[0]
         log.info(f"invoice pdf generated: {invoice_id}")

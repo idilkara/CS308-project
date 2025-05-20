@@ -179,9 +179,9 @@ def checkout():
         # Insert order into userorders table with delivery_address
         cur.execute("""
             INSERT INTO userorders (user_id, order_date, total_price, delivery_address, status)
-            VALUES (%s, CURRENT_TIMESTAMP, %s, %s, 'processing')
+            VALUES (%s, CURRENT_TIMESTAMP - INTERVAL '0 days', %s, %s, 'processing')
             RETURNING order_id
-        """, (user_id, total_price, delivery_address))
+        """, (user_id, total_price, delivery_address)) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
         order_id = cur.fetchone()[0]
 
         # Insert order items and update stock
