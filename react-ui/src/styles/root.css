@@ -237,30 +237,30 @@ body, html {
     font-size: 0.9rem;
 }
   /* Discount price styling */
-.product-price {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+.product-price-root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.original-price {
-    text-decoration: line-through;
-    color: var(--secondary-text-color);
-    font-size: 0.85rem;
-    margin-bottom: 30px;
+.original-price-root {
+  text-decoration: line-through;
+  color: var(--secondary-text-color);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
 }
 
-.original-usual-price {
-    color: var(--main-text-color);
-    font-size: 1.20rem;
-    margin-bottom: 30px;
+.original-usual-price-root {
+  color: var(--main-text-color);
+  font-size: 1.20rem;
+  margin-bottom: px;
 }
 
-.discounted-price {
-    color: #e74c3c; /* Red color for discount price */
-    font-weight: bold;
+.discounted-price-root {
+  color: #e74c3c; /* Red color for discount price */
+  font-weight: bold;
+  font-size: 1.20rem;
 }
-
 /* Add this to your CategoryPage.css file */
 .grid-item.out-of-stock {
     background-color: rgba(230, 230, 230, 0.7);
