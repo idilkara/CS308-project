@@ -158,6 +158,8 @@ const UserAccountPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState('');
     const [notification, setNotification] = useState({ message: '', visible: false });
+    const [notificationTab, setNotificationTab] = useState('unread');
+
 
 
     const [notifications, setNotifications] = useState([]);
@@ -1341,47 +1343,73 @@ const UserAccountPage = () => {
                     <div>
                         <h2 className="section-title">Your Notifications</h2>
                         
+                        <div className="notification-tabs">
+                            <button 
+                                className={notificationTab === 'unread' ? 'active' : ''} 
+                                onClick={() => setNotificationTab('unread')}
+                            >
+                                Unread
+                            </button>
+                            <button 
+                                className={notificationTab === 'read' ? 'active' : ''} 
+                                onClick={() => setNotificationTab('read')}
+                            >
+                                Read
+                            </button>
+                        </div>
+                        
                         {notifications && notifications.length > 0 ? (
                             <div className="notifications-container">
-                                {notifications.map((notification) => (
-                                    <div 
-                                        key={notification.notification_id} 
-                                        className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                                    >
-                                        <div className="notification-content">
-                                            <p>{notification.message}</p>
-                                            <div className="notification-actions">
-                                                {notification.product_id && (
-                                                    <button 
-                                                        className="view-product-btn"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate('/product', { state: { product_id: notification.product_id } });
-                                                        }}
-                                                    >
-                                                        View Product
-                                                    </button>
-                                                )}
-                                                {!notification.read && (
-                                                    <button 
-                                                        className="mark-read-btn"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            markNotificationAsRead(notification.notification_id);
-                                                        }}
-                                                    >
-                                                        Mark as Read
-                                                    </button>
-                                                )}
+                                {notifications
+                                    .filter(notification => {
+                                        if (notificationTab === 'unread') return !notification.read;
+                                        if (notificationTab === 'read') return notification.read;
+                                        return true; // Fallback, shouldn't be needed
+                                    })
+                                    .sort((a, b) => {
+                                        // Sort by timestamp to show newest first
+                                        // Assuming there's a created_at field or similar
+                                        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+                                    })
+                                    .map((notification) => (
+                                        <div 
+                                            key={notification.notification_id} 
+                                            className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+                                        >
+                                            <div className="notification-content">
+                                                <p>{notification.message}</p>
+                                                <div className="notification-actions">
+                                                    {notification.product_id && (
+                                                        <button 
+                                                            className="view-product-btn"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate('/product', { state: { product_id: notification.product_id } });
+                                                            }}
+                                                        >
+                                                            View Product
+                                                        </button>
+                                                    )}
+                                                    {!notification.read && (
+                                                        <button 
+                                                            className="mark-read-btn"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markNotificationAsRead(notification.notification_id);
+                                                            }}
+                                                        >
+                                                            Mark as Read
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
+                                            {!notification.read && <span className="unread-badge">New</span>}
                                         </div>
-                                        {!notification.read && <span className="unread-badge">New</span>}
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         ) : (
                             <div className="empty-notifications">
-                                <p>You don't have any notifications yet.</p>
+                                <p>You don't have any {notificationTab === 'unread' ? 'unread' : 'read'} notifications.</p>
                             </div>
                         )}
                     </div>
