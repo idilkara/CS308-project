@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useSetRole } from "./context/AuthContext";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import BookCard from './components/BookCard.js';
 // Add this component before the main UserAccountPage component
 const OrderItemComponent = ({ item, requestRefund, cancelOrderItem, orderDate }) => {
   // Ensure we have a valid item
@@ -1206,75 +1206,37 @@ const UserAccountPage = () => {
                 )}
                 
                 {activeTab === 'wishlist' && (
-                <div>
-                    <h2 className="section-title">Your Wishlist</h2>
-                    
-                    {wishlistBooks && wishlistBooks.length > 0 ? (
-                        <div className="grid-container">
-                            {wishlistBooks.map(book => {
-                                const isOutOfStock = !book.stock_quantity || book.stock_quantity <= 0;
-                                
-                                return (
-                                    <div 
-                                        key={book.product_id} 
-                                        className={`grid-item ${isOutOfStock ? 'out-of-stock' : ''}`}
-                                        onClick={(e) => {
-                                            // Prevent navigation if clicking on buttons
-                                            if (e.target.closest('.item-actions')) {
-                                              e.stopPropagation();
-                                              return;
-                                            }
-                                            navigate('/product', { state: { product_id: book.product_id } });
-                                          }}
-                                    >
-                                        {isOutOfStock && <span className="out-of-stock-label">Out of Stock</span>}
-                                        <div className="item-actions">
-                                            <button 
-                                                className="favorite-btn active"
-                                                onClick={() => removeFromWishlist(book.product_id)}
-                                                title="Remove from wishlist"
-                                            >
-                                                <span className="heart-filled">♥</span>
-                                            </button>
-                              
-                                        </div>
-                                        <div className="grid-item-content">
-                                            <img
-                                                src={`assets/covers/${book.name?.replace(/\s+/g, '').toLowerCase() || 'default'}.png`}
-                                                alt={book.name}
-                                                onError={(e) => {
-                                                    e.currentTarget.onerror = null;
-                                                    e.currentTarget.src = "assets/covers/default.png";
-                                                }}
-                                            />
-                                        </div>
-                                        <hr />
-                                        <div className="grid-item-header">
-                                            <h3 className="source-sans-semibold">
-                                                {book.name.length > 27 ? book.name.slice(0, 27) + '...' : book.name}
-                                            </h3>
-                                            <p className="source-sans-regular">{book.author || "Unknown Author"}</p>
-                                            <span className="source-sans-bold">${book.price || "0.00"}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="empty-wishlist">
-                            <p>Your wishlist is empty.</p>
-                            <p>Browse our collections and add books you love to your wishlist!</p>
-                            <button className="browse-button" onClick={() => navigate('/category')}>Browse Books</button>
-                        </div>
-                    )}
-                    
-                    {notification.visible && (
-                        <div className="cart-notification">
-                            {notification.message}
-                        </div>
-                    )}
-                </div>
-            )}
+                    <div>
+                        <h2 className="section-title">Your Wishlist</h2>
+                        
+                        {wishlistBooks && wishlistBooks.length > 0 ? (
+                            <div className="grid-container">
+                                {wishlistBooks.map(book => (
+                                    <BookCard 
+                                        key={book.product_id}
+                                        book={book}
+                                        isFavorite={true}
+                                        onToggleFavorite={() => removeFromWishlist(book.product_id)}
+                                        onAddToCart={(e, book) => addToCart(e, book)}
+                                        onClick={() => navigate('/product', { state: { product_id: book.product_id } })}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-wishlist">
+                                <p>Your wishlist is empty.</p>
+                                <p>Browse our collections and add books you love to your wishlist!</p>
+                                <button className="browse-button" onClick={() => navigate('/category')}>Browse Books</button>
+                            </div>
+                        )}
+                        
+                        {notification.visible && (
+                            <div className="cart-notification">
+                                {notification.message}
+                            </div>
+                        )}
+                    </div>
+                )}
                 
                 {activeTab === 'payment' && renderPaymentMethodsSection()}
                 
