@@ -65,7 +65,7 @@ const SalesManager = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportData, setReportData] = useState(null);
-  const [invoices, setInvoices] = useState([]);
+  //const [invoices, setInvoices] = useState([]);
   const [chartInstance, setChartInstance] = useState(null);
 
   //State for orders/invoices
@@ -430,11 +430,11 @@ useEffect(() => {
       "Content-Type": "application/json",
     };
 
-    const data = { product_id: productId, discount_amount: discount };
+    const data = { product_id: productId, discount };
 
     try {
-      const response = await fetch("http://localhost/api/discounts/setdiscount", {
-        method: "PUT",
+      const response = await fetch("http://localhost/api/discount/update_discount", {
+        method: "POST",
         headers,
         body: JSON.stringify(data),
       });
@@ -505,81 +505,45 @@ useEffect(() => {
     }
   };
 
-
-  // const generateAnalyticsReport = async () => {
-  //   if (!token) {
-  //     console.error("Token is missing");
+  // // API calls for reports
+  // const fetchInvoices = async () => {
+  //   if (!startDate || !endDate) {
+  //     alert("Please select both start and end dates");
   //     return;
   //   }
   //
   //   try {
-  //     console.log("Using token:", token);
+  //     // Simulate API call
+  //     setTimeout(() => {
+  //       const sampleInvoices = [
+  //         { id: "INV-2023-001", date: "2025-03-12", customer: "John Smith", total: 37.97, items: 3 },
+  //         { id: "INV-2023-002", date: "2025-03-13", customer: "Mary Jones", total: 42.98, items: 2 },
+  //         { id: "INV-2023-003", date: "2025-03-14", customer: "Robert Brown", total: 24.99, items: 1 },
+  //         { id: "INV-2023-004", date: "2025-03-15", customer: "Jane Miller", total: 54.97, items: 3 },
+  //         { id: "INV-2023-005", date: "2025-03-16", customer: "Sam Wilson", total: 29.98, items: 2 }
+  //       ];
+  //       setInvoices(sampleInvoices);
   //
-  //     const response = await fetch("http://localhost/api/invoice/get_invoices_manager", {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
+  //       // Sample report data
+  //       const reportSample = {
+  //         revenue: 190.89,
+  //         cost: 95.45,
+  //         profit: 95.44,
+  //         dailyData: [
+  //           { date: '2025-03-12', revenue: 37.97, cost: 18.99, profit: 18.98 },
+  //           { date: '2025-03-13', revenue: 42.98, cost: 21.49, profit: 21.49 },
+  //           { date: '2025-03-14', revenue: 24.99, cost: 12.50, profit: 12.49 },
+  //           { date: '2025-03-15', revenue: 54.97, cost: 27.48, profit: 27.49 },
+  //           { date: '2025-03-16', revenue: 29.98, cost: 14.99, profit: 14.99 }
+  //         ]
+  //       };
+  //       setReportData(reportSample);
   //
-  //     if (!response.ok) {
-  //       const contentType = response.headers.get("content-type");
-  //
-  //       if (contentType && contentType.includes("application/json")) {
-  //         const errorData = await response.json();
-  //         console.error("Failed to fetch invoices (JSON error):", errorData);
-  //         alert("Failed to fetch invoices: " + (errorData.message || "Unknown error"));
-  //       } else {
-  //         const text = await response.text();
-  //         console.error("Failed to fetch invoices (non-JSON error):", text);
-  //         alert("Failed to fetch invoices: Non-JSON error returned from server");
-  //       }
-  //       return;
-  //     }
-  //
-  //     // ✅ Safe to parse JSON now
-  //     const data = await response.json();
-  //
-  //     const parsedInvoices = data.map((invoice) => ({
-  //       id: invoice.invoice_id,
-  //       date: invoice.invoice_date.split(' ')[0],
-  //       customer: invoice.delivery_address,
-  //       items: 1, // Placeholder: adjust if real item count is available
-  //       total: parseFloat(invoice.total_price),
-  //     }));
-  //
-  //     setInvoices(parsedInvoices);
-  //
-  //     const reportData = {
-  //       revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
-  //       cost: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
-  //       profit: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
-  //       dailyData: parsedInvoices.reduce((acc, inv) => {
-  //         const date = inv.date;
-  //         const existing = acc.find(d => d.date === date);
-  //         const revenue = inv.total;
-  //         const cost = revenue * 0.5;
-  //         const profit = revenue - cost;
-  //
-  //         if (existing) {
-  //           existing.revenue += revenue;
-  //           existing.cost += cost;
-  //           existing.profit += profit;
-  //         } else {
-  //           acc.push({ date, revenue, cost, profit });
-  //         }
-  //
-  //         return acc;
-  //       }, []),
-  //     };
-  //
-  //     setReportData(reportData);
-  //     createChart(reportData.dailyData);
-  //
+  //       // Create chart
+  //       createChart(reportSample.dailyData);
+  //     }, 800);
   //   } catch (error) {
-  //     console.error("Unexpected error fetching invoices:", error);
-  //     alert("Unexpected error fetching invoices");
+  //     console.error("Error fetching invoices:", error);
   //   }
   // };
 
@@ -590,6 +554,8 @@ useEffect(() => {
     }
 
     try {
+      console.log("Using token:", token);
+
       const response = await fetch("http://localhost/api/invoice/get_invoices_manager", {
         method: "GET",
         headers: {
@@ -599,81 +565,62 @@ useEffect(() => {
       });
 
       if (!response.ok) {
-        const text = await response.text();
-        console.error("Failed to fetch invoices:", text);
-        alert("Failed to fetch invoices");
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          console.error("Failed to fetch invoices (JSON error):", errorData);
+          alert("Failed to fetch invoices: " + (errorData.message || "Unknown error"));
+        } else {
+          const text = await response.text();
+          console.error("Failed to fetch invoices (non-JSON error):", text);
+          alert("Failed to fetch invoices: Non-JSON error returned from server");
+        }
         return;
       }
 
+      // ✅ Safe to parse JSON now
       const data = await response.json();
+
       const parsedInvoices = data.map((invoice) => ({
         id: invoice.invoice_id,
         date: invoice.invoice_date.split(' ')[0],
         customer: invoice.delivery_address,
-        items: 1,
+        items: 1, // Placeholder: adjust if real item count is available
         total: parseFloat(invoice.total_price),
       }));
 
-      // Filter for selected range
-      const currentInvoices = parsedInvoices.filter(inv => {
-        const date = new Date(inv.date);
-        return date >= new Date(startDate) && date <= new Date(endDate);
-      });
-
-      const revenue = currentInvoices.reduce((sum, i) => sum + i.total, 0);
-      const cost = revenue * 0.5;
-      const profit = revenue - cost;
-
-      const dailyData = currentInvoices.reduce((acc, inv) => {
-        const existing = acc.find(d => d.date === inv.date);
-        const rev = inv.total, cst = rev * 0.5, prf = rev - cst;
-        if (existing) {
-          existing.revenue += rev;
-          existing.cost += cst;
-          existing.profit += prf;
-        } else {
-          acc.push({ date: inv.date, revenue: rev, cost: cst, profit: prf });
-        }
-        return acc;
-      }, []);
-
-      // Calculate previous month range
-      const currentStart = new Date(startDate);
-      const prevStart = new Date(currentStart);
-      const prevEnd = new Date(currentStart);
-
-      prevStart.setMonth(prevStart.getMonth() - 1);
-      prevEnd.setDate(0); // Last day of previous month
-
-      const previousInvoices = parsedInvoices.filter(inv => {
-        const date = new Date(inv.date);
-        return date >= prevStart && date <= prevEnd;
-      });
-
-      const previousRevenue = previousInvoices.reduce((sum, i) => sum + i.total, 0);
-      const previousCost = previousRevenue * 0.5;
-      const previousProfit = previousRevenue - previousCost;
-      const previousOrders = previousInvoices.length;
-
-      const pctChange = (curr, prev) => prev === 0 ? (curr === 0 ? 0 : 100) : ((curr - prev) / prev) * 100;
+     // setInvoices(parsedInvoices);
 
       const reportData = {
-        revenue,
-        cost,
-        profit,
-        dailyData,
-        revenueChange: pctChange(revenue, previousRevenue),
-        costChange: pctChange(cost, previousCost),
-        profitChange: pctChange(profit, previousProfit),
-        orderChange: pctChange(dailyData.length, previousOrders)
+        revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
+        cost: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
+        profit: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
+        dailyData: parsedInvoices.reduce((acc, inv) => {
+          const date = inv.date;
+          const existing = acc.find(d => d.date === date);
+          const revenue = inv.total;
+          const cost = revenue * 0.5;
+          const profit = revenue - cost;
+
+          if (existing) {
+            existing.revenue += revenue;
+            existing.cost += cost;
+            existing.profit += profit;
+          } else {
+            acc.push({ date, revenue, cost, profit });
+          }
+
+          return acc;
+        }, []),
       };
 
       setReportData(reportData);
-      createChart(dailyData);
+      createChart(reportData.dailyData);
 
     } catch (error) {
-      console.error("Unexpected error generating report:", error);
-      alert("Error generating analytics report");
+      console.error("Unexpected error fetching invoices:", error);
+      alert("Unexpected error fetching invoices");
     }
   };
 
@@ -730,9 +677,6 @@ useEffect(() => {
             title: {
               display: true,
               text: 'Date'
-            },
-            ticks: {
-              align: 'start'
             }
           }
         }
@@ -742,6 +686,58 @@ useEffect(() => {
     setChartInstance(chart);
   };
 
+  // API calls for refund requests
+  // const fetchRefundRequests = async () => {
+  //   setRefundIsLoading(true);
+  //   try {
+  //     // Simulate API call
+  //     setTimeout(() => {
+  //       const sampleRefunds = [
+  //         {
+  //           id: 301,
+  //           orderId: "ORD-2023-010",
+  //           customer: "Alice Johnson",
+  //           product: "Fiction Novel",
+  //           purchaseDate: "2025-03-05",
+  //           purchasePrice: 12.99,
+  //           discounted: true,
+  //           originalPrice: 14.99,
+  //           reason: "Item arrived damaged",
+  //           status: "pending"
+  //         },
+  //         {
+  //           id: 302,
+  //           orderId: "ORD-2023-015",
+  //           customer: "Michael Davis",
+  //           product: "Sci-Fi Novel",
+  //           purchaseDate: "2025-03-08",
+  //           purchasePrice: 11.99,
+  //           discounted: false,
+  //           originalPrice: 11.99,
+  //           reason: "Wrong item received",
+  //           status: "pending"
+  //         },
+  //         {
+  //           id: 303,
+  //           orderId: "ORD-2023-018",
+  //           customer: "Emma Wilson",
+  //           product: "Fantasy Book",
+  //           purchaseDate: "2025-03-10",
+  //           purchasePrice: 15.29,
+  //           discounted: true,
+  //           originalPrice: 16.99,
+  //           reason: "Changed my mind",
+  //           status: "pending"
+  //         }
+  //       ];
+  //       setRefundRequests(sampleRefunds);
+  //       setRefundIsLoading(false);
+  //     }, 800);
+  //   } catch (error) {
+  //     console.error("Error fetching refund requests:", error);
+  //     setRefundIsLoading(false);
+  //   }
+  // };
 
 
 
@@ -838,7 +834,7 @@ useEffect(() => {
   };
 /*
   const handleSaveInvoicePDF = (invoiceId) => {
-    // In a real app, this would trigger a PDF downloa d
+    // In a real app, this would trigger a PDF download
     alert(`Saving invoice ${invoiceId} as PDF...`);
   };
 
@@ -848,8 +844,10 @@ useEffect(() => {
   }; */
 
   return (
+    <>
+    <Navbar />
       <div className="container sales-manager">
-         <Navbar />
+         
         <h1 className="source-sans-bold sm-section-title">Sales Manager</h1>
 
         {/* Navigation Tabs */}
@@ -1248,173 +1246,108 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/*/!* Report Results *!/*/}
-              {/*{reportData && (*/}
-              {/*  <div className="report-results">*/}
-              {/*    /!* Summary Dashboard *!/*/}
-              {/*    <div className="summary-dashboard">*/}
-              {/*      <div className="summary-card revenue">*/}
-              {/*        <div className="card-icon">💰</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Revenue</h4>*/}
-              {/*          <p className="amount">${reportData.revenue.toFixed(2)}</p>*/}
-              {/*          <p className="change positive">+5.2% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card cost">*/}
-              {/*        <div className="card-icon">💸</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Cost</h4>*/}
-              {/*          <p className="amount">${reportData.cost.toFixed(2)}</p>*/}
-              {/*          <p className="change negative">+2.1% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card profit">*/}
-              {/*        <div className="card-icon">📈</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Net Profit</h4>*/}
-              {/*          <p className="amount">${reportData.profit.toFixed(2)}</p>*/}
-              {/*          <p className="change positive">+7.8% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card orders">*/}
-              {/*        <div className="card-icon">📦</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Orders</h4>*/}
-              {/*          <p className="amount">{reportData.dailyData ? reportData.dailyData.length : 0}</p>*/}
-              {/*          <p className="change positive">+3.4% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*    */}
-              {/*    /!* Charts *!/*/}
-              {/*    <div className="charts-container">*/}
-              {/*      <div className="chart-wrapper">*/}
-              {/*        <h3 className="chart-title">Revenue, Cost & Profit Trends</h3>*/}
-              {/*        <div className="sm-chart-container">*/}
-              {/*          <canvas id="revenue-chart"></canvas>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="chart-wrapper">*/}
-              {/*        <h3 className="chart-title">Top Selling Products</h3>*/}
-              {/*        <div className="top-products">*/}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">1</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Fiction Novel</h4>*/}
-              {/*              <p className="product-sales">42 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$545.58</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">2</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Sci-Fi Adventure</h4>*/}
-              {/*              <p className="product-sales">38 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$455.62</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">3</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Business Guide</h4>*/}
-              {/*              <p className="product-sales">27 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$378.73</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">4</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Fantasy Book</h4>*/}
-              {/*              <p className="product-sales">22 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$329.78</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">5</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Mystery Novel</h4>*/}
-              {/*              <p className="product-sales">19 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$246.81</span>*/}
-              {/*          </div>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*  </div>*/}
-              {/*)}*/}
-
+              {/* Report Results */}
               {reportData && (
-                  <div className="report-results">
-                    {/* Summary Dashboard */}
-                    <div className="summary-dashboard">
-                      <div className="summary-card revenue">
-                        <div className="card-icon">💰</div>
-                        <div className="card-content">
-                          <h4>Total Revenue</h4>
-                          <p className="amount">${reportData.revenue.toFixed(2)}</p>
-                          <p className={`change ${reportData.revenueChange >= 0 ? 'positive' : 'negative'}`}>
-                            {reportData.revenueChange >= 0 ? '+' : ''}
-                            {reportData.revenueChange.toFixed(1)}% from previous month
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="summary-card cost">
-                        <div className="card-icon">💸</div>
-                        <div className="card-content">
-                          <h4>Total Cost</h4>
-                          <p className="amount">${reportData.cost.toFixed(2)}</p>
-                          <p className={`change ${reportData.costChange >= 0 ? 'positive' : 'negative'}`}>
-                            {reportData.costChange >= 0 ? '+' : ''}
-                            {reportData.costChange.toFixed(1)}% from previous month
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="summary-card profit">
-                        <div className="card-icon">📈</div>
-                        <div className="card-content">
-                          <h4>Net Profit</h4>
-                          <p className="amount">${reportData.profit.toFixed(2)}</p>
-                          <p className={`change ${reportData.profitChange >= 0 ? 'positive' : 'negative'}`}>
-                            {reportData.profitChange >= 0 ? '+' : ''}
-                            {reportData.profitChange.toFixed(1)}% from previous month
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="summary-card orders">
-                        <div className="card-icon">📦</div>
-                        <div className="card-content">
-                          <h4>Total Orders</h4>
-                          <p className="amount">{reportData.dailyData.length}</p>
-                          <p className={`change ${reportData.orderChange >= 0 ? 'positive' : 'negative'}`}>
-                            {reportData.orderChange >= 0 ? '+' : ''}
-                            {reportData.orderChange.toFixed(1)}% from previous month
-                          </p>
-                        </div>
+                <div className="report-results">
+                  {/* Summary Dashboard */}
+                  <div className="summary-dashboard">
+                    <div className="summary-card revenue">
+                      <div className="card-icon">💰</div>
+                      <div className="card-content">
+                        <h4>Total Revenue</h4>
+                        <p className="amount">${reportData.revenue.toFixed(2)}</p>
+                        <p className="change positive">+5.2% from previous period</p>
                       </div>
                     </div>
-
-                    {/* Charts */}
-                    <div className="charts-container">
-                      <div className="chart-wrapper">
-                        <h3 className="chart-title">Revenue, Cost & Profit Trends</h3>
-                        <div className="sm-chart-container">
-                          <canvas id="revenue-chart"></canvas>
+                    
+                    <div className="summary-card cost">
+                      <div className="card-icon">💸</div>
+                      <div className="card-content">
+                        <h4>Total Cost</h4>
+                        <p className="amount">${reportData.cost.toFixed(2)}</p>
+                        <p className="change negative">+2.1% from previous period</p>
+                      </div>
+                    </div>
+                    
+                    <div className="summary-card profit">
+                      <div className="card-icon">📈</div>
+                      <div className="card-content">
+                        <h4>Net Profit</h4>
+                        <p className="amount">${reportData.profit.toFixed(2)}</p>
+                        <p className="change positive">+7.8% from previous period</p>
+                      </div>
+                    </div>
+                    
+                    <div className="summary-card orders">
+                      <div className="card-icon">📦</div>
+                      <div className="card-content">
+                        <h4>Total Orders</h4>
+                        <p className="amount">{reportData.dailyData ? reportData.dailyData.length : 0}</p>
+                        <p className="change positive">+3.4% from previous period</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Charts */}
+                  <div className="charts-container">
+                    <div className="chart-wrapper">
+                      <h3 className="chart-title">Revenue, Cost & Profit Trends</h3>
+                      <div className="sm-chart-container">
+                        <canvas id="revenue-chart"></canvas>
+                      </div>
+                    </div>
+                    
+                    <div className="chart-wrapper">
+                      <h3 className="chart-title">Top Selling Products</h3>
+                      <div className="top-products">
+                        <div className="product-rank">
+                          <div className="rank">1</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Fiction Novel</h4>
+                            <p className="product-sales">42 units sold</p>
+                          </div>
+                          <span className="product-revenue">$545.58</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">2</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Sci-Fi Adventure</h4>
+                            <p className="product-sales">38 units sold</p>
+                          </div>
+                          <span className="product-revenue">$455.62</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">3</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Business Guide</h4>
+                            <p className="product-sales">27 units sold</p>
+                          </div>
+                          <span className="product-revenue">$378.73</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">4</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Fantasy Book</h4>
+                            <p className="product-sales">22 units sold</p>
+                          </div>
+                          <span className="product-revenue">$329.78</span>
+                        </div>
+                        
+                        <div className="product-rank">
+                          <div className="rank">5</div>
+                          <div className="product-info">
+                            <h4 className="product-name">Mystery Novel</h4>
+                            <p className="product-sales">19 units sold</p>
+                          </div>
+                          <span className="product-revenue">$246.81</span>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
               )}
             </div>
           )}
@@ -1492,7 +1425,7 @@ useEffect(() => {
             <table className="invoices-table">
               <thead>
                 <tr>
-                  <th className="sortable">Invoice ID <span className="sort-icon">↓</span></th>
+                  <th className="sortable">Order ID <span className="sort-icon">↓</span></th>
                   <th className="sortable">Date <span className="sort-icon"></span></th>
                   <th>Customer</th>
                   <th className="sortable">Total <span className="sort-icon"></span></th>
@@ -1503,7 +1436,7 @@ useEffect(() => {
               <tbody>
                 {orders.map(order => (
                   <tr key={order.id}>
-                    <td className="invoice-id">{order.id}</td>
+                    <td className="invoice-id">{order.orderId}</td>
                     <td>{order.date}</td>
                     <td>{order.customer}</td>
                     <td className="price-cell">${order.total.toFixed(2)}</td>
@@ -1516,17 +1449,16 @@ useEffect(() => {
                       <div className="invoice-actions">
                         <button 
                           className="action-btn view-btn"
-                          onClick={() => fetchInvoicePdf(order.id)}
+                          onClick={() => alert(`View invoice for order ${order.orderId}`)}
                         >
-                          View Invoice
+                          View Details
                         </button>
-                        {/* <button
+                        <button 
                           className="action-btn download-btn"
-                          onClick={() => fetchInvoicePdf(order.id)}
-                          style={{ marginLeft: "8px" }}
+                          onClick={() => alert(`Download invoice for order ${order.orderId}`)}
                         >
                           Download PDF
-                        </button> */}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1563,37 +1495,10 @@ useEffect(() => {
             {notification.message}
           </div>
         )}
-
-        {/* PDF Modal for viewing and downloading the invoice */}
-        {pdfUrl && selectedInvoiceId && (
-          <div className="pdf-modal" style={{
-            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-            background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
-          }}>
-            <div style={{ background: "#fff", padding: 20, borderRadius: 8, maxWidth: "90vw", maxHeight: "90vh", position: "relative" }}>
-              <button
-                style={{ position: "absolute", top: 10, right: 10, fontSize: 18 }}
-                onClick={() => { setPdfUrl(null); setSelectedInvoiceId(null); }}
-              >✕</button>
-              <iframe
-                src={pdfUrl}
-                title="Invoice PDF"
-                style={{ width: "80vw", height: "80vh", border: "none" }}
-              />
-              <div style={{ marginTop: 10, textAlign: "right" }}>
-                <a
-                  href={pdfUrl}
-                  download={`invoice_${selectedInvoiceId}.pdf`}
-                  className="action-btn download-btn"
-                >
-                  Download PDF
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+      </>
   );
+
 };
 
 export default SalesManager;

@@ -30,10 +30,11 @@ def view_cart():
     try:
         # Get all items in the user's shopping cart
         cur.execute("""
-            SELECT p.product_id, p.name, p.description, p.price, scp.quantity, p.author, p.stock_quantity
+            SELECT p.product_id, p.name, p.description, p.price, scp.quantity, p.author, p.stock_quantity,d.discount_amount
             FROM shoppingcart sc
             JOIN shoppingcartproducts scp ON sc.cart_id = scp.cart_id
             JOIN products p ON scp.product_id = p.product_id
+            JOIN discounts d ON d.product_id = p.product_id
             WHERE sc.user_id = %s
         """, (user_id,))
         cart_items = cur.fetchall()
@@ -50,6 +51,7 @@ def view_cart():
                 "quantity": item[4],
                 "author": item[5],
                 "stock_quantity": item[6] ,
+                "discount_rate":item[7],
             }
             for item in cart_items
         ]

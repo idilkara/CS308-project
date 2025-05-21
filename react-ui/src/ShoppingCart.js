@@ -15,7 +15,7 @@ const ShoppingCart = () => {
 
   // Update the checkout button onClick handler
   const handleCheckout = () => {
-  navigate('/checkout');
+    navigate('/checkout');
   };
   
   useEffect(() => {
@@ -49,11 +49,12 @@ const ShoppingCart = () => {
             const formattedItems = data.map(item => ({
               id: item.product_id,
               name: item.name,
-              author: item.author ,
+              author: item.author,
               publisher: item.distributor_information,
               price: parseFloat(item.price) || 0,
+              discount_rate: parseFloat(item.discount_rate) || 0,
               quantity: item.quantity,
-              stock_quantity: item.stock_quantity, // Add this line
+              stock_quantity: item.stock_quantity,
               image: `assets/covers/${item.name.replace(/\s+/g, '').toLowerCase()}.png`
             }));
 
@@ -79,12 +80,22 @@ const ShoppingCart = () => {
     }
   };
 
-  // Function to calculate the total price of items in cart
+  // Function to calculate the total price of items in cart (with discounts)
   const calculateTotal = () => {
     const total = cartItems.reduce((sum, item) => {
-      return sum + (parseFloat(item.price) || 0) * item.quantity;
+      // Calculate final price after discount
+      const discountMultiplier = 1 - (item.discount_rate || 0);
+      const finalPrice = (parseFloat(item.price) || 0) * discountMultiplier;
+      return sum + finalPrice * item.quantity;
     }, 0);
     setCartTotal(total);
+  };
+
+  // Calculate the discounted price for an item
+  const getDiscountedPrice = (item) => {
+    if (!item.discount_rate || item.discount_rate <= 0) return null;
+    const discountMultiplier = 1 - item.discount_rate;
+    return (parseFloat(item.price) * discountMultiplier).toFixed(2);
   };
 
   // Function to update quantity of an item
@@ -96,13 +107,13 @@ const ShoppingCart = () => {
     console.log("New quantity:", newQuantity);
     console.log("Current item stock quantity:", currentItem.stock_quantity);
     if (!currentItem) return;
-    let booleanValue = false;
+    
     // Don't allow quantities greater than stock
     if (newQuantity > currentItem.stock_quantity) {
       console.log(`Cannot add more than ${currentItem.stock_quantity} items to the cart.`);
       newQuantity = currentItem.stock_quantity;
-      
     }
+    
     try {
       if (token) {
         // Get current quantity
@@ -228,96 +239,111 @@ const ShoppingCart = () => {
       console.error("Error clearing cart:", error);
     }
   };
+  
+  // Function to handle continue shopping button
+  const handleContinueShopping = () => {
+    navigate('/');
+  };
 
+  return (
+    <div>
+      <Navbar /> 
+      <div className="shopping-cart-container">
+        <div className="cart-header">
+          <h2 className="cart-title source-sans-bold">
+            <i className="cart-icon">🛒</i> My Cart
+          </h2>
+        </div>
 
-
-return (
-  <div>
-    <Navbar /> 
-    <div className="shopping-cart-container">
-      <div className="cart-header">
-        <h2 className="cart-title source-sans-bold">
-          <i className="cart-icon">🛒</i> My Cart
-        </h2>
-      </div>
-
-      <div className="cart-content">
-        {loading ? (
-          <p>Loading your cart...</p>
-        ) : cartItems.length > 0 ? (
-            cartItems.map(item => (
-                <div className="cart-item" key={item.id}>
+        <div className="cart-content">
+          {loading ? (
+            <p>Loading your cart...</p>
+          ) : cartItems.length > 0 ? (
+              cartItems.map(item => {
+                const discountedPrice = getDiscountedPrice(item);
+                return (
+                  <div className="cart-item" key={item.id}>
                     <div className="item-image">
-                        <img src={item.image} alt={item.name} onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "assets/covers/default.png";
-                        }} />
+                      <img src={item.image} alt={item.name} onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "assets/covers/default.png";
+                      }} />
                     </div>
                     <div className="item-details">
-                        <h3 className="item-name source-sans-semibold">{item.name}</h3>
-                        <p className="item-publisher source-sans-regular">{item.publisher}</p>
-                        <p className="item-author source-sans-regular">{item.author}</p>
+                      <h3 className="item-name source-sans-semibold">{item.name}</h3>
+                      <p className="item-publisher source-sans-regular">{item.publisher}</p>
+                      <p className="item-author source-sans-regular">{item.author}</p>
                     </div>
                     <div className="item-quantity">
-                        <span className="quantity-label source-sans-semibold">Quantity</span>
-                        <div className="quantity-controls">
-                            <button 
-                                className="quantity-btn source-sans-semibold" 
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            >
-                                −
-                            </button>
-                            <span className="quantity-value source-sans-regular">{item.quantity}</span>
-                            <button 
-                                className="quantity-btn source-sans-semibold" 
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            >
-                                +
-                            </button>
-                        </div>
+                      <span className="quantity-label source-sans-semibold">Quantity</span>
+                      <div className="quantity-controls">
+                        <button 
+                          className="quantity-btn source-sans-semibold" 
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          −
+                        </button>
+                        <span className="quantity-value source-sans-regular">{item.quantity}</span>
+                        <button 
+                          className="quantity-btn source-sans-semibold" 
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
                     <div className="item-price">
-                        <span className="price-label source-sans-semibold">Price</span>
+                      <span className="price-label source-sans-semibold">Price</span>
+                      {discountedPrice ? (
+                        <div className="price-container">
+                          <p className="original-price source-sans-regular">
+                            <del>${(parseFloat(item.price) || 0).toFixed(2)}</del>
+                          </p>
+                          <p className="discounted-price-root source-sans-semibold">
+                            ${discountedPrice}
+                          </p>
+                        </div>
+                      ) : (
                         <p className="current-price source-sans-semibold">
                           ${(parseFloat(item.price) || 0).toFixed(2)}
                         </p>
+                      )}
                     </div>
                     <div className="item-actions">
-                        <button className="remove-item source-sans-regular" onClick={() => removeItem(item.id)}>
-                            <FaTrash />
-                        </button>
+                      <button className="remove-item source-sans-regular" onClick={() => removeItem(item.id)}>
+                        <FaTrash />
+                      </button>
                     </div>
-                </div>
-            ))
-        ) : (
-            <p>Your cart is empty.</p>
-        )}
-      </div>
-
-      <div className="cart-footer">
-        <div className="cart-actions">
-          <button className="clear-cart source-sans-regular" onClick={emptyCart}>
-            <FaTrash /> Clear Cart
-          </button>
+                  </div>
+                );
+              })
+          ) : (
+              <p>Your cart is empty.</p>
+          )}
         </div>
-        
-        <div className="cart-summary">
-          
-          
-          <div className="total-section">
-            <div className="total-row grand-total">
-              <span className="total-label source-sans-bold">Total:</span>
-              <span className="total-value source-sans-bold">${cartTotal.toFixed(2)}</span>
-            </div>
+
+        <div className="cart-footer">
+          <div className="cart-actions">
+            <button className="clear-cart source-sans-regular" onClick={emptyCart}>
+              <FaTrash /> Clear Cart
+            </button>
           </div>
           
-          <button className="checkout-button source-sans-bold" onClick={handleCheckout}>CHECKOUT</button>
-          <button className="continue-shopping source-sans-semibold">Continue Shopping</button>
+          <div className="cart-summary">
+            <div className="total-section">
+              <div className="total-row grand-total">
+                <span className="total-label source-sans-bold">Total:</span>
+                <span className="total-value source-sans-bold">${cartTotal.toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <button className="checkout-button source-sans-bold" onClick={handleCheckout}>CHECKOUT</button>
+            <button className="continue-shopping source-sans-semibold" onClick={handleContinueShopping}>Continue Shopping</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default ShoppingCart;
