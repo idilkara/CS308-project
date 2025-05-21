@@ -1206,7 +1206,7 @@ const UserAccountPage = () => {
                 )}
                 
                 {activeTab === 'wishlist' && (
-                    <div>
+                    <div className="pr-4"> {/* Add padding-right */}
                         <h2 className="section-title">Your Wishlist</h2>
                         
                         {wishlistBooks && wishlistBooks.length > 0 ? (
