@@ -389,40 +389,6 @@ useEffect(() => {
     }
   };
 
-  // const applyDiscount = async () => {
-  //   if (!discountRate || !discountStartDate || !discountEndDate || selectedProducts.length === 0) {
-  //     alert("Please fill all discount details and select at least one product");
-  //     return;
-  //   }
-  //
-  //   try {
-  //     // Simulate API call
-  //     console.log(`Applying ${discountRate}% discount to ${selectedProducts.length} products`);
-  //     console.log(`From ${discountStartDate} to ${discountEndDate}`);
-  //
-  //     // Update local state to show discount applied
-  //     setAllProducts(prevProducts =>
-  //       prevProducts.map(product =>
-  //         selectedProducts.includes(product.id)
-  //           ? {...product, discounted: true}
-  //           : product
-  //       )
-  //     );
-  //
-  //     // Reset form
-  //     setSelectedProducts([]);
-  //     setDiscountRate('');
-  //     setDiscountStartDate('');
-  //     setDiscountEndDate('');
-  //
-  //     alert("Discount applied successfully! Customers have been notified.");
-  //
-  //     return { success: true };
-  //   } catch (error) {
-  //     console.error("Error applying discount:", error);
-  //     return { error: "An unexpected error occurred" };
-  //   }
-  // };
 
   const updateDiscount = async (token, productId, discount) => {
     const headers = {
@@ -454,6 +420,44 @@ useEffect(() => {
     }
   };
 
+// ...
+const removeDiscount = async (token, productId) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await fetch(`http://localhost/api/discounts/removediscount/${productId}`, {
+      method: "DELETE",
+      headers,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      // Update the discount_rate in allProducts to 0 for this product
+      setAllProducts(prev =>
+        prev.map(p =>
+          p.product_id === productId
+            ? { ...p, discount_rate: 0 }
+            : p
+        )
+      );
+      alert("Discount removed successfully!");
+      return result;
+    } else {
+      const errorData = await response.json();
+      alert(errorData.error || "Failed to remove discount");
+      return { error: errorData.error || "Failed to remove discount" };
+    }
+  } catch (error) {
+    console.error("Error removing discount:", error);
+    alert("An unexpected error occurred");
+    return { error: "An unexpected error occurred" };
+  }
+};
+// ...
+
   const applyDiscount = async () => {
     if (!discountRate || !discountStartDate || !discountEndDate || selectedProducts.length === 0) {
       alert("Please fill all discount details and select at least one product");
@@ -468,12 +472,9 @@ useEffect(() => {
       return;
     }
 
-    const discountFraction = rate / 100; // ✅ Always divide by 100 before sending
+    const discountFraction = rate / 100;
 
     try {
-      console.log(`Applying ${rate}% discount to ${selectedProducts.length} products`);
-      console.log(`From ${discountStartDate} to ${discountEndDate}`);
-
       for (const productId of selectedProducts) {
         const result = await updateDiscount(token, productId, discountFraction);
         if (result.error) {
@@ -481,13 +482,13 @@ useEffect(() => {
         }
       }
 
-      // ✅ Visually update frontend
+      // Update discount_rate in allProducts for selected products
       setAllProducts(prevProducts =>
-          prevProducts.map(product =>
-              selectedProducts.includes(product.product_id)
-                  ? { ...product, discounted: true }
-                  : product
-          )
+        prevProducts.map(product =>
+          selectedProducts.includes(product.product_id)
+            ? { ...product, discount_rate: discountFraction.toString(), discount_start: discountStartDate, discount_end: discountEndDate }
+            : product
+        )
       );
 
       setSelectedProducts([]);
@@ -506,82 +507,6 @@ useEffect(() => {
   };
 
 
-  // const generateAnalyticsReport = async () => {
-  //   if (!token) {
-  //     console.error("Token is missing");
-  //     return;
-  //   }
-  //
-  //   try {
-  //     console.log("Using token:", token);
-  //
-  //     const response = await fetch("http://localhost/api/invoice/get_invoices_manager", {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //
-  //     if (!response.ok) {
-  //       const contentType = response.headers.get("content-type");
-  //
-  //       if (contentType && contentType.includes("application/json")) {
-  //         const errorData = await response.json();
-  //         console.error("Failed to fetch invoices (JSON error):", errorData);
-  //         alert("Failed to fetch invoices: " + (errorData.message || "Unknown error"));
-  //       } else {
-  //         const text = await response.text();
-  //         console.error("Failed to fetch invoices (non-JSON error):", text);
-  //         alert("Failed to fetch invoices: Non-JSON error returned from server");
-  //       }
-  //       return;
-  //     }
-  //
-  //     // ✅ Safe to parse JSON now
-  //     const data = await response.json();
-  //
-  //     const parsedInvoices = data.map((invoice) => ({
-  //       id: invoice.invoice_id,
-  //       date: invoice.invoice_date.split(' ')[0],
-  //       customer: invoice.delivery_address,
-  //       items: 1, // Placeholder: adjust if real item count is available
-  //       total: parseFloat(invoice.total_price),
-  //     }));
-  //
-  //     setInvoices(parsedInvoices);
-  //
-  //     const reportData = {
-  //       revenue: parsedInvoices.reduce((sum, i) => sum + i.total, 0),
-  //       cost: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
-  //       profit: parsedInvoices.reduce((sum, i) => sum + i.total * 0.5, 0),
-  //       dailyData: parsedInvoices.reduce((acc, inv) => {
-  //         const date = inv.date;
-  //         const existing = acc.find(d => d.date === date);
-  //         const revenue = inv.total;
-  //         const cost = revenue * 0.5;
-  //         const profit = revenue - cost;
-  //
-  //         if (existing) {
-  //           existing.revenue += revenue;
-  //           existing.cost += cost;
-  //           existing.profit += profit;
-  //         } else {
-  //           acc.push({ date, revenue, cost, profit });
-  //         }
-  //
-  //         return acc;
-  //       }, []),
-  //     };
-  //
-  //     setReportData(reportData);
-  //     createChart(reportData.dailyData);
-  //
-  //   } catch (error) {
-  //     console.error("Unexpected error fetching invoices:", error);
-  //     alert("Unexpected error fetching invoices");
-  //   }
-  // };
 
   const generateAnalyticsReport = async () => {
     if (!token) {
@@ -759,7 +684,12 @@ useEffect(() => {
         case 'discounts':
           const fetchedAllProducts = await fetchAllProducts(token);
           if (fetchedAllProducts && !fetchedAllProducts.error) {
-            setAllProducts(fetchedAllProducts);
+            setAllProducts(
+              fetchedAllProducts.map(product => ({
+                ...product,
+                discounted: product.discount_rate && product.discount_rate !== 0,
+              }))
+            );
           }
           break;
 
@@ -836,16 +766,7 @@ useEffect(() => {
       alert(`Error: ${result.error}`);
     }
   };
-/*
-  const handleSaveInvoicePDF = (invoiceId) => {
-    // In a real app, this would trigger a PDF downloa d
-    alert(`Saving invoice ${invoiceId} as PDF...`);
-  };
 
-  const handlePrintInvoice = (invoiceId) => {
-    // In a real app, this would open a print dialog
-    alert(`Printing invoice ${invoiceId}...`);
-  }; */
 
   return (
     <>
@@ -1103,8 +1024,8 @@ useEffect(() => {
                     {allProducts.map(product => (
                       <div
                         key={product.product_id}
-                        className={`sm-product-card ${selectedProducts.includes(product.product_id) ? 'selected' : ''} ${product.discounted ? 'discounted' : ''}`}
-                        onClick={() => !product.discounted && handleProductSelection(product.product_id)}
+                        className={`sm-product-card ${selectedProducts.includes(product.product_id) ? 'selected' : ''} ${Number(product.discount_rate) > 0 ? 'discounted' : ''}`}
+                        onClick={() => Number(product.discount_rate) <= 0 && handleProductSelection(product.product_id)}
                       >
                         <div className="product-image">
                           {/* Fix the image display with proper img tag */}
@@ -1116,9 +1037,9 @@ useEffect(() => {
                               e.currentTarget.src = "assets/covers/default.png";
                             }}
                           />
-                          {product.discounted && (
+                          {/* {Number(product.discount_rate) > 0 && (
                             <span className="discount-badge">On Sale</span>
-                          )}
+                          )} */}
                         </div>
                         <div className="product-details">
                           <h4 className="product-title">{product.name}</h4>
@@ -1140,41 +1061,37 @@ useEffect(() => {
                   <table className="active-discounts-table">
                     <thead>
                       <tr>
-                        <th>Campaign</th>
+                        <th>Product Name</th>
                         <th>Discount</th>
-                        <th>Products</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
+                        
+                      
                         <th>Status</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {/* Sample active discount rows - replace with real data */}
-                      <tr>
-                        <td>Summer Sale</td>
-                        <td>25%</td>
-                        <td>5 products</td>
-                        <td>2025-06-01</td>
-                        <td>2025-06-30</td>
-                        <td><span className="status-active">Active</span></td>
-                        <td>
-                          <button className="action-btn view-btn">View</button>
-                          <button className="action-btn cancel-btn">Cancel</button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>New Releases</td>
-                        <td>15%</td>
-                        <td>3 products</td>
-                        <td>2025-05-15</td>
-                        <td>2025-05-31</td>
-                        <td><span className="status-upcoming">Upcoming</span></td>
-                        <td>
-                          <button className="action-btn view-btn">View</button>
-                          <button className="action-btn edit-btn">Edit</button>
-                        </td>
-                      </tr>
+                      {allProducts
+                            .filter(p => Number(p.discount_rate) > 0)
+                            .map(product => (
+                              <tr key={product.product_id}>
+                                <td>{product.name} Discount</td>
+                                <td>
+                                  {product.discount_rate ? `${Number(product.discount_rate) * 100}%` : 'N/A'}
+                                </td>
+                              
+                             
+                                <td><span className="status-active">Active</span></td>
+                                <td>
+                                  <button
+                                    className="action-btn cancel-btn"
+                                    onClick={() => removeDiscount(token, product.product_id)}
+                                  >
+                                    Remove Discount
+                                  </button>
+                                </td>
+                              </tr>
+                          ))}
                     </tbody>
                   </table>
                 </div>
@@ -1249,109 +1166,7 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/*/!* Report Results *!/*/}
-              {/*{reportData && (*/}
-              {/*  <div className="report-results">*/}
-              {/*    /!* Summary Dashboard *!/*/}
-              {/*    <div className="summary-dashboard">*/}
-              {/*      <div className="summary-card revenue">*/}
-              {/*        <div className="card-icon">💰</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Revenue</h4>*/}
-              {/*          <p className="amount">${reportData.revenue.toFixed(2)}</p>*/}
-              {/*          <p className="change positive">+5.2% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card cost">*/}
-              {/*        <div className="card-icon">💸</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Cost</h4>*/}
-              {/*          <p className="amount">${reportData.cost.toFixed(2)}</p>*/}
-              {/*          <p className="change negative">+2.1% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card profit">*/}
-              {/*        <div className="card-icon">📈</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Net Profit</h4>*/}
-              {/*          <p className="amount">${reportData.profit.toFixed(2)}</p>*/}
-              {/*          <p className="change positive">+7.8% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="summary-card orders">*/}
-              {/*        <div className="card-icon">📦</div>*/}
-              {/*        <div className="card-content">*/}
-              {/*          <h4>Total Orders</h4>*/}
-              {/*          <p className="amount">{reportData.dailyData ? reportData.dailyData.length : 0}</p>*/}
-              {/*          <p className="change positive">+3.4% from previous period</p>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*    */}
-              {/*    /!* Charts *!/*/}
-              {/*    <div className="charts-container">*/}
-              {/*      <div className="chart-wrapper">*/}
-              {/*        <h3 className="chart-title">Revenue, Cost & Profit Trends</h3>*/}
-              {/*        <div className="sm-chart-container">*/}
-              {/*          <canvas id="revenue-chart"></canvas>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*      */}
-              {/*      <div className="chart-wrapper">*/}
-              {/*        <h3 className="chart-title">Top Selling Products</h3>*/}
-              {/*        <div className="top-products">*/}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">1</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Fiction Novel</h4>*/}
-              {/*              <p className="product-sales">42 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$545.58</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">2</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Sci-Fi Adventure</h4>*/}
-              {/*              <p className="product-sales">38 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$455.62</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">3</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Business Guide</h4>*/}
-              {/*              <p className="product-sales">27 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$378.73</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">4</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Fantasy Book</h4>*/}
-              {/*              <p className="product-sales">22 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$329.78</span>*/}
-              {/*          </div>*/}
-              {/*          */}
-              {/*          <div className="product-rank">*/}
-              {/*            <div className="rank">5</div>*/}
-              {/*            <div className="product-info">*/}
-              {/*              <h4 className="product-name">Mystery Novel</h4>*/}
-              {/*              <p className="product-sales">19 units sold</p>*/}
-              {/*            </div>*/}
-              {/*            <span className="product-revenue">$246.81</span>*/}
-              {/*          </div>*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*  </div>*/}
-              {/*)}*/}
+         
 
               {reportData && (
                   <div className="report-results">

@@ -13,6 +13,7 @@ import logging as log
 discounts_bp = Blueprint('discounts', __name__)
 
 #set discount to product ID
+#set discount to product ID
 @discounts_bp.route('/setdiscount', methods=['PUT'])
 @jwt_required()
 def get_discounts():
@@ -20,7 +21,6 @@ def get_discounts():
     # Get the current user's identity
     user_id = get_jwt_identity()
     
-
     # Get the request data
     data = request.get_json()
     product_id = data.get('product_id')
@@ -44,14 +44,22 @@ def get_discounts():
         return jsonify({'error': 'You are not authorized to set discounts for this product'}), 403
     
     try:
-        # Update the discount for the product in the database
-        cursor.execute("INSERT INTO discounts (product_id, discount_amount) VALUES (%s, %s)", (product_id, discount_amount))
+        # Check if a discount already exists for the product
+        cursor.execute("SELECT discount_amount FROM discounts WHERE product_id = %s", (product_id,))
+        existing_discount = cursor.fetchone()
+
+        if existing_discount:
+            # Update the existing discount
+            cursor.execute("UPDATE discounts SET discount_amount = %s WHERE product_id = %s", (discount_amount, product_id))
+        else:
+            # Insert a new discount
+            cursor.execute("INSERT INTO discounts (product_id, discount_amount) VALUES (%s, %s)", (product_id, discount_amount))
         conn.commit()
 
         # Notify users who have the product in their wishlist
         user_ids = getUsersToBeNotified(product_id)
-        for user_id in user_ids:
-            addToUserNotifications(user_id, product_id, discount_amount)
+        for notify_user_id in user_ids:
+            addToUserNotifications(notify_user_id, product_id, discount_amount)
       
         # Return a success response
         return jsonify({'message': 'Discount updated successfully'}), 200
@@ -62,7 +70,35 @@ def get_discounts():
 
     finally:
         cursor.close()
-        conn.close()       
+        conn.close()
+
+# ...existing code...
+
+@discounts_bp.route('/removediscount/<int:product_id>', methods=['DELETE'])
+@jwt_required()
+def remove_discount_route(product_id):
+    user_id = get_jwt_identity()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Check if the user is the sales manager for this product
+        cursor.execute('SELECT sales_manager FROM products WHERE product_id = %s', (product_id,))
+        product = cursor.fetchone()
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        if int(product[0]) != int(user_id):
+            return jsonify({'error': 'You are not authorized to remove discounts for this product'}), 403
+
+        # Remove the discount
+        cursor.execute("DELETE FROM discounts WHERE product_id = %s", (product_id,))
+        conn.commit()
+        return jsonify({'message': 'Discount removed successfully'}), 200
+    except Exception as e:
+        log.error(f"Error removing discount: {e}")
+        return jsonify({'error': 'Failed to remove discount'}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @discounts_bp.route('/getdiscount/<int:product_id>', methods=['GET'])
