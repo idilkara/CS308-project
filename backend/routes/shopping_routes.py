@@ -34,7 +34,7 @@ def view_cart():
             FROM shoppingcart sc
             JOIN shoppingcartproducts scp ON sc.cart_id = scp.cart_id
             JOIN products p ON scp.product_id = p.product_id
-            JOIN discounts d ON d.product_id = p.product_id
+            LEFT JOIN discounts d ON d.product_id = p.product_id
             WHERE sc.user_id = %s
         """, (user_id,))
         cart_items = cur.fetchall()

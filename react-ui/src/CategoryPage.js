@@ -380,6 +380,7 @@ const addToCart = async (event, book) => {
           quantity: 1,
           author: book.author || "Unknown Author",
           publisher: book.distributor_information || "Unknown Publisher",
+          discount_rate: book.discount_rate || 0,
           stock_quantity: book.stock_quantity, // Add this to track stock quantity in local storage
           image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
         });

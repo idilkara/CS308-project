@@ -339,6 +339,7 @@ const HomePage = () => {
             quantity: 1,
             author: book.author || "Unknown Author",
             publisher: book.distributor_information || "Unknown Publisher",
+            discount_rate: book.discount_rate || 0,
             stock_quantity: book.stock_quantity, // Add stock_quantity to track availability
             image: `assets/covers/${book.name ? book.name.replace(/\s+/g, '').toLowerCase() : 'default'}.png`
           });
