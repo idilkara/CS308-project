@@ -10,9 +10,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from db import get_db_connection
 import logging as log
-
+import os
 order_bp = Blueprint("order", __name__)
-
+days_old = os.getenv("DAYS_OLD", 30)  # Default to 30 days if not set
 # view order histor as a customer
 @order_bp.route("/view_order_history", methods=["GET"])
 @jwt_required()
@@ -179,9 +179,9 @@ def checkout():
         # Insert order into userorders table with delivery_address
         cur.execute("""
             INSERT INTO userorders (user_id, order_date, total_price, delivery_address, status)
-            VALUES (%s, CURRENT_TIMESTAMP - INTERVAL '0 days', %s, %s, 'processing')
+            VALUES (%s, CURRENT_TIMESTAMP - INTERVAL %s, %s, %s, 'processing')
             RETURNING order_id
-        """, (user_id, total_price, delivery_address)) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
+        """, (user_id,  total_price, f"{days_old} days", delivery_address)) # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
         order_id = cur.fetchone()[0]
 
         # Insert order items and update stock

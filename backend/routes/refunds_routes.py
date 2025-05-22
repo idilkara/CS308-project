@@ -9,7 +9,7 @@ from email import encoders
 import psycopg2
 import smtplib
 import logging
-
+import os
 import io
 from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import letter
@@ -75,8 +75,9 @@ def generate_refund_receipt_pdf(invoice_id, customer_name, delivery_address, ref
     elements.append(Paragraph("Refund Confirmation", header_style))
     elements.append(Spacer(1, 0.2 * inch))
 
+    days_old = int(os.getenv('DAYS_OLD', 0))
     # Date and Customer Info
-    current_date = (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d %H:%M:%S') # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
+    current_date = (datetime.now() - timedelta(days=days_old)).strftime('%Y-%m-%d %H:%M:%S') # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
     info_data = [
         ["Refund ID:", invoice_id],
         ["Date:", current_date], # DATEVALUE (CURRENT_TIMESTAMP - INTERVAL 30 DAY) 
@@ -213,6 +214,7 @@ def request_refund():
 
     logging.info(f"Order Date: {order_date}")
     
+
     if datetime.now() - order_date > timedelta(days=30):
         return jsonify({"error": "Refund period expired."}), 400
 
