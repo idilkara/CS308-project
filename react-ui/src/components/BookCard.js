@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import bookCover from '../img/BookCover.png'; // Adjust path as needed for your project structure
 import { Tag } from 'lucide-react';
 
+import { useAuth } from "../context/AuthContext";
+
 const BookCard = ({ 
   book, 
-  isFavorite, 
+  isFavorite: initialIsFavorite, 
   onToggleFavorite, 
   onAddToCart, 
   onClick,
   showActions = true // Optional prop to hide actions when not needed
 }) => {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite || false);
+  const { token } = useAuth();
+
+  useEffect(() => {
+  setIsFavorite(initialIsFavorite || false);
+}, [initialIsFavorite]);
+
   // Helper function to get book name consistently
   const getBookName = (book) => {
     if (book.title) return book.title;
@@ -17,6 +26,103 @@ const BookCard = ({
     if (book.productName) return book.productName;
     if (book.book_title) return book.book_title;
     return "Unknown Title";
+  };
+
+  // Function to handle wishlist toggle
+  const handleToggleFavorite = async (productId) => {
+    try {
+      if (!token) {
+        alert('Please login to add items to wishlist');
+        return;
+      }
+
+      const endpoint = isFavorite ? '/wishlist/remove' : '/wishlist/add';
+      
+      // Use the same base URL as your other API calls (based on your console logs)
+      const response = await fetch(`http://localhost/api${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          product_id: productId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Toggle the favorite state
+      setIsFavorite(!isFavorite);
+      
+      // Call parent's onToggleFavorite if provided (for updating parent state)
+      if (onToggleFavorite) {
+        onToggleFavorite(productId);
+      }
+      
+      console.log(data.message);
+      
+    } catch (error) {
+      console.error('Wishlist error:', error);
+      
+      // Check if it's a network error or server error
+      if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+        alert('Cannot connect to server. Please check if the server is running.');
+      } else {
+        alert('Failed to update wishlist. Please try again.');
+      }
+    }
+  };
+
+  // Function to add item to cart
+  const addToWishlist = async (productId) => {
+    try {
+      if (!token) {
+        alert('Please login to add items to wishlist');
+        return;
+      }
+
+      const response = await fetch(`http://localhost/api/wishlist/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          product_id: productId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Set as favorite
+      setIsFavorite(true);
+      
+      // Call parent's onToggleFavorite if provided (for updating parent state)
+      if (onToggleFavorite) {
+        onToggleFavorite(productId);
+      }
+      
+      console.log(data.message);
+      alert('Item added to wishlist successfully!');
+      
+    } catch (error) {
+      console.error('Add to wishlist error:', error);
+      
+      if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+        alert('Cannot connect to server. Please check if the server is running.');
+      } else {
+        alert('Failed to add to wishlist. Please try again.');
+      }
+    }
   };
 
   const isOutOfStock = !book.stock_quantity || book.stock_quantity <= 0;
@@ -46,7 +152,7 @@ const BookCard = ({
             className={`favorite-btn ${isFavorite ? 'active' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFavorite(book.product_id);
+              handleToggleFavorite(book.product_id);
             }}
           >
             {isFavorite ? (

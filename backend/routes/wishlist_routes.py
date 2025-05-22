@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import logging
 
 # Blueprint oluştur
 wishlist_bp = Blueprint("wishlist", __name__)
@@ -20,7 +21,7 @@ def view_wishlist():
             FROM wishlists w
             JOIN wishlistproducts wp ON w.wishlist_id = wp.wishlist_id
             JOIN products p ON wp.product_id = p.product_id
-            JOIN discounts d ON d.product_id = p.product_id
+            LEFT JOIN discounts d ON d.product_id = p.product_id
             WHERE w.user_id = %s
         """, (user_id,))
         wishlist_items = cur.fetchall()
@@ -71,6 +72,8 @@ def add_to_wishlist():
         # Check if the user already has this product in their wishlist
         cur.execute("SELECT product_id FROM wishlistproducts WHERE wishlist_id = %s AND product_id = %s", (wishlist_id, product_id))
         wishlist_item = cur.fetchone()
+
+        logging.info(f"Wishlist item: {wishlist_item}")
 
         if wishlist_item:
             return jsonify({"message": "Product already in wishlist"}), 200
