@@ -270,6 +270,7 @@ const handleFilterOrders = () => {
     };
 
     try {
+      console.log("Creating product with data:", productData);
       const response = await fetch("http://localhost/api/pm_products/product/create", {
         method: "POST",
         headers,
@@ -321,95 +322,7 @@ const handleFilterOrders = () => {
     }
   };
 
-  const addCategoryToProduct = async (token, productId, categoryId) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
 
-    const data = { category_name: categoryId };
-
-    try {
-      const response = await fetch(`http://localhost/api/pm_products/product/add_category/${productId}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Category added successfully:", result);
-        return result;
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to add category:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to add category" };
-      }
-    } catch (error) {
-      console.error("Error adding category:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
-  const removeCategoryFromProduct = async (token, productId, categoryId) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
-    const data = { category_name: categoryId };
-
-    try {
-      const response = await fetch(`http://localhost/api/pm_products/product/remove_category/${productId}`, {
-        method: "DELETE",
-        headers,
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Category removed successfully:", result);
-        return result;
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to remove category:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to remove category" };
-      }
-    } catch (error) {
-      console.error("Error removing category:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
-  const updatePrice = async (token, productId, price) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
-    const data = { price };
-
-    try {
-      const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Price updated successfully:", result);
-        return result;
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to update price:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to update price" };
-      }
-    } catch (error) {
-      console.error("Error updating price:", error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
 
   const removeProduct = async (token, productId) => {
     const headers = {
@@ -437,8 +350,6 @@ const handleFilterOrders = () => {
       return { error: "An unexpected error occurred" };
     }
   };
-
-
 
   //ORDERS API CALLS
 
@@ -542,7 +453,7 @@ const handleFilterOrders = () => {
         name: product.name,
         author: product.author,
         stock_quantity: product.stock_quantity,
-        price: 0, // Backend currently doesn't return price, default to 0
+        price: product.price !== undefined ? Number(product.price) : 0, // Use price if present
         lastUpdated: new Date().toISOString().split('T')[0]
       })));
     }
@@ -628,6 +539,7 @@ const handleFilterOrders = () => {
                 orderId: order.order_id,
                 customer: order.delivery_address || `User ${order.user_id}`,
                 product: item.product_name,
+                productId: item.product_id,
                 model: item.product_model,
                 quantity: item.quantity,
                 price: item.price,
@@ -811,6 +723,31 @@ const handleFilterOrders = () => {
   const [editStockId, setEditStockId] = useState(null);
   const [newStockValue, setNewStockValue] = useState('');
 
+  // Add this state near your other useState hooks
+const [customCategory, setCustomCategory] = useState('');
+const [availableCategories, setAvailableCategories] = useState([]);
+
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("http://localhost/api/categories/categories", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      let data = await res.json();
+      // Normalize to { id, name } with id as string
+      const normalized = data.map(cat => ({ id: String(cat.category_id), name: cat.name }));
+      setAvailableCategories(normalized);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
+  fetchCategories();
+}, []);
+
+
   // Load stock data when the "stocks" section is active
   useEffect(() => {
     if (activeSection === 'stock_quantity') {
@@ -958,18 +895,24 @@ const handleFilterOrders = () => {
       alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
     }
-      const selectedCategoryNames = availableCategories
-    .filter(cat => newProduct.categories.includes(cat.id))
-    .map(cat => cat.name);
-
+  
+    // Map selected category IDs to names
+    const selectedCategoryNames = availableCategories
+      .filter(cat => newProduct.categories.includes(cat.id))
+      .map(cat => cat.name);
+  
+    if (selectedCategoryNames.length === 0) {
+      alert('Please select at least one category.');
+      return;
+    }
   
     const productData = {
       name: newProduct.name,
       model: newProduct.model,
       description: newProduct.description,
       stock_quantity: parseInt(newProduct.stock_quantity, 10),
-      distributor_information: newProduct.distributor_information || "Distributor Placeholder",
-      categories:  selectedCategoryNames  || [],
+      distributor_information: newProduct.distributor_information || "Distributor-oddessy",
+      categories: selectedCategoryNames, // <-- send names, not IDs
       author: newProduct.author
     };
   
@@ -990,25 +933,52 @@ const handleFilterOrders = () => {
     }
   };
   
-  // Placeholder categories (you would fetch these from your database)
-  const availableCategories = [
-    { id: 1, name: 'Fiction' },
-    { id: 2, name: 'Non-Fiction' },
-    { id: 3, name: 'Sci-fi' },
-    { id: 4, name: 'Fantasy' },
-  ];
+  // Handler to add custom category
+const handleAddCustomCategory = () => {
+  const trimmed = customCategory.trim();
+  if (!trimmed) return;
+  if (availableCategories.some(cat => cat.name.toLowerCase() === trimmed.toLowerCase())) {
+    alert('Category already exists.');
+    return;
+  }
+  // Generate a unique string id for the new category
+  const newId = (Date.now() + Math.floor(Math.random() * 10000)).toString();
+  setAvailableCategories([...availableCategories, { id: newId, name: trimmed }]);
+  setCustomCategory('');
+};
 
-  const handleCategoryToggle = (categoryId) => {
-    setNewProduct(prev => {
-      const categories = prev.categories.includes(categoryId)
-        ? prev.categories.filter(id => id !== categoryId)
-        : [...prev.categories, categoryId];
-  
-      return {
-        ...prev,
-        categories
-      };
-    });
+  // Placeholder categories (you would fetch these from your database)
+
+    const handleCategoryToggle = (categoryId) => {
+      const idStr = String(categoryId);
+      setNewProduct(prev => {
+        const prevIds = Array.isArray(prev.categories) ? prev.categories.map(String) : [];
+        const isSelected = prevIds.includes(idStr);
+        return {
+          ...prev,
+          categories: isSelected
+            ? prevIds.filter(id => id !== idStr)
+            : [...prevIds, idStr]
+        };
+      });
+    };
+
+  const handleRemoveProduct = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this product? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      const result = await removeProduct(token, id);
+      if (result && !result.error) {
+        setStockProducts(prevProducts => prevProducts.filter(product => product.id !== id));
+        alert('Product removed successfully!');
+      } else {
+        alert(`Failed to remove product: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Unexpected error removing product:', error);
+      alert('An unexpected error occurred while removing the product.');
+    }
   };
 
   return (
@@ -1130,21 +1100,7 @@ const handleFilterOrders = () => {
                       />
                     </div>
 
-                    {/* <div className="pm-form-group half">
-                      <label className="source-sans-regular" htmlFor="price">Price ($) *</label>
-                      <input
-                          type="number"
-                          id="price"
-                          name="price"
-                          value={newProduct.price}
-                          onChange={handleInputChange}
-                          required
-                          min="0"
-                          step="0.01"
-                          className="pm-form-control"
-                          placeholder="Enter price"
-                      />
-                    </div>*/}
+        
                   </div> 
 
                   <div className="pm-form-group">
@@ -1155,7 +1111,7 @@ const handleFilterOrders = () => {
                             <input
                                 type="checkbox"
                                 id={`category-${category.id}`}
-                                checked={newProduct.categories.includes(category.id)}
+                                checked={newProduct.categories.map(String).includes(String(category.id))}
                                 onChange={() => handleCategoryToggle(category.id)}
                             />
                             <label htmlFor={`category-${category.id}`} className="source-sans-light">
@@ -1165,6 +1121,27 @@ const handleFilterOrders = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Custom Category Input */}
+<div className="pm-form-group">
+  <label className="source-sans-regular">Add Custom Category</label>
+  <div style={{ display: 'flex', gap: '8px' }}>
+    <input
+      type="text"
+      value={customCategory}
+      onChange={e => setCustomCategory(e.target.value)}
+      placeholder="Enter new category name"
+      className="pm-form-control"
+    />
+    <button
+      type="button"
+      className="pm-btn-add-category"
+      onClick={handleAddCustomCategory}
+    >
+      Add
+    </button>
+  </div>
+</div>
 
                   <div className="pm-form-actions">
                     <button type="submit" className="pm-btn-submit source-sans-semibold">
@@ -1267,11 +1244,11 @@ const handleFilterOrders = () => {
                               </thead>
                               <tbody>
                               {getFilteredAndSortedProducts().map(product => (
-                                  <tr key={product.product_id} className={product.stock_quantity <= 5 ? 'low-stock' : ''}>
+                                  <tr key={product.id} className={product.stock_quantity <= 5 ? 'low-stock' : ''}>
                                     <td>{product.name}</td>
                                     <td>{product.author}</td>
                                     <td className="stock-column">
-                                      {editStockId === product.product_id ? (
+                                      {editStockId === product.id ? (
                                           <input
                                               type="number"
                                               value={newStockValue}
@@ -1289,11 +1266,11 @@ const handleFilterOrders = () => {
                                     <td>${product.price.toFixed(2)}</td>
                                     <td>{product.lastUpdated}</td>
                                     <td>
-                                      {editStockId === product.product_id ? (
+                                      {editStockId === product.id ? (
                                           <div className="stock-edit-actions">
                                             <button
                                                 className="pm-btn-save-stock"
-                                                onClick={() => handleStockUpdate(product.product_id)}
+                                                onClick={() => handleStockUpdate(product.id)}
                                             >
                                               Save
                                             </button>
@@ -1305,12 +1282,21 @@ const handleFilterOrders = () => {
                                             </button>
                                           </div>
                                       ) : (
-                                          <button
-                                              className="pm-btn-edit-stock"
-                                              onClick={() => startEditStock(product)}
-                                          >
-                                            Update Stock
-                                          </button>
+                                          <>
+                                            <button
+                                                className="pm-btn-edit-stock"
+                                                onClick={() => startEditStock(product)}
+                                            >
+                                              Update Stock
+                                            </button>
+                                            <button
+                                                className="pm-btn-remove-stock"
+                                                style={{ marginLeft: '8px', background: '#e74c3c', color: '#fff' }}
+                                                onClick={() => handleRemoveProduct(product.id)}
+                                            >
+                                              Remove
+                                            </button>
+                                          </>
                                       )}
                                     </td>
                                   </tr>
@@ -1368,7 +1354,8 @@ const handleFilterOrders = () => {
               <thead>
                 <tr>
                   <th>Order ID</th>
-                  <th>Customer</th>
+                  <th>Product ID</th>
+                  <th>Customer's Delivery Address</th>
                   <th>Product</th>
                   <th>Model</th>
                   <th>Quantity</th>
@@ -1383,6 +1370,7 @@ const handleFilterOrders = () => {
                 {deliveries.map(delivery => (
                   <tr key={delivery.id}>
                     <td>{delivery.orderId}</td>
+                    <td>{delivery.productId}</td>
                     <td>{delivery.customer}</td>
                     <td>{delivery.product}</td>
                     <td>{delivery.model}</td>

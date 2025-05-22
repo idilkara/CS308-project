@@ -317,10 +317,12 @@ useEffect(() => {
 
     const data = { price };
 
-    try {
       const response = await fetch(`http://localhost/api/sm/update_price/${productId}`, {
         method: "PUT",
-        headers,
+          headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // <-- Make sure this is set!
+        },
         body: JSON.stringify(data),
       });
 
@@ -333,31 +335,9 @@ useEffect(() => {
         console.error("Failed to update price:", errorData.message || "Unknown error");
         return { error: errorData.message || "Failed to update price" };
       }
-    } catch (error) {
-      console.error("Error updating price:", error);
-      return { error: "An unexpected error occurred" };
-    }
+
   };
 
-  // API calls for discounts
-  // const fetchAllProducts = async () => {
-  //   try {
-  //     // Simulate API call
-  //     setTimeout(() => {
-  //       const sampleProducts = [
-  //         { id: 101, name: "Fiction Novel", author: "John Author", price: 12.99, discounted: false },
-  //         { id: 102, name: "Non-Fiction Book", author: "Jane Writer", price: 14.99, discounted: false },
-  //         { id: 103, name: "Sci-Fi Novel", author: "Robert Pen", price: 11.99, discounted: false },
-  //         { id: 104, name: "Fantasy Book", author: "Sarah Storyteller", price: 16.99, discounted: false },
-  //         { id: 201, name: "New Novel", author: "J. Author", price: 13.99, discounted: false },
-  //         { id: 202, name: "Business Guide", author: "B. Writer", price: 19.99, discounted: false }
-  //       ];
-  //       setAllProducts(sampleProducts);
-  //     }, 800);
-  //   } catch (error) {
-  //     console.error("Error fetching products:", error);
-  //   }
-  // };
 
   const fetchAllProducts = async () => {
     if (!token) {
@@ -472,9 +452,12 @@ const removeDiscount = async (token, productId) => {
       return;
     }
 
-    const discountFraction = rate / 100;
+    const discountFraction = rate / 100; // ✅ Always divide by 100 before sending
 
     try {
+      console.log(`Applying ${rate}% discount to ${selectedProducts.length} products`);
+      console.log(`From ${discountStartDate} to ${discountEndDate}`);
+
       for (const productId of selectedProducts) {
         const result = await updateDiscount(token, productId, discountFraction);
         if (result.error) {
@@ -482,13 +465,13 @@ const removeDiscount = async (token, productId) => {
         }
       }
 
-      // Update discount_rate in allProducts for selected products
+      // ✅ Visually update frontend
       setAllProducts(prevProducts =>
-        prevProducts.map(product =>
-          selectedProducts.includes(product.product_id)
-            ? { ...product, discount_rate: discountFraction.toString(), discount_start: discountStartDate, discount_end: discountEndDate }
-            : product
-        )
+          prevProducts.map(product =>
+              selectedProducts.includes(product.product_id)
+                  ? { ...product, discounted: true }
+                  : product
+          )
       );
 
       setSelectedProducts([]);
@@ -734,13 +717,15 @@ const removeDiscount = async (token, productId) => {
     console.log(`id ot the product to update price : ${id}`);
     const result = await updatePrice(token, id, parseFloat(newPrice));
 
-    if (result.ok) {
+    if (result.error) {
+      alert(`Error: ${result.error}`);
+    } else {
       setEditPriceId(null);
       setNewPrice('');
       setNewCost('');
+      // Remove the product from the waiting products list
+      setNewProducts(prev => prev.filter(product => product.product_id !== id));
       alert(`Price updated successfully for product #${id}`);
-    } else {
-      alert(`Error: ${result.error}`);
     }
   };
 
@@ -827,13 +812,7 @@ const removeDiscount = async (token, productId) => {
                       <p className="amount">{newProducts.length}</p>
                     </div>
                   </div>
-                  <div className="summary-card">
-                    <div className="card-icon">💰</div>
-                    <div className="card-content">
-                      <h4>Recently Priced</h4>
-                      <p className="amount">{newProducts.filter(product => product.price).length}</p>
-                    </div>
-                  </div>
+                
                 </div>
               </div>
 

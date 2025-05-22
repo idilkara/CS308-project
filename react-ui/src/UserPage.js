@@ -144,7 +144,7 @@ const UserAccountPage = () => {
     const { token } = useAuth(); // Access the token from AuthContext
     console.log("Token from context:", token); // Log the token to check if it's being passed correctly
     const setRole = useSetRole(); // This is the hook call
-    const [userData, setUserData] = useState({ name: '', email: '', address: '' }); // address is primary
+    const [userData, setUserData] = useState({ userID: '', name: '', email: '', address: '' }); // add userID
     const [formData, setFormData] = useState({
         name: userData.name,
         email: userData.email,
@@ -254,7 +254,12 @@ const UserAccountPage = () => {
             getUserInfo(token, navigate)
                 .then(userData => {
                     if (userData) {
-                        setUserData({name: userData.name, email: userData.email, address: userData.home_address});
+                        setUserData({
+                            userID: userData.user_id, // or whatever the field is called in your backend
+                            name: userData.name,
+                            email: userData.email,
+                            address: userData.home_address
+                        });
                     }
                 });
             //to test other api requests
@@ -941,25 +946,28 @@ const UserAccountPage = () => {
         <h2 className="section-title">Profile Information</h2>
         <div className="profile-info">
             <div className="info-group">
-                <div className="info-label">Name</div>
-                <div className="info-value">{userData.name}</div>
+            <div className="info-label">Tax ID</div>
+            <div className="info-value">
+                {userData.userID
+                ? `TAX-${String(userData.userID).padStart(8, '0')}`
+                : 'N/A'}
             </div>
-            
+            </div>
             <div className="info-group">
-                <div className="info-label">Email Address</div>
-                <div className="info-value">{userData.email}</div>
+            <div className="info-label">Name</div>
+            <div className="info-value">{userData.name}</div>
             </div>
-            
+            <div className="info-group">
+            <div className="info-label">Email Address</div>
+            <div className="info-value">{userData.email}</div>
+            </div>
             <div className="address-block">
-                <div className="info-label">
-                    Delivery Address 
-                    
-                </div>
-                <div className="info-value">{userData.address}</div>
-
+            <div className="info-label">
+                Delivery Address 
+            </div>
+            <div className="info-value">{userData.address}</div>
             </div>
         </div>
-        
         <button className="edit-button" onClick={toggleEditMode}>Edit Profile</button>
         </>
         );};
