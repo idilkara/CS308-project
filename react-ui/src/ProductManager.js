@@ -342,8 +342,8 @@ const handleFilterOrders = () => {
         return result;
       } else {
         const errorData = await response.json();
-        console.error("Failed to remove product:", errorData.message || "Unknown error");
-        return { error: errorData.message || "Failed to remove product" };
+        console.error("Cannot delete product: it is part of existing orders, you can set the stock to 0 instead.");
+        return { error: errorData.message || "Cannot delete product: it is part of existing orders, you can set the stock to 0 instead." };
       }
     } catch (error) {
       console.error("Error removing product:", error);
@@ -973,7 +973,7 @@ const handleAddCustomCategory = () => {
         setStockProducts(prevProducts => prevProducts.filter(product => product.id !== id));
         alert('Product removed successfully!');
       } else {
-        alert(`Failed to remove product: ${result.error}`);
+        alert("Cannot delete product: it is part of existing orders, you can set the stock to 0 instead.");
       }
     } catch (error) {
       console.error('Unexpected error removing product:', error);
