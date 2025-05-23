@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import { useAuth } from "./context/AuthContext";
 import "./CheckoutPage.css";
-import bookCover from './img/BookCover.png';
+import bookCover from './img/BookCover-default.png';
 import PdfViewer from './components/pdfView.js';
 
 const CheckoutPage = () => {

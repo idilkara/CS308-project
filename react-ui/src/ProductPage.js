@@ -6,7 +6,7 @@ import ReviewForm from "./ReviewForm.js";
 import BookCard from './components/BookCard'; // Import the BookCard component
 import { useAuth } from "./context/AuthContext";
 import { ChevronUp, ChevronDown, Tag } from "lucide-react";
-import bookCover from './img/BookCover.png';
+import bookCover from './img/BookCover-default.png';
 
 const ProductPage = () => {
   const location = useLocation();

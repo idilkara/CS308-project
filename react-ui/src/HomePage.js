@@ -6,7 +6,7 @@ import './styles/root.css';
 import banner1 from "./img/HomePageBanner1.png";
 import banner2 from "./img/HomePageBanner2.png";
 import banner3 from "./img/HomePageBanner3.png";
-import bookCover from './img/BookCover.png';
+import bookCover from './img/BookCover-default.png';
 
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";

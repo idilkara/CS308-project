@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, use } from 'react';
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
-import bookCover from './img/BookCover.png';
+import bookCover from './img/BookCover-default.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";

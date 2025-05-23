@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import './CategoryPage.css';
 import Navbar from "./components/Navbar.jsx"
-import bookCover from './img/BookCover.png';
+import bookCover from './img/BookCover-default.png';
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 const CategoryPage = () => {

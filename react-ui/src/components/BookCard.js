@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import bookCover from '../img/BookCover.png'; // Adjust path as needed for your project structure
+import bookCover from '../img/BookCover-default.png'; // Adjust path as needed for your project structure
 import { Tag } from 'lucide-react';
 
 import { useAuth } from "../context/AuthContext";
